@@ -1,7 +1,7 @@
 #include "main.h"
 #include "first_step.h"
 #include "cmd_check.h"
-#include "main_data.h"
+
 
 /*Receives a pointer to the string and removes blankspaces before and after it. Returns a pointer to the new string without blankspaces by sides*/
 char* remove_blanks(char* word){
@@ -30,7 +30,6 @@ char* remove_blanks(char* word){
 	memcpy(p,&word[start],end-start+1);/*copy string*/		
 	p[end-start+1] = '\0';	
 	word=(char *)realloc(p,strlen(p));/*reallocate to the source string and free p*/
-	printf("word after removing blanks: %s\n", word);	
 	return word;			
 }
 
@@ -67,7 +66,6 @@ int checkCommas (char *word, int line_num){
 
 /*Function receives a number and checks if it legal*/
 int check_one_num(char *num){	
-	printf("Inside checkonenum\n");			
 	char *ptr;
 	char *number = (char *)malloc(strlen(num)+1);
 	if(number == NULL)

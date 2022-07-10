@@ -34,6 +34,10 @@ void check_struct_param();
 void check_entry();
 void check_extern();
 
+static char *OPCODE[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "get", "prn", "jsr", "rts", "hlt"};
+
+static char *REGISTER[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"}; 
+
 
 /*struct array of commands*/
 static CmdNames cmd[] ={

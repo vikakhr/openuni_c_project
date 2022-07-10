@@ -1,5 +1,4 @@
 #include "main.h" /*main libraries*/
-#include "main_data.h" /*data*/
 #include "first_step.h" /*functions*/
 #include "cmd_check.h" /*check functions*/
 

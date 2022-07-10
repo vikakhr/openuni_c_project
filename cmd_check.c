@@ -1,5 +1,4 @@
 #include "main.h"
-#include "main_data.h"
 #include "first_step.h"
 #include "cmd_check.h"
 
@@ -170,7 +169,6 @@ int check_arg_struct(char *word){
 /*Function checks if argument is register, if it is returns num of addressing type, otherwise returns -1*/
 int check_arg_register(char *word){
 	int i;
-	
 	for(i=0; i<CMDLENGTH; i++){
 		if(!strcmp(word, REGISTER[i]))
 			return 3;

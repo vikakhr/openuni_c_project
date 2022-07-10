@@ -1,14 +1,13 @@
 #include "main.h" /*main libraries*/
-#include "main_data.h" /*linked lists to check or save data*/
 #include "cmd_check.h" /*check functions*/
 #include "second_step.h" /*functions*/
 
-/*Function receives name of label and check of there are no same labels in the linked list. Returns 0 of name already exist, 1 otherwise*/
+/*Function receives name of label and check of there are no same labels in the linked list. Returns 0 of name already exist, 1 otherwise
 int check_repeated_labels(char* name, node_label* head){
 	node_label* ptr = head;
 
 	while(ptr!=NULL){
-		if(!strcmp(ptr->name, name)){/*list of labels already has this label*/
+		if(!strcmp(ptr->name, name)){/*list of labels already has this label
 
 			return 0;
 		}
@@ -21,7 +20,7 @@ int check_repeated_labels(char* name, node_label* head){
 
 
 
-/*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list*/
+/*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list
 void add_node(node_label** head, node_label** tail, char* name, int line){
 	node_label *new = malloc(sizeof(node_label));
 	new->name = (char*)malloc(strlen(name)+1);
@@ -30,12 +29,12 @@ void add_node(node_label** head, node_label** tail, char* name, int line){
 	strcpy(new->name, name);
 	printf("Inside addnode\n");
 	printf("Node is: %s %d\n", new->name, new->line_number);
-	if(*head==NULL){/*if this is first node*/
+	if(*head==NULL){/*if this is first node
 		*head = new;
 		*tail = new;		
 		return;
 	}		
-	else if(*tail == NULL){/*if this is second node*/
+	else if(*tail == NULL){/*if this is second node
 		(*head)->next = new;
 		*tail = new;
 	}
@@ -47,7 +46,7 @@ void add_node(node_label** head, node_label** tail, char* name, int line){
 
 
 
-/*Function counts command's memory number*/
+/*Function counts command's memory number
 int count_memory_num(char* line, int num){
 	char *white_space = " \t\v\f\r\n";
 	char *p;
@@ -61,7 +60,7 @@ int count_memory_num(char* line, int num){
 
 
 
-/*Function frees nodes and linked list*/
+/*Function frees nodes and linked list
 void free_label_list(node_label* head){
 	node_label* ptr;
 
@@ -69,14 +68,14 @@ void free_label_list(node_label* head){
 		ptr = head;
 		head = head->next;
 		printf("1. %s - %d\n", ptr->name, ptr->line_number);
-		free(ptr->name);/*free memory of name*/
-		free(ptr);/*free memory of node*/
+		free(ptr->name);/*free memory of name
+		free(ptr);/*free memory of node
 	}
 }
 
 
 
-/*Function checks if string il legal and returns it's length, 0 otherwise*/
+/*Function checks if string il legal and returns it's length, 0 otherwise
 int check_string_length(char* string){
 	string = remove_blanks(string);
 	if(string[0] == '"' && string[strlen(string)-1] == '"')
