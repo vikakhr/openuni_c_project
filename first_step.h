@@ -1,6 +1,4 @@
 
-enum {LABEL_CMD, LABEL_DRCTV, CMD, DRCTV};
-
 
 typedef struct CmdNames{/*linked list of opcodes*/
 	char *name;
@@ -16,11 +14,12 @@ typedef struct DrctvNames{/*linked list of opcodes*/
 	void (*func)();
 }DrctvNames; 
 
-
-
 void check_cmd_line(char *sourceFileName);
 
-int check_command_type(char *line, int line_num);
+int check_cmd (char *word, struct CmdNames *cmd);
+int check_directive(char *word, struct DrctvNames *drctv);
+int check_cmd_args(char *word, int line_num, int type, struct CmdNames *cmd);
+int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
 
 
 int check_first_group(char *source, char *dest);

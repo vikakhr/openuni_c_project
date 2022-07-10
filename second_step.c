@@ -3,6 +3,20 @@
 #include "cmd_check.h" /*check functions*/
 #include "second_step.h" /*functions*/
 
+/*Function receives name of label and check of there are no same labels in the linked list. Returns 0 of name already exist, 1 otherwise*/
+int check_repeated_labels(char* name, node_label* head){
+	node_label* ptr = head;
+
+	while(ptr!=NULL){
+		if(!strcmp(ptr->name, name)){/*list of labels already has this label*/
+
+			return 0;
+		}
+		ptr = ptr->next;
+	}
+	return 1;
+	
+}
 
 
 
@@ -37,9 +51,9 @@ void add_node(node_label** head, node_label** tail, char* name, int line){
 int count_memory_num(char* line, int num){
 	char *white_space = " \t\v\f\r\n";
 	char *p;
-	if(p = strtok(line, white_space)!=NULL)
+	if((p = strtok(line, white_space))!=NULL)
 		num++;
-	while(p = strtok(NULL, white_space)!=NULL)
+	while((p = strtok(NULL, white_space))!=NULL)
 		num++;
 	return num;
 

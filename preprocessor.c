@@ -2,6 +2,8 @@
 
 #include "main.h" /*main libraries*/
 #include "preprocessor.h" /*functions*/
+#include "cmd_check.h" /*for remove_blanks function*/
+
 
 void preprocessor(char *sourceFileName){/*receives name of source file*/
 	FILE *sfp, *dfp;/*sfp is .as source file, dfp is .am destination file*/
@@ -48,7 +50,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 		
 
 		if(isInside){/*if inside macro add this line to macro data*/
-			if(strstr(command, endmacro)){/*if endmacro found*/
+			if(is_one_word(command) && strstr(command, endmacro)){/*if endmacro found*/
 				isInside = 0;
 				continue;
 			}
@@ -60,7 +62,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 				if(isMacroInFile)/*if macro already exists in file*/
 					if(write_macro_data(command, head, dfp))/*if this is macro name write and go to next line*/
 						continue;
-			fprintf(dfp, "%s", command); /*write inside .am file*/
+			fprintf(dfp, "%s", commandCopy); /*write inside .am file*/
 			continue;/*go to read next line*/
 		}
 
@@ -124,12 +126,21 @@ void put_macro_data(char* string, node_macro** tail){
 
 /*Function receives line, returns 1 if it contains one word, return 0 if it empty or contains more than one word*/
 int is_one_word(char* string){
-	char *p;	
-	char *white_space = " \t\v\f\r";
-	if((p=strtok(string, white_space)) == NULL)/*empty*/
+	char *p, *copy;	
+	char *white_space = " \t\v\f\r\n";
+	copy = (char*)malloc(strlen(string));
+	if(copy == NULL)
+		exit(0);
+	strcpy(copy, string);
+	if((p=strtok(copy, white_space)) == NULL){/*empty*/
+		free(copy);
 		return 0;
-	if((p=strtok(NULL, white_space)) == NULL)/*one word line*/
+	}
+	if((p=strtok(NULL, white_space)) == NULL){/*one word line*/
+		free(copy);		
 		return 1;
+	}
+	free(copy);
 	return 0;	
 }
 
@@ -137,15 +148,21 @@ int is_one_word(char* string){
 int if_is_macro(char* string){
 	char *white_space = " \t\v\f\r";
 	char* str = "macro";
-	char *p;
-	p = strtok(string, white_space);
-	printf("Inside: %s\n", p);
+	char *p, *copy;
+
+	copy = (char*)malloc(strlen(string));
+	if(copy == NULL)
+		exit(0);
+
+	copy = remove_blanks(string);
+
+	p = strtok(copy, white_space);
 	if(strcmp(p, str)){/*if not macro*/
-		printf("Inside2: %s\n", p);
+		free(copy);
 		return 0;
 		
 	}
-	printf("Inside3: %s\n", p);
+	free(copy);
 	return 1;
 }
 
@@ -163,26 +180,33 @@ int if_is_endmacro(char* string){
 char* take_macro_name(char* string){
 	char* p;
 	char *white_space = " \t\v\f\r";
+	string = remove_blanks(string);
 	p = strtok(string, white_space);
-	printf("%s\n", p);
 	p = strtok(NULL, white_space);
-	printf("%s\n", p);
 	return p;
 }
 
 /*writes data into file*/
 int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	node_macro* ptr = head;
-	char* p;
+	char* p, *copy;
 	char *white_space = " \t\v\f\r";
-	p = strtok(string, white_space);
+	copy = (char*)malloc(strlen(string));
+	if(copy == NULL)
+		exit(0);
+	copy = remove_blanks(string);
+
+	p = strtok(copy, white_space);
+
 	while(ptr!=NULL){
-		if(!strcmp(ptr->name, p)){/*search name of macro in the list*/
+		if(!strcmp(ptr->name, copy)){/*search name of macro in the list*/
 			fprintf(dfp, "%s", ptr->data);/*if found write data*/
+			free(copy);
 			return 1;
 		}
 		ptr = ptr->next;
 	}
+	free(copy);
 	return 0;
 }
 

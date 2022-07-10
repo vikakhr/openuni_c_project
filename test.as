@@ -1,32 +1,20 @@
-111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
-abc
-def
-macr
-macr
-macr
-123
-macr2
-123
-mov123
-abc
-111
-macr
-macr
-macr
-macr2
-macr3
-macr3
-macr3
-macr3
-macr3
-macr3
-macr3
-
-macr3
-macr3
-macr3
-macr3
-macr3
-mov r1, r2
-LABEL: mov
+mov r1, r2 
+LABEL: mov	
+macro m1
+a1 a1 a1 a1 a1
+a2 a2
+ 	
+endmacro 
 TAKE: aaa
+	 macro  	m2 
+	aa
+	bbb
+ 		endmacro   
+M: 
+aa
+aaaaaaaaa
+aaa 	 
+m1
+m1 
+m1	
+ 	 m2

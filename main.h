@@ -5,3 +5,4 @@
 
 #define FOREVER for(;;)
 #define LINESIZE 81
+

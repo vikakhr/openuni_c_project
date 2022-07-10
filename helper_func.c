@@ -1,3 +1,4 @@
+#include "main.h"
 #include "first_step.h"
 #include "cmd_check.h"
 #include "main_data.h"
@@ -6,16 +7,19 @@
 char* remove_blanks(char* word){
 	int i, start=0, end=0;
 	int len;
-	char *p = (char *)malloc(len+1);
-	if(p==NULL)
-		exit(0);
+	char *p; 
 	
 	len = strlen(word);
+	p = (char *)malloc(len+1);
+	if(p==NULL)
+		exit(0);
+
 	for(i=0; i<len; i++){/*start index of word*/
 		if(!isspace(word[i])){
 			start=i;	
 			break;
 		}
+
 	}
 	for(i=len-1; i>=0; i--){/*end index of word*/
 		if(!isspace(word[i])){
@@ -25,7 +29,8 @@ char* remove_blanks(char* word){
 	}
 	memcpy(p,&word[start],end-start+1);/*copy string*/		
 	p[end-start+1] = '\0';	
-	word=(char *)realloc(p,strlen(p));/*reallocate to the source string and free p*/	
+	word=(char *)realloc(p,strlen(p));/*reallocate to the source string and free p*/
+	printf("word after removing blanks: %s\n", word);	
 	return word;			
 }
 
@@ -61,7 +66,8 @@ int checkCommas (char *word, int line_num){
 }
 
 /*Function receives a number and checks if it legal*/
-int check_one_num(char *num){				
+int check_one_num(char *num){	
+	printf("Inside checkonenum\n");			
 	char *ptr;
 	char *number = (char *)malloc(strlen(num)+1);
 	if(number == NULL)
