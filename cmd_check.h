@@ -1,6 +1,6 @@
 
 
-enum {LABEL_CMD, LABEL_DRCTV, CMD, DRCTV};
+enum {LABEL_CMD, LABEL_DRCTV, CMD, DRCTV, LABEL_POSITION};
 
 
 
@@ -17,7 +17,7 @@ int check_one_num(char *num);
 
 
 int check_command_type(char *line, int line_num);
-int check_label_islegal(char* label, char* afterLabel, int line_num);
+int check_label_islegal(char* label, int line_num);
 
 
 

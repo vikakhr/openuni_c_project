@@ -2,61 +2,10 @@
 #include "cmd_check.h" /*check functions*/
 #include "second_step.h" /*functions*/
 
-/*Function receives name of label and check of there are no same labels in the linked list. Returns 0 of name already exist, 1 otherwise
-int check_repeated_labels(char* name, node_label* head){
-	node_label* ptr = head;
-
-	while(ptr!=NULL){
-		if(!strcmp(ptr->name, name)){/*list of labels already has this label
-
-			return 0;
-		}
-		ptr = ptr->next;
-	}
-	return 1;
-	
-}
 
 
 
 
-/*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list
-void add_node(node_label** head, node_label** tail, char* name, int line){
-	node_label *new = malloc(sizeof(node_label));
-	new->name = (char*)malloc(strlen(name)+1);
-	new->line_number = line;
-	new->next = NULL;
-	strcpy(new->name, name);
-	printf("Inside addnode\n");
-	printf("Node is: %s %d\n", new->name, new->line_number);
-	if(*head==NULL){/*if this is first node
-		*head = new;
-		*tail = new;		
-		return;
-	}		
-	else if(*tail == NULL){/*if this is second node
-		(*head)->next = new;
-		*tail = new;
-	}
-	else {	
-		(*tail)->next = new;
-		*tail = new;
-	}
-}
-
-
-
-/*Function counts command's memory number
-int count_memory_num(char* line, int num){
-	char *white_space = " \t\v\f\r\n";
-	char *p;
-	if((p = strtok(line, white_space))!=NULL)
-		num++;
-	while((p = strtok(NULL, white_space))!=NULL)
-		num++;
-	return num;
-
-}
 
 
 
@@ -84,15 +33,6 @@ int check_string_length(char* string){
 
 }
 
-
-
-
-
-
-/*void add_error_line(node_error* head, node_error* tail, int line_num){
-	node_error* ptr;
-	
-Function to add line-number of error into linked list, no need to arrange
 
 
 

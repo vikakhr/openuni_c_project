@@ -1,6 +1,7 @@
 #include "main.h" /*main libraries*/
 #include "first_step.h" /*functions*/
 #include "cmd_check.h" /*check functions*/
+#include "label_lists.h" /*lists of labels and structs*/
 
 
 
@@ -10,6 +11,10 @@ void check_cmd_line(char *sourceFileName){
 	int line_num = 0;
 	int cmd_type;
 	char *command, *commandCopy;
+	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
+	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
+	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
+	structs *head_struct = NULL,  *tail_struct = NULL; /*list of structs*/
 
 
 	
@@ -51,7 +56,7 @@ void check_cmd_line(char *sourceFileName){
 		if(command[0] == ';')/*if this is comment line - ignore and go to next*/
 			continue;
 
-		if(ispunct(command[strlen(command)-1])){/*if punctuation mark at the end of command*/ 
+		if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a "" punctuation mark at the end of command*/ 
 			printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
 			continue;
 		}
@@ -61,16 +66,31 @@ void check_cmd_line(char *sourceFileName){
 		
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 	
-		if((cmd_type = check_command_type(commandCopy, line_num))==-1)/*check command type*/
+		if((cmd_type = check_command_type(commandCopy, line_num))==ERROR)/*check command type*/
 			continue;
 
-		else if(cmd_type==LABEL_CMD || cmd_type==CMD){ /*check parameters*/
+		if(cmd_type == LABEL_POSITION)/*if this is label position, has been added from cmd_check func to list*/
+			continue;
+
+		if(cmd_type==LABEL_CMD || cmd_type==CMD){ /*check parameters*/
 			if(check_cmd_args(command, line_num, cmd_type, cmd)==ERROR)
-				continue;	
+				continue;
+			if(cmd_type==LABEL_CMD)	{
+				printf("Label and command are ok, add label into linked list");
+			}
 		}
-		else if(check_drctv_args(command, line_num, cmd_type, drctv)==ERROR)
-				continue;	
-	
+		if(cmd_type==LABEL_DRCTV || cmd_type==DRCTV){
+			if(cmd_type==DRCTV)
+			/*if entry or extern go check params and no label*/
+
+			if(cmd_type==LABEL_DRCTV)	{
+				printf("Label and directive are ok, add label into linked list");
+			}	
+		}
+
+		
+
+
 
 	}/*end of forever*/	
 		
@@ -130,7 +150,7 @@ int check_prn(char *dest){
 
 
 
-/*Function receives command, line num, command type and struct of directives, and checks if arguments of given directive are right*/
+/*Function receives command, line num, command type and struct of directives, and checks if arguments of given directive are right
 int check_drctv_args(char *command, int line_num, int type, struct DrctvNames *drctvs){
 	char *label, *drctv, *arg;
 	char *white_space = " \t\v\f\r\n";
@@ -154,7 +174,7 @@ int check_drctv_args(char *command, int line_num, int type, struct DrctvNames *d
 
 
 	return ERROR;
-}
+}*/
 
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/

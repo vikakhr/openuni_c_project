@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]){
 FILE *ifp;
-char *file_name;
+char *file_name, *ptr;
 
 
 if(argc == 1)
@@ -26,6 +26,8 @@ while(--argc>0){
 	}
 	else {
 		preprocessor(file_name);/*preprocessor function*/
+		ptr = strchr(file_name, '.');
+		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
 		check_cmd_line(file_name); /*check errors*/
 		

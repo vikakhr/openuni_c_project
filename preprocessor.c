@@ -128,7 +128,7 @@ void put_macro_data(char* string, node_macro** tail){
 int is_one_word(char* string){
 	char *p, *copy;	
 	char *white_space = " \t\v\f\r\n";
-	copy = (char*)malloc(strlen(string));
+	copy = (char*)malloc(strlen(string)+1);
 	if(copy == NULL)
 		exit(0);
 	strcpy(copy, string);
@@ -150,7 +150,7 @@ int if_is_macro(char* string){
 	char* str = "macro";
 	char *p, *copy;
 
-	copy = (char*)malloc(strlen(string));
+	copy = (char*)malloc(strlen(string)+1);
 	if(copy == NULL)
 		exit(0);
 
@@ -191,7 +191,7 @@ int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	node_macro* ptr = head;
 	char* p, *copy;
 	char *white_space = " \t\v\f\r";
-	copy = (char*)malloc(strlen(string));
+	copy = (char*)malloc(strlen(string)+1);
 	if(copy == NULL)
 		exit(0);
 	copy = remove_blanks(string);
