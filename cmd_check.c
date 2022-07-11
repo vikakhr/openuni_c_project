@@ -3,6 +3,7 @@
 #include "cmd_check.h"
 #include "label_lists.h"
 
+/*Receives command line and line num, checks if opcode or directive is legal and returns which command type line is*/
 int check_command_type(char *line, int line_num){
 	char *firstWord, *secondWord, *word, *label;
 	char *white_space = " \t\v\f\r\n";
@@ -20,7 +21,7 @@ int check_command_type(char *line, int line_num){
 		label = strtok(firstWord, ":");/*take label name*/
 			
 		if((isLabel = check_label_islegal(label, line_num)) == 0)/*check if label name is legal*/
-			return -1;
+			return ERROR;
 
 		/*if(!check_repeated_labels(label, head)){/*label name is already exists, error, CHECK THIS AT SECOND ITERATION
 			printf("Error, repeated label name: %s\n in line number: %d\n", label, line_num);
@@ -30,64 +31,60 @@ int check_command_type(char *line, int line_num){
 	if(isLabel)/*choose next word to check*/
 		word = secondWord;
 	word = firstWord;
-			
+	printf("First: %s\t Second: %s\t Word: %s\n", firstWord, secondWord, word);		
 	if(word[0] == '.'){/*if is directive*/
 		printf("Directive check?\n");
-		drctv_index = check_directive(word, drctv);
-		printf("Index is %d\n", drctv_index);
-		if((drctv_index = check_directive(word, drctv))==ERROR){/*check if first word is directive*/
+		if((drctv_index = check_directive(word))==ERROR){/*check if first word is directive*/
 			printf("Here\n");
 			if(word[strlen(firstWord)-1] == ','){/*Illegal comma after command name check*/
 				printf("Illegal comma in line number: %d\n", line_num);
-				return -1;	
+				return ERROR;	
 			}
 			else {
 				printf("Undefined command name in line number: %d\n", line_num);
-				return -1;
+				return ERROR;
 			}
 		}
-		if(drctv[drctv_index].args==1){/*if this is label position directive*/	
+		if(drctv_index== 3 || drctv_index== 4){/*if this is label position directive?????*/	
 			if(!isLabel){
 				printf("This is label position directive, check if ok and put it into list\n");
+				printf("First:%s\t Second:%s\t Word: %s\t\n", firstWord, secondWord, word);
+				if((word = strtok(NULL, white_space))!=NULL){
+					printf("Error, extraneous text after label position directive, in line number: %d\n", line_num);
+					return ERROR;
+				}
 				if(check_label_islegal(secondWord, line_num)==ERROR){
 					printf("Error, illegal label name for label position directive, in line number: %d\n", line_num);
-					return -1;
+					return ERROR;
 				}
-				else {
-					/*if entry add to entry if extern add to extern*/
+				else 
 				return LABEL_POSITION;
-	
 				}
-
-			}
 			else {/*if there is label before position directive, ignore*/
 				printf("Warning, a label before position directive will be ignored, in line %d", line_num);
 				isLabel = 0;	
 			}
-			
-
-			
 		}
-			
-
+		
 		else if(isLabel)
 			return LABEL_DRCTV;
 		return DRCTV;						
 		
 	}
-	else if((cmd_index = check_cmd(word, cmd))==ERROR){/*check if first word is command*/
-		if(word[strlen(firstWord)-1] == ','){/*Illegal comma after command name check*/
-			printf("Illegal comma in line number: %d\n", line_num);
-			return -1;	
-		}
-		else {
+	else {
+		if(isLabel)/*if label check if second word is legal command*/
+			cmd_index = check_cmd(secondWord, cmd);
+		else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
+
+		if(cmd_index==ERROR){/*command isn't legal*/
 			printf("Undefined command name in line number: %d\n", line_num);
-			return -1;
+			return ERROR;
 		}
 	}
-	else if(isLabel)
+	
+	if(isLabel)
 		return LABEL_CMD;
-	return CMD;
+	else return CMD;
 	
 }
 
@@ -120,9 +117,6 @@ int check_label_islegal(char* label, int line_num){
 				return 0;
 			} 
 	}
-
-	
-	printf("Labelname is ok\n");	
 	return 1;
 }
 
@@ -200,5 +194,17 @@ int check_arg_register(char *word){
 	}
 
 	return ERROR;
+}
+
+void check_label_position(char *command){
+	char* position, *label;
+	char *white_space = " \t\v\f\r\n";
+	
+	position = strtok(command, white_space);
+	label = strtok(NULL, white_space);
+
+	/*put inside linked list*/
+
+
 }
 

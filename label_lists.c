@@ -1,7 +1,12 @@
 #include "main.h"
 #include "label_lists.h"
 
+void label_position_cmd(char* command, int line_num){
+	char *ptr;
 
+
+
+}
 
 
 

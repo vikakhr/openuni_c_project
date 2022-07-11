@@ -2,7 +2,7 @@ mov S1.2, r3
 LABEL: prn #-5
 inc K
 K: .data 22
-S: .extern
+S: .extern abc
 LENGTH: .data 6,-9,15
 MAIN: mov S1.1, W
 S1: .struct 8, "ab"	

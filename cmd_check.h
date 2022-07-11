@@ -1,14 +1,14 @@
 
-
-enum {LABEL_CMD, LABEL_DRCTV, CMD, DRCTV, LABEL_POSITION};
+/*label+opcode, label+directive, opcode, directive, (.extern/.entry)+label*/
+enum {LABEL_CMD, LABEL_DRCTV, CMD, DRCTV, LABEL_POSITION}; 
 
 
 
 #define ERROR -1
-#define LABELSIZE 30
-#define CMDLENGTH 16 
-#define REGLENGTH 8 
-
+#define LABELSIZE 30 /*max length of label name*/
+#define CMDLENGTH 16 /*number of opcodes*/
+#define REGLENGTH 8 /*number of registers*/
+#define DRCTVNUM 5 /*number of directives*/
 
 
 char* remove_blanks(char* word);

@@ -10,7 +10,7 @@ void check_cmd_line(char *sourceFileName){
 	FILE *sfp;
 	int line_num = 0;
 	int cmd_type;
-	char *command, *commandCopy;
+	char *command, *commandCopy, *commandFinal;
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
 	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
@@ -24,19 +24,23 @@ void check_cmd_line(char *sourceFileName){
 	}
 	
 	FOREVER {
-		command = (char*)malloc(sizeof(char)*LINESIZE);
+		command = (char*)malloc(sizeof(char)*LINESIZE+1);/*to check typo errors*/
 		if(command==NULL)
 			return;
 
-		commandCopy = (char *)malloc(sizeof(char)*LINESIZE);
+		commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);/*to check all parameters are legal*/
 		if(commandCopy==NULL)
 			return;
 	
+		commandFinal = (char *)malloc(sizeof(char)*LINESIZE+1);/*to save all arguments of legal line*/
+		if(commandFinal==NULL)
+			return;
+
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
 		
 		line_num++;/*count line*/
-		printf("Command is: %s\n\n", command);
+		printf("Command is: %s\n", command);
 		if(command[strlen(command)-1]!='\n'){/*if given length is not enough for line*/
 			printf("Error, too long command line, in line number: %d\n", line_num);
 			FOREVER {/*ignores the too long line*/
@@ -65,12 +69,15 @@ void check_cmd_line(char *sourceFileName){
 			continue;
 		
 		strcpy(commandCopy, command);/*makes a copy of original command*/
+		strcpy(commandFinal, command);/*makes a copy of original command*/
 	
 		if((cmd_type = check_command_type(commandCopy, line_num))==ERROR)/*check command type*/
 			continue;
 
-		if(cmd_type == LABEL_POSITION)/*if this is label position, has been added from cmd_check func to list*/
+		if(cmd_type == LABEL_POSITION){/*if this is label position, add to label position list*/
+			/*Here function to add into entry or extern*/
 			continue;
+		}
 
 		if(cmd_type==LABEL_CMD || cmd_type==CMD){ /*check parameters*/
 			if(check_cmd_args(command, line_num, cmd_type, cmd)==ERROR)
@@ -94,7 +101,9 @@ void check_cmd_line(char *sourceFileName){
 
 	}/*end of forever*/	
 		
-
+free(command);
+free(commandCopy);
+free(commandFinal);
 fclose(sfp);
 	
 }/*end of checkcmdline func*/
@@ -182,6 +191,7 @@ int check_cmd(char *word, struct CmdNames *cmd){
 	int cmd_index;	
 	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
 		if(strcmp(word,cmd[cmd_index].name)==0){
+			printf("Command index is: %d\n", cmd_index);
 			return cmd_index;
 		}
 	}
@@ -189,18 +199,17 @@ int check_cmd(char *word, struct CmdNames *cmd){
 }
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_directive(char *word, struct DrctvNames *drctv){
-	int drctv_index;	
-	for(drctv_index=0; drctv[drctv_index].name!=NULL;drctv_index++){
-		if(strcmp(word,drctv[drctv_index].name)==0){
-			return drctv_index;
-		}
-	}
+int check_directive(char *word){
+	int i;	
+	for(i=0; i<DRCTVNUM; i++)
+		if(!strcmp(word, DIRECTIVE[i]))
+			return i;
 	return ERROR;	
 }
 
 /*Function receives command, line num, command type and struct of opcodes, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
+	printf("Inside check_cmd_args for: %s - %d\n", command, type);
 	char *label, *opcode, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, cmd_index;
@@ -208,14 +217,14 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 	if(type == LABEL_CMD){
 		label = strtok(command, white_space);
 		opcode = strtok(NULL, white_space);
-		label = strtok(label, ":");
 	}
 	else 
 		opcode = strtok(command, white_space);
 	
-	cmd_index = check_cmd(opcode, cmd); 
+	cmd_index = check_cmd(opcode, cmd);/*index of opcode*/
 
 	while((arg = strtok(NULL, ","))!=NULL){
+		printf("Argument is: %s\n", arg);
 		arg = remove_blanks(arg);
 		if((++arg_count) == 1)
 			source = arg;
@@ -232,7 +241,7 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 	}
 	else if(arg_count > cmd[cmd_index].args){
 		printf("Error, extraneous number of arguments for opcode, in line number: %d\n", line_num);
-
+		return ERROR;
 	}
 	else {
 		switch(cmd_index){/*switch by func index of struct*/
@@ -273,13 +282,5 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 	return ERROR;
 }
 
-
-
-
-void check_data_param(){}
-void check_string(){}
-void check_struct_param(){}
-void check_entry(){}
-void check_extern(){}
 
 

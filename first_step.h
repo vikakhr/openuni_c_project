@@ -17,7 +17,7 @@ typedef struct DrctvNames{/*linked list of opcodes*/
 void check_cmd_line(char *sourceFileName);
 
 int check_cmd (char *word, struct CmdNames *cmd);
-int check_directive(char *word, struct DrctvNames *drctv);
+int check_directive(char *word);
 int check_cmd_args(char *word, int line_num, int type, struct CmdNames *cmd);
 int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
 
@@ -28,15 +28,13 @@ int check_cmp(char *source, char *dest);
 int check_lea(char *source, char *dest);
 int check_prn(char *dest);
 
-void check_data_param();
-void check_string();
-void check_struct_param();
-void check_entry();
-void check_extern();
+
 
 static char *OPCODE[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "get", "prn", "jsr", "rts", "hlt"};
 
 static char *REGISTER[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"}; 
+
+static char *DIRECTIVE[] = {".data",".string",".struct",".entry",".extern"};
 
 
 /*struct array of commands*/
@@ -58,16 +56,6 @@ static CmdNames cmd[] ={
 	{"rts",14, 0, 0},
 	{"hlt",15, 0, 0},
 	{"not_valid",16, 0}
-};
-
-/*struct array of directives*/
-static DrctvNames drctv[]={
-	{".data",0, 40, check_data_param},
-	{".string",1, 2, check_string}, 
-	{".struct",2, 2, check_struct_param},
-	{".entry",3, 1, check_entry},
-	{".extern",4, 1, check_extern},
-	{"not_valid",5, 0}
 };
 
 
