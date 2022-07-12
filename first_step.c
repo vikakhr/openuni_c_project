@@ -11,11 +11,18 @@ void check_cmd_line(char *sourceFileName){
 	int line_num = 0;
 	int cmd_type;
 	char *command, *commandCopy, *commandFinal;
-	
-	
+	char *firstWord, *secondWord, *word, *label;
+	int isLabel = 0; /*label flag*/
+	char *white_space = " \t\v\f\r\n";
+	int cmd_index, drctv_index;
+	int isError = 0;	
+
+	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
+	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
+	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
+	structs *head_struct = NULL,  *tail_struct = NULL; /*list of structs*/
 
 
-	
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
 		return;
@@ -70,45 +77,102 @@ void check_cmd_line(char *sourceFileName){
 		strcpy(commandFinal, command);/*makes a copy of original command*/
 	
 
-
-
-
-
-
-
-		if((cmd_type = check_command_type(commandCopy, line_num))==ERROR)/*check command type*/
-			continue;
-
-		if(cmd_type == LABEL_POSITION){/*if this is label position, add to label position list*/
-			/*Here function to add into entry or extern*/
+		firstWord = strtok(command, white_space);/*take first word*/	
+		
+		if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
+			printf("Error, missing arguments in line number: %d\n", line_num);
 			continue;
 		}
 
-		if(cmd_type==LABEL_CMD || cmd_type==CMD){ /*check parameters*/
-			if(check_cmd_args(command, line_num, cmd_type, cmd)==ERROR)
-				continue;
-			if(cmd_type==LABEL_CMD)	{
-				printf("Label and command are ok, add label into linked list");
+		if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
+		label = strtok(firstWord, ":");/*take label name*/
+			
+		if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
+			continue;
+		}			
+		if(isLabel)/*choose next word to check*/
+			word = secondWord;
+		else word = firstWord;
 
+		if(word[0] == '.'){/*if is directive*/
+			if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
+				continue;
+			
+			switch(drctv_index){/*switch by func index of struct*/
+			case 0: 
+				if(check_nums(commandCopy, isLabel)==ERROR){/*check data parameters*/
+					isError = 1;
+					break;
+				}
+				printf("Data directive is ok \n");
+
+				if(isLabel) /*add label if exists*/
+					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);	
+				break;	
+			case 1:	
+				if(check_string_islegal(commandCopy, isLabel)==ERROR){
+					printf("String for .string directive is not legal, in line: %d\n", line_num);
+					isError = 1;
+					break;
+				}
+				printf("String directive is ok \n");
+				if(isLabel) 
+					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);
+				break;
+			case 2: if(!isLabel){
+					printf("Error, struct definition without initialization, in line num: %d\n", line_num);
+					isError = 1;
+					break;
+				}
+				add_node_struct(&head_struct, &tail_struct, label, line_num);
+				printf("This is struct directive, added to list \n");
+				break;
+			case 3: 
+				if(isLabel)
+					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
+					
+				printf("Check label name");		
+				add_node_entry_label(&head_en_lbl, &tail_en_lbl, label, line_num);	
+				break;
+			case 4: 
+				if(isLabel)
+					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
+					
+				printf("Check label name");
+				if(check_label_islegal(label, line_num)==ERROR){
+					isError = 1;
+					break;
+				}
+				add_node_extern_label(&head_ex_lbl, &tail_ex_lbl, label, line_num);	
+				break;
+			break;		
+			}/*end of switch*/
+
+		}
+
+		else {
+			if(isError)			
+				continue;
+			if(isLabel)/*if label check if second word is legal command*/
+				cmd_index = check_cmd(secondWord, cmd);
+			else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
+
+			if(cmd_index==ERROR){/*command isn't legal*/
+				printf("Undefined command name in line number: %d\n", line_num);
+				continue;
+			}
+			if(isLabel){
+				add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);	
 			}
 		}
-		if(cmd_type==LABEL_DRCTV || cmd_type==DRCTV){
-			if(cmd_type==DRCTV)
-			/*if entry or extern go check params and no label*/
-
-			if(cmd_type==LABEL_DRCTV)	{
-				printf("Label and directive are ok, add label into linked list");
-			}	
+		if(isLabel){
+			print_label_list(head_lbl); /*print list?????*/
 		}
-
-		
-
-
 
 	}/*end of forever*/	
 	
 
-	
+	print_struct_list(head_struct);
 free(command);
 free(commandCopy);
 free(commandFinal);

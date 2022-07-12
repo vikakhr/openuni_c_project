@@ -32,7 +32,6 @@ typedef struct node_directive directiveLine;/*lines with directive*/
 
 
 
-
 /*
 int check_repeated_labels(char* name, node_label* head);
 void add_node(node_label** head, node_label** tail, char* name, int memory_num);
