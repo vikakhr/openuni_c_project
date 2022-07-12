@@ -2,7 +2,6 @@
 
 typedef struct CmdNames{/*linked list of opcodes*/
 	char *name;
-	int num;
 	int args;/*amount of arguments for command*/
 	int (*func)();
 }CmdNames; 
@@ -39,22 +38,22 @@ static char *DIRECTIVE[] = {".data",".string",".struct",".entry",".extern"};
 
 /*struct array of commands*/
 static CmdNames cmd[] ={
-	{"mov",0, 2, check_first_group},
-	{"cmp",1, 2, check_cmp}, 
-	{"add",2, 2, check_first_group},
-	{"sub",3, 2, check_first_group},
-	{"not",4, 1, check_second_group},
-	{"clr",5, 1, check_second_group},
-	{"lea",6, 2, check_lea},
-	{"inc",7, 1, check_second_group},
-	{"dec",8, 1, check_second_group},
-	{"jmp",9, 1, check_second_group},
-	{"bne",10, 1, check_second_group},
-	{"get",11, 1, check_second_group},
-	{"prn",12, 1, check_prn},
-	{"jsr",13, 1, check_second_group},
-	{"rts",14, 0, 0},
-	{"hlt",15, 0, 0},
+	{"mov", 2, check_first_group},
+	{"cmp", 2, check_cmp}, 
+	{"add", 2, check_first_group},
+	{"sub", 2, check_first_group},
+	{"not", 1, check_second_group},
+	{"clr", 1, check_second_group},
+	{"lea", 2, check_lea},
+	{"inc", 1, check_second_group},
+	{"dec", 1, check_second_group},
+	{"jmp", 1, check_second_group},
+	{"bne", 1, check_second_group},
+	{"get", 1, check_second_group},
+	{"prn", 1, check_prn},
+	{"jsr", 1, check_second_group},
+	{"rts", 0, 0},
+	{"hlt", 0, 0},
 	{"not_valid",16, 0}
 };
 

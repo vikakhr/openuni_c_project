@@ -11,10 +11,8 @@ void check_cmd_line(char *sourceFileName){
 	int line_num = 0;
 	int cmd_type;
 	char *command, *commandCopy, *commandFinal;
-	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
-	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
-	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
-	structs *head_struct = NULL,  *tail_struct = NULL; /*list of structs*/
+	
+	
 
 
 	
@@ -71,6 +69,13 @@ void check_cmd_line(char *sourceFileName){
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 		strcpy(commandFinal, command);/*makes a copy of original command*/
 	
+
+
+
+
+
+
+
 		if((cmd_type = check_command_type(commandCopy, line_num))==ERROR)/*check command type*/
 			continue;
 
@@ -84,6 +89,7 @@ void check_cmd_line(char *sourceFileName){
 				continue;
 			if(cmd_type==LABEL_CMD)	{
 				printf("Label and command are ok, add label into linked list");
+
 			}
 		}
 		if(cmd_type==LABEL_DRCTV || cmd_type==DRCTV){
@@ -100,7 +106,9 @@ void check_cmd_line(char *sourceFileName){
 
 
 	}/*end of forever*/	
-		
+	
+
+	
 free(command);
 free(commandCopy);
 free(commandFinal);
@@ -110,102 +118,6 @@ fclose(sfp);
 
 
 
-
-
-
-
-
-
-
-int check_first_group(char *source, char *dest){
-	if(!check_one_num(source))/*if source is number - OK*/
-		return 1;
-/*go and check addressing type, check if is right*/
-	if(!check_one_num(dest))/*if destination is number - ERROR*/
-		return ERROR;
-	return ERROR;
-
-}
-
-int check_second_group(char *dest){
-	if(!check_one_num(dest))/*if destination is number - error*/
-		return ERROR;
-	return ERROR;
-}
-
-
-
-int check_cmp(char *source, char *dest){
-	if(!check_one_num(source))/*if source is number - OK*/
-		return 1;
-	if(!check_one_num(dest))/*if destination is number - OK*/
-		return 1;
-	return ERROR;
-}
-
-int check_lea(char *source, char *dest){
-	if(!check_one_num(source))/*if source is number - error*/
-		return ERROR;
-	if(!check_one_num(dest))/*if destination is number - error*/
-		return ERROR;
-	return ERROR;
-}
-
-int check_prn(char *dest){
-	if(!check_one_num(dest))/*if destination is number - OK*/
-		return 1;
-	return ERROR;
-}
-
-
-
-/*Function receives command, line num, command type and struct of directives, and checks if arguments of given directive are right
-int check_drctv_args(char *command, int line_num, int type, struct DrctvNames *drctvs){
-	char *label, *drctv, *arg;
-	char *white_space = " \t\v\f\r\n";
-	int arg_count = 0, drctv_index;
-	
-	if(type == LABEL_DRCTV){
-		label = strtok(command, white_space);
-		drctv = strtok(NULL, white_space);
-		label = strtok(label, ":");
-	}
-	else 
-		drctv = strtok(command, white_space);
-	drctv_index = check_directive(drctv, drctvs); 
-	
-
-	while((arg = strtok(NULL, white_space))!=NULL){
-		
-			
-				
-	}
-
-
-	return ERROR;
-}*/
-
-
-/*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_cmd(char *word, struct CmdNames *cmd){
-	int cmd_index;	
-	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
-		if(strcmp(word,cmd[cmd_index].name)==0){
-			printf("Command index is: %d\n", cmd_index);
-			return cmd_index;
-		}
-	}
-	return ERROR;	
-}
-
-/*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_directive(char *word){
-	int i;	
-	for(i=0; i<DRCTVNUM; i++)
-		if(!strcmp(word, DIRECTIVE[i]))
-			return i;
-	return ERROR;	
-}
 
 /*Function receives command, line num, command type and struct of opcodes, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
@@ -281,6 +193,95 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 	/*if all is ok go to funct add node to linked list of opcodes*/
 	return ERROR;
 }
+
+
+
+
+/*Function receives source and destination adressing type and checks if they are legal for first group of opcodes*/
+int check_first_group(char *source, char *dest){
+	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
+		return ERROR;
+
+	if(check_one_num(source)!=ERROR){/*if source is number - OK*/
+		printf("Source is a number - OK\n");
+	}
+	else if(check_arg_register(source)!=ERROR)/*if source is register - OK*/
+		return 3;
+	else if(check_arg_struct(source)!=ERROR)/*if source is struct - OK*/
+		return 2;
+ 
+	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
+		return 3;
+	
+
+
+	return ERROR;
+}
+
+/*Function receives destination adressing type and checks if it's legal for second group of opcodes*/
+int check_second_group(char *dest){
+	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
+		return ERROR;
+	
+	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
+		return 3;
+
+	
+	return ERROR;
+}
+
+
+/*Function receives source and destination adressing type and checks if they are legal for cmp opcode*/
+int check_cmp(char *source, char *dest){
+	if(check_one_num(source)!=ERROR)/*if source is number - OK*/
+		return 1;
+	if(check_one_num(dest)!=ERROR)/*if destination is number - OK*/
+		return 1;
+	return ERROR;
+}
+
+/*Function receives source and destination adressing type and checks if they are legal for lea opcode*/
+int check_lea(char *source, char *dest){
+	if(check_one_num(source)!=ERROR)/*if source is number - ERROR*/
+		return ERROR;
+	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
+		return ERROR;
+	if(check_arg_register(source)!=ERROR)/*if source is register - ERROR*/
+		return ERROR;	
+	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
+		return 3;
+	return ERROR;
+}
+
+/*Function receives destination adressing type and checks if it's legal for prn opcode*/
+int check_prn(char *dest){
+	if(!check_one_num(dest))/*if destination is number - OK*/
+		return 1;
+	return ERROR;
+}
+
+/*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
+int check_cmd(char *word, struct CmdNames *cmd){
+	int cmd_index;	
+	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
+		if(strcmp(word,cmd[cmd_index].name)==0){
+			printf("Command index is: %d\n", cmd_index);
+			return cmd_index;
+		}
+	}
+	return ERROR;	
+}
+
+/*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
+int check_directive(char *word){
+	int i;	
+	for(i=0; i<DRCTVNUM; i++)
+		if(!strcmp(word, DIRECTIVE[i]))
+			return i;
+	return ERROR;	
+}
+
+
 
 
 

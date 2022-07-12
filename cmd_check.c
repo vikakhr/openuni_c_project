@@ -9,6 +9,12 @@ int check_command_type(char *line, int line_num){
 	char *white_space = " \t\v\f\r\n";
 	int cmd_type, drctv_type, cmd_index, drctv_index;
 	int isLabel = 0;
+	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
+	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
+	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
+	structs *head_struct = NULL,  *tail_struct = NULL; /*list of structs*/
+
+
 
 	firstWord = strtok(line, white_space);/*take first word*/	
 		
@@ -22,30 +28,29 @@ int check_command_type(char *line, int line_num){
 			
 		if((isLabel = check_label_islegal(label, line_num)) == 0)/*check if label name is legal*/
 			return ERROR;
-
 		/*if(!check_repeated_labels(label, head)){/*label name is already exists, error, CHECK THIS AT SECOND ITERATION
 			printf("Error, repeated label name: %s\n in line number: %d\n", label, line_num);
 			return -1;
 		}*/
+		isLabel = 1; /*turn on label flag*/
 	}			
 	if(isLabel)/*choose next word to check*/
 		word = secondWord;
-	word = firstWord;
-	printf("First: %s\t Second: %s\t Word: %s\n", firstWord, secondWord, word);		
+	else word = firstWord;
+
 	if(word[0] == '.'){/*if is directive*/
-		printf("Directive check?\n");
+		printf("Directive check\n");
 		if((drctv_index = check_directive(word))==ERROR){/*check if first word is directive*/
-			printf("Here\n");
 			if(word[strlen(firstWord)-1] == ','){/*Illegal comma after command name check*/
 				printf("Illegal comma in line number: %d\n", line_num);
 				return ERROR;	
 			}
 			else {
-				printf("Undefined command name in line number: %d\n", line_num);
+				printf("Undefined directive name in line number: %d\n", line_num);
 				return ERROR;
 			}
 		}
-		if(drctv_index== 3 || drctv_index== 4){/*if this is label position directive?????*/	
+		if(drctv_index==ENTRY || drctv_index==EXTERN){/*if this is label position directive*/	
 			if(!isLabel){
 				printf("This is label position directive, check if ok and put it into list\n");
 				printf("First:%s\t Second:%s\t Word: %s\t\n", firstWord, secondWord, word);
@@ -59,16 +64,22 @@ int check_command_type(char *line, int line_num){
 				}
 				else 
 				return LABEL_POSITION;
-				}
+			}
 			else {/*if there is label before position directive, ignore*/
-				printf("Warning, a label before position directive will be ignored, in line %d", line_num);
-				isLabel = 0;	
+				printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
+				return 	DRCTV;
 			}
 		}
-		
-		else if(isLabel)
+		if(drctv_index==DATA)
+			printf("if data check parameters\n");
+		if(drctv_index==STRUCT)
+			printf("if struct add to structs\n");
+		if(drctv_index==STRING)
+			printf("if string check if string is ok\n");
+
+		if(isLabel)
 			return LABEL_DRCTV;
-		return DRCTV;						
+		else return DRCTV;						
 		
 	}
 	else {
@@ -82,8 +93,11 @@ int check_command_type(char *line, int line_num){
 		}
 	}
 	
-	if(isLabel)
+	if(isLabel){
+		add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);
+		free_label_list(head_lbl); /*print list?????*/
 		return LABEL_CMD;
+	}
 	else return CMD;
 	
 }
@@ -142,11 +156,6 @@ int check_arg_label(char *word){
 	if(!isalpha(word[0]))/*if first char is not a character*/
 		return ERROR;
 	
-	if(strlen(word)==3){/*if length of label string is three check if is not opcode name*/
-		for(i=0; i<CMDLENGTH; i++)
-			if(!strcmp(word, OPCODE[i]))
-				return ERROR;
-	}
 	return 1;
 }
 
@@ -160,6 +169,7 @@ int check_arg_struct(char *word){
 	char *strct_arg = (char *)malloc(strlen(word)+1);
 	if(strct_arg == NULL)
 		return ERROR;
+	
 	strcpy(strct_arg, word);
 	
 	if(strchr(strct_arg, '.')==NULL){
@@ -181,6 +191,10 @@ int check_arg_struct(char *word){
 		free(strct_arg);
 		return ERROR;
 	}
+	if(p!=1 || p!=2)/*if field num beyond a struct boundaries*/
+		return ERROR;
+
+	printf("Argument num of struct: %s", p);
 	free(strct_arg);
 	return 2;
 }
@@ -188,23 +202,13 @@ int check_arg_struct(char *word){
 /*Function checks if argument is register, if it is returns num of addressing type, otherwise returns -1*/
 int check_arg_register(char *word){
 	int i;
-	for(i=0; i<CMDLENGTH; i++){
+	for(i=0; i<REGLENGTH; i++){
 		if(!strcmp(word, REGISTER[i]))
 			return 3;
 	}
-
 	return ERROR;
 }
 
-void check_label_position(char *command){
-	char* position, *label;
-	char *white_space = " \t\v\f\r\n";
-	
-	position = strtok(command, white_space);
-	label = strtok(NULL, white_space);
-
-	/*put inside linked list*/
 
 
-}
 

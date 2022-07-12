@@ -2,6 +2,7 @@
 /*label+opcode, label+directive, opcode, directive, (.extern/.entry)+label*/
 enum {LABEL_CMD, LABEL_DRCTV, CMD, DRCTV, LABEL_POSITION}; 
 
+enum {DATA, STRING, STRUCT, ENTRY, EXTERN};
 
 
 #define ERROR -1
