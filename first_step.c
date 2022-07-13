@@ -1,5 +1,6 @@
 #include "main.h" /*main libraries*/
 #include "first_step.h" /*functions*/
+#include "second_step.h"
 #include "cmd_check.h" /*check functions*/
 #include "label_lists.h" /*lists of labels and structs*/
 
@@ -14,14 +15,15 @@ void check_cmd_line(char *sourceFileName){
 	char *firstWord, *secondWord, *word, *label;
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
-	int cmd_index, drctv_index;
-	int isError = 0;	
+	int cmd_index, drctv_index;	
 
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
 	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
 	structs *head_struct = NULL,  *tail_struct = NULL; /*list of structs*/
-
+	
+	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*list of directives*/
+	opcodeLine *head_opcode = NULL, *tail_opcode = NULL; /*list of opcodes*/
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
@@ -97,7 +99,7 @@ void check_cmd_line(char *sourceFileName){
 		if(word[0] == '.'){/*if is directive*/
 			if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
 				continue;
-			
+
 			switch(drctv_index){/*switch by func index of struct*/
 			case 0: 
 				if(check_nums(commandCopy, isLabel)==ERROR){/*check data parameters*/
@@ -105,9 +107,10 @@ void check_cmd_line(char *sourceFileName){
 					break;
 				}
 				printf("Data directive is ok \n");
-
 				if(isLabel) /*add label if exists*/
-					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);	
+					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);
+				
+				add_directive_node(&head_drctv, &tail_drctv, commandCopy, label, drctv_index);/*adds directive to linked list*/	
 				break;	
 			case 1:	
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
@@ -118,6 +121,7 @@ void check_cmd_line(char *sourceFileName){
 				printf("String directive is ok \n");
 				if(isLabel) 
 					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);
+				add_directive_node(&head_drctv, &tail_drctv, commandCopy, label, drctv_index);/*adds directive to linked list*/
 				break;
 			case 2: if(!isLabel){
 					printf("Error, struct definition without initialization, in line num: %d\n", line_num);
@@ -125,6 +129,7 @@ void check_cmd_line(char *sourceFileName){
 					break;
 				}
 				add_node_struct(&head_struct, &tail_struct, label, line_num);
+				add_directive_node(&head_drctv, &tail_drctv, commandCopy, label, drctv_index);/*adds directive to linked list*/
 				printf("This is struct directive, added to list \n");
 				break;
 			case 3: 
@@ -132,7 +137,8 @@ void check_cmd_line(char *sourceFileName){
 					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
 					
 				printf("Check label name");		
-				add_node_entry_label(&head_en_lbl, &tail_en_lbl, label, line_num);	
+				add_node_entry_label(&head_en_lbl, &tail_en_lbl, label, line_num);
+				add_directive_node(&head_drctv, &tail_drctv, commandCopy, NULL, drctv_index);/*adds directive to linked list*/	
 				break;
 			case 4: 
 				if(isLabel)
@@ -143,16 +149,23 @@ void check_cmd_line(char *sourceFileName){
 					isError = 1;
 					break;
 				}
-				add_node_extern_label(&head_ex_lbl, &tail_ex_lbl, label, line_num);	
+				add_node_extern_label(&head_ex_lbl, &tail_ex_lbl, label, line_num);
+				add_directive_node(&head_drctv, &tail_drctv, commandCopy, NULL, drctv_index);/*adds directive to linked list*/	
 				break;
 			break;		
 			}/*end of switch*/
 
-		}
 
+
+
+
+
+
+
+
+			
+		}
 		else {
-			if(isError)			
-				continue;
 			if(isLabel)/*if label check if second word is legal command*/
 				cmd_index = check_cmd(secondWord, cmd);
 			else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
@@ -161,9 +174,11 @@ void check_cmd_line(char *sourceFileName){
 				printf("Undefined command name in line number: %d\n", line_num);
 				continue;
 			}
-			if(isLabel){
-				add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);	
-			}
+
+			if(isLabel)
+				add_node_label(&head_lbl, &tail_lbl, label, line_num);	
+			
+			add_opcode_node(&head_opcode, &tail_opcode, commandCopy, label, cmd_index);
 		}
 		if(isLabel){
 			print_label_list(head_lbl); /*print list?????*/
@@ -227,37 +242,7 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 		return ERROR;
 	}
 	else {
-		switch(cmd_index){/*switch by func index of struct*/
-			case 0: 
-			case 1:		
-			case 2:
-			case 3:	
-				if(((*(cmd[cmd_index].func))(source, destination, line_num))==ERROR)
-							return ERROR;
-			case 4:
-						
-			case 5: 
-				if(((*(cmd[cmd_index].func))(destination))==ERROR)
-							return ERROR;
-						
-			case 6:
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
-							return ERROR;		
-			case 7: 
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 12:
-			case 13:
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
-							return ERROR;
-
-			case 14: 
-			case 15:
-
-			break;
-		}/*end of switch*/
+		
 	}/*end of else*/
 
 	/*add label to linked list of labels*/

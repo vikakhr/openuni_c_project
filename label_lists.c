@@ -19,7 +19,7 @@ int check_repeated_labels(char* name, labels* head){
 }
 
 
-/*ADD CHECK IF MALLOC FAILS??????????????*/
+/*DELETE MALLOC AND MAKE LABEL SIZE??????????????*/
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
 void add_node_label(labels** head, labels** tail, char* name, int line){
 	labels *new = malloc(sizeof(labels));
