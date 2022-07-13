@@ -21,7 +21,7 @@ int check_cmd_args(char *word, int line_num, int type, struct CmdNames *cmd);
 int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
 
 
-int check_first_group(char *source, char *dest);
+int check_first_group(char *source, char *dest, int line_num);
 int check_second_group(char *dest);
 int check_cmp(char *source, char *dest);
 int check_lea(char *source, char *dest);

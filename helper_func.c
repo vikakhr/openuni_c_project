@@ -164,10 +164,10 @@ int check_string_islegal(char* line, int isLabel){
 	strcpy(string, line);
 
 	if(isLabel){/*if label in line -  take label and command pointers*/
-		string = strtok(numbers, separator);
+		string = strtok(string, separator);
 		string = strtok(NULL, separator);
 	}
-	else string = strtok(numbers, separator);
+	else string = strtok(string, separator);
 
 	string = strtok(NULL, separator);/*take pointer to the string*/
 	string = remove_blanks(string); /*remove blanks*/
@@ -192,12 +192,12 @@ int check_arg_struct(char line, int line_num){
 	ptr = strtok(line, separator);/*take label*/
 	ptr = strtok(NULL, separator);/*take label*/
 
-	if(ptr = strtok(NULL, ",") == NULL){/*if no first argument*/
+	if((ptr = strtok(NULL, ",")) == NULL){/*if no first argument*/
 		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
 		return ERROR;
 	}
 	
-	if(check_one_num(ptr)==ERROR){/*if struct field num is not integer*/
+	if((check_one_num(ptr))==ERROR){/*if struct field num is not integer*/
 		printf("Error, first field of struct is not integer, in line number: %d\n", line_num);	
 		return ERROR;
 	}

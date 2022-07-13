@@ -18,6 +18,8 @@ int check_repeated_labels(char* name, labels* head){
 	
 }
 
+
+/*ADD CHECK IF MALLOC FAILS??????????????*/
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
 void add_node_label(labels** head, labels** tail, char* name, int line){
 	labels *new = malloc(sizeof(labels));
@@ -117,5 +119,92 @@ void add_node_extern_label(externLabels** head, externLabels** tail, char* name,
 		*tail = new;
 	}
 }
+
+
+/*Function frees nodes and linked list*/
+void print_struct_list(structs* head){
+	structs* ptr;
+	ptr = head;
+	printf("Inside free struct trying to print\n");
+	while(ptr!=NULL){
+		printf("1. %s - %d\n", ptr->struct_name, ptr->line_number);
+		 ptr = ptr->next;
+		
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	}
+
+
+	/*while(head!=NULL){
+		ptr = head;
+		 head = head->next;
+		printf("1. %s - %d\n", ptr->label, ptr->line_number);
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	
+}
+
+
+
+
+/*Function frees nodes and linked list*/
+void print_label_list(labels* head){
+	labels* ptr;
+	ptr = head;
+	printf("Inside free label trying to print\n");
+	while(ptr!=NULL){
+		printf("1. %s - %d\n", ptr->label, ptr->line_number);
+		 ptr = ptr->next;
+		
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	}
+
+
+	/*while(head!=NULL){
+		ptr = head;
+		 head = head->next;
+		printf("1. %s - %d\n", ptr->label, ptr->line_number);
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	
+
+}
+
+
+
+
+/*Function prints linked list*/
+void print_extern_labels(externLabels* head){
+	externLabels* ptr;
+	ptr = head;
+	printf("Inside extern label trying to print\n");
+	while(ptr!=NULL){
+		printf("1. %s - %d\n", ptr->label, ptr->line_number);
+		 ptr = ptr->next;
+		
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory ofnode*/
+	}
+}
+
+
+/*Function prints linked list*/
+void print_entry_labels(entryLabels* head){
+	entryLabels* ptr;
+	ptr = head;
+	printf("Inside entry label trying to print\n");
+	while(ptr!=NULL){
+		printf("* %s - %d\n", ptr->label, ptr->line_number);
+		 ptr = ptr->next;
+	
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	}
+}
+
+
+
+
 
 

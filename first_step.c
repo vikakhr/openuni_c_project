@@ -173,9 +173,16 @@ void check_cmd_line(char *sourceFileName){
 	
 
 	print_struct_list(head_struct);
+	print_extern_labels(head_ex_lbl);
+	print_entry_labels(head_en_lbl);
+	
 free(command);
 free(commandCopy);
 free(commandFinal);
+
+
+/*here need to free all lists*/
+
 fclose(sfp);
 	
 }/*end of checkcmdline func*/
@@ -225,7 +232,7 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 			case 1:		
 			case 2:
 			case 3:	
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
+				if(((*(cmd[cmd_index].func))(source, destination, line_num))==ERROR)
 							return ERROR;
 			case 4:
 						
@@ -262,7 +269,7 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 
 
 /*Function receives source and destination adressing type and checks if they are legal for first group of opcodes*/
-int check_first_group(char *source, char *dest){
+int check_first_group(char *source, char *dest, int line_num){
 	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
 		return ERROR;
 
@@ -271,7 +278,7 @@ int check_first_group(char *source, char *dest){
 	}
 	else if(check_arg_register(source)!=ERROR)/*if source is register - OK*/
 		return 3;
-	else if(check_arg_struct(source)!=ERROR)/*if source is struct - OK*/
+	else if(check_arg_struct(source, line_num)!=ERROR)/*if source is struct - OK*/
 		return 2;
  
 	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/

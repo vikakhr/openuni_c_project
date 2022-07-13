@@ -54,3 +54,6 @@ void add_node_extern_label(externLabels** head, externLabels** tail, char* name,
 
 void print_struct_list(structs* head);
 void print_label_list(labels* head);
+void print_extern_labels(externLabels* head);
+void print_entry_labels(entryLabels* head);
+
