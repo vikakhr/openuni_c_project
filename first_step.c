@@ -12,18 +12,16 @@ void check_cmd_line(char *sourceFileName){
 	int line_num = 0;
 	int cmd_type;
 	char *command, *commandCopy, *commandFinal;
-	char *firstWord, *secondWord, *word, *label;
+	char *firstWord, *secondWord, *thirdWord, *word, *label;
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
 	int cmd_index, drctv_index;	
+	int isError = 0;
 
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
-	entryLabels *head_en_lbl = NULL,  *tail_en_lbl = NULL; /*list of internal labels*/
-	externLabels *head_ex_lbl = NULL,  *tail_ex_lbl = NULL; /*list of external labels*/
-	structs *head_struct = NULL,  *tail_struct = NULL; /*list of structs*/
 	
 	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*list of directives*/
-	opcodeLine *head_opcode = NULL, *tail_opcode = NULL; /*list of opcodes*/
+	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*list of opcodes*/
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
@@ -78,13 +76,17 @@ void check_cmd_line(char *sourceFileName){
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 		strcpy(commandFinal, command);/*makes a copy of original command*/
 	
+		isLabel = 0;
 
-		firstWord = strtok(command, white_space);/*take first word*/	
+		if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
+			continue;	
 		
 		if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
 			printf("Error, missing arguments in line number: %d\n", line_num);
 			continue;
 		}
+
+		thirdWord = strtok(NULL, white_space); /*take third word for check 3 words containing label positioning*/
 
 		if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
 		label = strtok(firstWord, ":");/*take label name*/
@@ -97,60 +99,93 @@ void check_cmd_line(char *sourceFileName){
 		else word = firstWord;
 
 		if(word[0] == '.'){/*if is directive*/
+
 			if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
 				continue;
-
+			printf("Directive\n");
 			switch(drctv_index){/*switch by func index of struct*/
-			case 0: 
+			case 0:/*.data*/ 
 				if(check_nums(commandCopy, isLabel)==ERROR){/*check data parameters*/
 					isError = 1;
 					break;
 				}
 				printf("Data directive is ok \n");
-				if(isLabel) /*add label if exists*/
-					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);
-				
-				add_directive_node(&head_drctv, &tail_drctv, commandCopy, label, drctv_index);/*adds directive to linked list*/	
+				if(isLabel) /*add label if exists*/{
+					if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+						break;
+					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num, ENTRY);
+				}		
+				add_directive_node(&head_drctv, &tail_drctv, line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/	
 				break;	
-			case 1:	
+			case 1:/*.string*/
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
 					printf("String for .string directive is not legal, in line: %d\n", line_num);
 					isError = 1;
 					break;
 				}
 				printf("String directive is ok \n");
-				if(isLabel) 
-					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num);
-				add_directive_node(&head_drctv, &tail_drctv, commandCopy, label, drctv_index);/*adds directive to linked list*/
+				if(isLabel){
+					if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+						break;
+					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num, ENTRY);
+				}
+				add_directive_node(&head_drctv, &tail_drctv, line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
 				break;
-			case 2: if(!isLabel){
+			case 2: /*.struct*/
+				if(!isLabel){
 					printf("Error, struct definition without initialization, in line num: %d\n", line_num);
 					isError = 1;
 					break;
 				}
-				add_node_struct(&head_struct, &tail_struct, label, line_num);
-				add_directive_node(&head_drctv, &tail_drctv, commandCopy, label, drctv_index);/*adds directive to linked list*/
+				if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+					break;
+
+				add_node_label(&head_lbl, &tail_lbl, label, line_num, STRUCT);
+				add_directive_node(&head_drctv, &tail_drctv, line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
 				printf("This is struct directive, added to list \n");
 				break;
-			case 3: 
-				if(isLabel)
+			case 3: /*.entry*/
+				if(isLabel){/*if label before .entry word*/
 					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
-					
-				printf("Check label name");		
-				add_node_entry_label(&head_en_lbl, &tail_en_lbl, label, line_num);
-				add_directive_node(&head_drctv, &tail_drctv, commandCopy, NULL, drctv_index);/*adds directive to linked list*/	
-				break;
-			case 4: 
-				if(isLabel)
-					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
-					
-				printf("Check label name");
-				if(check_label_islegal(label, line_num)==ERROR){
+					printf("%s %s %s\n", firstWord, secondWord, thirdWord);
+					secondWord = thirdWord;
+					if(secondWord == NULL){
+						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
+						isError = 1;
+						break;
+					}
+				}
+				
+				if(check_label_islegal(secondWord, line_num)==ERROR){
 					isError = 1;
 					break;
 				}
-				add_node_extern_label(&head_ex_lbl, &tail_ex_lbl, label, line_num);
-				add_directive_node(&head_drctv, &tail_drctv, commandCopy, NULL, drctv_index);/*adds directive to linked list*/	
+				printf("This is entry \n");
+				if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+					break;
+				add_node_label(&head_lbl, &tail_lbl, secondWord, line_num, ENTRY);
+				break;
+			case 4: /*.extern*/
+				if(isLabel){/*if label before .extern word*/
+					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
+					printf("%s %s %s\n", firstWord, secondWord,  thirdWord);
+					secondWord = thirdWord;
+					if(secondWord == NULL){
+						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
+						isError = 1;
+						break;
+					}
+					
+				}
+				
+				if(check_label_islegal(secondWord, line_num)==ERROR){
+					isError = 1;
+					break;
+				}
+				printf("This is extern \n");
+				if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, EXTERN, line_num))==ERROR)
+					break;
+				add_node_label(&head_lbl, &tail_lbl, secondWord, line_num, EXTERN);	
 				break;
 			break;		
 			}/*end of switch*/
@@ -165,7 +200,9 @@ void check_cmd_line(char *sourceFileName){
 
 			
 		}
-		else {
+
+		else {/*if not directive check if instruction*/
+			printf("Instruction\n");
 			if(isLabel)/*if label check if second word is legal command*/
 				cmd_index = check_cmd(secondWord, cmd);
 			else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
@@ -175,21 +212,51 @@ void check_cmd_line(char *sourceFileName){
 				continue;
 			}
 
+			/*switch(cmd_index){/*switch by func index of struct
+			case 0: 
+			case 1:		
+			case 2:
+			case 3:	
+				if(((*(cmd[cmd_index].func))(source, destination, line_num))==ERROR)
+							break;
+			case 4:
+						
+			case 5: 
+				if(((*(cmd[cmd_index].func))(destination))==ERROR)
+							break;
+						
+			case 6:
+				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
+							break;	
+			case 7: 
+			case 8:
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
+							break;
+
+			case 14: 
+			case 15:
+
+			break;
+		}/*end of switch*/
+
+
 			if(isLabel)
-				add_node_label(&head_lbl, &tail_lbl, label, line_num);	
+				add_node_label(&head_lbl, &tail_lbl, label, line_num, ENTRY);	
 			
-			add_opcode_node(&head_opcode, &tail_opcode, commandCopy, label, cmd_index);
+			add_instruction_node(&head_instruction, &tail_instruction, line_num, commandCopy, isLabel, cmd_index);
 		}
-		if(isLabel){
-			print_label_list(head_lbl); /*print list?????*/
-		}
+
+	
 
 	}/*end of forever*/	
 	
-
-	print_struct_list(head_struct);
-	print_extern_labels(head_ex_lbl);
-	print_entry_labels(head_en_lbl);
+print_label_list(head_lbl);
+	
 	
 free(command);
 free(commandCopy);
@@ -203,139 +270,6 @@ fclose(sfp);
 }/*end of checkcmdline func*/
 
 
-
-
-/*Function receives command, line num, command type and struct of opcodes, and checks if arguments of given command are right*/
-int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
-	printf("Inside check_cmd_args for: %s - %d\n", command, type);
-	char *label, *opcode, *arg, *source, *destination;
-	char *white_space = " \t\v\f\r\n";
-	int arg_count = 0, cmd_index;
-	
-	if(type == LABEL_CMD){
-		label = strtok(command, white_space);
-		opcode = strtok(NULL, white_space);
-	}
-	else 
-		opcode = strtok(command, white_space);
-	
-	cmd_index = check_cmd(opcode, cmd);/*index of opcode*/
-
-	while((arg = strtok(NULL, ","))!=NULL){
-		printf("Argument is: %s\n", arg);
-		arg = remove_blanks(arg);
-		if((++arg_count) == 1)
-			source = arg;
-		else if((arg_count) == 2)
-			destination = arg;
-		else {
-			printf("Error, extraneous number of arguments for opcode, in line number: %d\n", line_num);
-			return ERROR;
-		}
-	}
-	if(arg_count < cmd[cmd_index].args){
-		printf("Error, missing arguments for opcode, in line number: %d\n", line_num);
-		return ERROR;
-	}
-	else if(arg_count > cmd[cmd_index].args){
-		printf("Error, extraneous number of arguments for opcode, in line number: %d\n", line_num);
-		return ERROR;
-	}
-	else {
-		
-	}/*end of else*/
-
-	/*add label to linked list of labels*/
-	/*if all is ok go to funct add node to linked list of opcodes*/
-	return ERROR;
-}
-
-
-
-
-/*Function receives source and destination adressing type and checks if they are legal for first group of opcodes*/
-int check_first_group(char *source, char *dest, int line_num){
-	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
-		return ERROR;
-
-	if(check_one_num(source)!=ERROR){/*if source is number - OK*/
-		printf("Source is a number - OK\n");
-	}
-	else if(check_arg_register(source)!=ERROR)/*if source is register - OK*/
-		return 3;
-	else if(check_arg_struct(source, line_num)!=ERROR)/*if source is struct - OK*/
-		return 2;
- 
-	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
-		return 3;
-	
-
-
-	return ERROR;
-}
-
-/*Function receives destination adressing type and checks if it's legal for second group of opcodes*/
-int check_second_group(char *dest){
-	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
-		return ERROR;
-	
-	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
-		return 3;
-
-	
-	return ERROR;
-}
-
-
-/*Function receives source and destination adressing type and checks if they are legal for cmp opcode*/
-int check_cmp(char *source, char *dest){
-	if(check_one_num(source)!=ERROR)/*if source is number - OK*/
-		return 1;
-	if(check_one_num(dest)!=ERROR)/*if destination is number - OK*/
-		return 1;
-	return ERROR;
-}
-
-/*Function receives source and destination adressing type and checks if they are legal for lea opcode*/
-int check_lea(char *source, char *dest){
-	if(check_one_num(source)!=ERROR)/*if source is number - ERROR*/
-		return ERROR;
-	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
-		return ERROR;
-	if(check_arg_register(source)!=ERROR)/*if source is register - ERROR*/
-		return ERROR;	
-	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
-		return 3;
-	return ERROR;
-}
-
-/*Function receives destination adressing type and checks if it's legal for prn opcode*/
-int check_prn(char *dest){
-	if(!check_one_num(dest))/*if destination is number - OK*/
-		return 1;
-	return ERROR;
-}
-
-/*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_cmd(char *word, struct CmdNames *cmd){
-	int cmd_index;	
-	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
-		if(strcmp(word,cmd[cmd_index].name)==0){
-			printf("Command index is: %d\n", cmd_index);
-			return cmd_index;
-		}
-	}
-	return ERROR;	
-}
-
-/*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_directive(char *word){
-	int i;	
-	for(i=0; i<DRCTVNUM; i++)
-		if(!strcmp(word, DIRECTIVE[i]))
-			return i;
-	return ERROR;	
-}
 
 
 

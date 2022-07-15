@@ -13,6 +13,31 @@ typedef struct DrctvNames{/*linked list of opcodes*/
 	void (*func)();
 }DrctvNames; 
 
+
+struct node_cmd{/*linked list to save binary representation??????*/
+	char* instruction_line;
+	int isLabel;
+	int instruction_index;
+	int line_num;
+	struct node_cmd* next;
+}node_cmd; 
+
+
+struct node_directive{/*linked list to save binary representation??????*/
+	char* drctv_line;
+	int isLabel;
+	int directive_type; 
+	int line_num;
+	struct node_directive* next;
+}node_directive; 
+
+
+
+typedef struct node_directive directiveLine;/*lines with directive*/
+
+typedef struct node_cmd instructionLine;/*lines with opcode*/
+
+
 void check_cmd_line(char *sourceFileName);
 
 int check_cmd (char *word, struct CmdNames *cmd);
@@ -28,6 +53,9 @@ int check_lea(char *source, char *dest);
 int check_prn(char *dest);
 
 
+
+void add_instruction_node(instructionLine **head, instructionLine **tail, int line_num, char *line, int isLabel, int opcode_index);
+void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, char *line, int isLabel, int directive_type);
 
 static char *OPCODE[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "get", "prn", "jsr", "rts", "hlt"};
 

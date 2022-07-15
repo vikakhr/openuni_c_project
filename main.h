@@ -16,5 +16,4 @@
 
 
 
-typedef short int opcode_line[MAXMEMORYSIZE]; /*array of binary representation of opcode lines*/
-typedef short int directive_line[MAXMEMORYSIZE]; /*array of binary representation of directives lines*/
+

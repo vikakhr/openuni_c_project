@@ -11,10 +11,6 @@ int main(int argc, char *argv[]){
 FILE *ifp;
 char *file_name, *ptr;
 
-/*arrays for saving binary code*/
-static opcode_line OPCODE = {-1};
-static directive_line DIRECTIVE = {-1};
-
 
 
 if(argc == 1)
