@@ -88,7 +88,6 @@ int check_arg_register(char *word){
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, struct CmdNames *cmd){
-	
 	char *cmdCopy, *label, *instruction, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, isError = 0;
@@ -103,7 +102,6 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 	}
 	else 
 		instruction = strtok(cmdCopy, white_space);
-
 
 	if((source = strtok(NULL, ","))!=NULL){
 		if(ispunct(source[0]) && source[0]!='#'){
@@ -134,7 +132,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
-	printf("Inside cmd args check before switch: %s %s\n", source, destination);
+
 	switch(cmd_index){/*switch by func index of struct*/
 			case 0: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
 					return ERROR;
@@ -196,7 +194,6 @@ int check_cmd(char *word, struct CmdNames *cmd){
 	int cmd_index;	
 	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
 		if(strcmp(word,cmd[cmd_index].name)==0){
-			printf("Command index is: %d\n", cmd_index);
 			return cmd_index;
 		}
 	}
