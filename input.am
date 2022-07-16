@@ -1,3 +1,4 @@
+lea #5, r3
 mov ,S1.2, r3 
 bne L3
 K : .data 22

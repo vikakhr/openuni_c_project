@@ -70,6 +70,11 @@ int check_one_num(char *num){
 	char *number = (char *)malloc(strlen(num)+1);
 	if(number == NULL)
 		return ERROR;
+	printf("Inside check num: %s\n", num);
+	if(num[0]!='#'){
+		free(number);
+		return ERROR;
+	}
 	num++; /*pointer to number after #*/
 	if(num[0]=='+' || num[0]=='-'){
 		num++;

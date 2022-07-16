@@ -3,7 +3,6 @@
 typedef struct CmdNames{/*linked list of opcodes*/
 	char *name;
 	int args;/*amount of arguments for command*/
-	int (*func)();
 }CmdNames; 
 
 typedef struct DrctvNames{/*linked list of opcodes*/
@@ -41,7 +40,7 @@ typedef struct node_cmd instructionLine;/*lines with instructions*/
 
 
 void check_cmd_line(char *sourceFileName);
-int line_typo_errors_check(char* command, int line_num);
+
 
 
 
@@ -53,11 +52,6 @@ int check_cmd_args(char *word, int line_num, int isLabel, int cmd_index, struct 
 int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
 
 
-int check_first_group(char *source, char *dest, int line_num);
-int check_second_group(char *dest);
-int check_cmp(char *source, char *dest);
-int check_lea(char *source, char *dest);
-int check_prn(char *dest);
 
 void print_instruction_list(instructionLine* head);
 
@@ -73,23 +67,23 @@ static char *DIRECTIVE[] = {".data",".string",".struct",".entry",".extern"};
 
 /*struct array of commands*/
 static CmdNames cmd[] ={
-	{"mov", 2, check_first_group},
-	{"cmp", 2, check_cmp}, 
-	{"add", 2, check_first_group},
-	{"sub", 2, check_first_group},
-	{"not", 1, check_second_group},
-	{"clr", 1, check_second_group},
-	{"lea", 2, check_lea},
-	{"inc", 1, check_second_group},
-	{"dec", 1, check_second_group},
-	{"jmp", 1, check_second_group},
-	{"bne", 1, check_second_group},
-	{"get", 1, check_second_group},
-	{"prn", 1, check_prn},
-	{"jsr", 1, check_second_group},
-	{"rts", 0, 0},
-	{"hlt", 0, 0},
-	{"not_valid",16, 0}
+	{"mov", 2},
+	{"cmp", 2}, 
+	{"add", 2},
+	{"sub", 2},
+	{"not", 1},
+	{"clr", 1},
+	{"lea", 2},
+	{"inc", 1},
+	{"dec", 1},
+	{"jmp", 1},
+	{"bne", 1},
+	{"get", 1},
+	{"prn", 1},
+	{"jsr", 1},
+	{"rts", 0},
+	{"hlt", 0},
+	{"not_valid",-1}
 };
 
 

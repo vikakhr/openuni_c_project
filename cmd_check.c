@@ -88,7 +88,7 @@ int check_arg_register(char *word){
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, struct CmdNames *cmd){
-
+	
 	char *cmdCopy, *label, *instruction, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, isError = 0;
@@ -105,7 +105,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 		instruction = strtok(cmdCopy, white_space);
 
 
-	if((source = strtok(NULL, white_space))!=NULL){
+	if((source = strtok(NULL, ","))!=NULL){
 		if(ispunct(source[0]) && source[0]!='#'){
 			printf("Error, extraneous punctuation mark between command and first argument, in line number: %d\n", line_num);
 			return ERROR;
@@ -134,32 +134,41 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
-		
-	/*switch(cmd_index){/*switch by func index of struct
-			case 0: 
-			case 1:		
-			case 2:
+	printf("Inside cmd args check before switch: %s %s\n", source, destination);
+	switch(cmd_index){/*switch by func index of struct*/
+			case 0: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+					return ERROR;
+			case 1:	return 1;	
+			case 2:	
 			case 3:	
-				if(((*(cmd[cmd_index].func))(source, destination, line_num))==ERROR)
-							break;
+				
 			case 4:
 						
-			case 5: 
-				if(((*(cmd[cmd_index].func))(destination))==ERROR)
-							break;
+			case 5: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+					return ERROR;
 						
 			case 6:
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
-							break;	
+				printf("lea func\n");
+				if(check_arg_register(source)!=ERROR)/*if source is register - ERROR*/
+					return ERROR;
+				if(check_one_num(source)!=ERROR){/*if source is number - ERROR*/
+					printf("Source parameter is not legal, in line number: %d\n", line_num);
+					return ERROR;
+				}
+				if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+					return ERROR;
+
 			case 7: 
 			case 8:
 			case 9:
 			case 10:
-			case 11:
-			case 12:
-			case 13:
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
-							break;
+			case 11: if(check_one_num(destination)!=ERROR){/*if destination is number - ERROR*/
+					printf("destination is number\n");
+					return ERROR;
+					}
+			case 12: return 1;
+			case 13: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+					return ERROR;
 
 			case 14: 
 			case 15:
@@ -177,68 +186,10 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 
 
 
-/*Function receives source and destination adressing type and checks if they are legal for first group of opcodes*/
-int check_first_group(char *source, char *dest, int line_num){
-	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
-		return ERROR;
-
-	if(check_one_num(source)!=ERROR){/*if source is number - OK*/
-		printf("Source is a number - OK\n");
-	}
-	else if(check_arg_register(source)!=ERROR)/*if source is register - OK*/
-		return 3;
-	else if(check_arg_struct(source, line_num)!=ERROR)/*if source is struct - OK*/
-		return 2;
- 
-	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
-		return 3;
-	
 
 
-	return ERROR;
-}
-
-/*Function receives destination adressing type and checks if it's legal for second group of opcodes*/
-int check_second_group(char *dest){
-	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
-		return ERROR;
-	
-	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
-		return 3;
-
-	
-	return ERROR;
-}
 
 
-/*Function receives source and destination adressing type and checks if they are legal for cmp opcode*/
-int check_cmp(char *source, char *dest){
-	if(check_one_num(source)!=ERROR)/*if source is number - OK*/
-		return 1;
-	if(check_one_num(dest)!=ERROR)/*if destination is number - OK*/
-		return 1;
-	return ERROR;
-}
-
-/*Function receives source and destination adressing type and checks if they are legal for lea opcode*/
-int check_lea(char *source, char *dest){
-	if(check_one_num(source)!=ERROR)/*if source is number - ERROR*/
-		return ERROR;
-	if(check_one_num(dest)!=ERROR)/*if destination is number - ERROR*/
-		return ERROR;
-	if(check_arg_register(source)!=ERROR)/*if source is register - ERROR*/
-		return ERROR;	
-	if(check_arg_register(dest)!=ERROR)/*if destination is register - OK*/
-		return 3;
-	return ERROR;
-}
-
-/*Function receives destination adressing type and checks if it's legal for prn opcode*/
-int check_prn(char *dest){
-	if(!check_one_num(dest))/*if destination is number - OK*/
-		return 1;
-	return ERROR;
-}
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
 int check_cmd(char *word, struct CmdNames *cmd){
