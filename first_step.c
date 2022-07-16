@@ -188,10 +188,6 @@ void check_cmd_line(char *sourceFileName){
 			break;		
 			}/*end of switch*/
 
-
-
-
-
 			
 		}
 
@@ -238,11 +234,7 @@ void check_cmd_line(char *sourceFileName){
 				destination = NULL;
 				
 
-			add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);
-
-			
-
-
+			add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);	
 		}
 
 	

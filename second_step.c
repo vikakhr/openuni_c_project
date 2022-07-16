@@ -63,11 +63,13 @@ void add_instruction_node(instructionLine **head, instructionLine **tail, int li
 }
 */
 
-void add_instruction_node(instructionLine** head, instructionLine** tail, char* source, char* destination, int cmd_index, int line_num, int args){
+void add_instruction_node(instructionLine **head, instructionLine **tail, char* source, char* destination, int cmd_index, int line_num, int args){
 	instructionLine *new = malloc(sizeof(instructionLine));
 	if(new==NULL)
 		return;
-	printf("Inside\n");
+	if(*head==NULL)
+		printf("%d %d\n", *head, *tail);
+	printf("Inside add instruction node: %d %s %s - %d\n", cmd_index, source, destination, args);
 	if(!args){
 		new->source=NULL;
 		new->destination=NULL;
@@ -89,15 +91,18 @@ void add_instruction_node(instructionLine** head, instructionLine** tail, char* 
 		strcpy(new->destination, destination);
 		new->source=NULL;
 	}
-	printf("Inside add instruction node: %d %s %s\n", cmd_index, source, destination);
+	
 	new->args = args;	
 	new->line_num = line_num;
 	new->cmd_index = cmd_index;
-
-	if(*head==NULL){/*if this is first node*/
+	printf("Inside add instruction node: %d %s %s %d %d %d\n", cmd_index, new->source, new->destination, new->line_num, new->cmd_index, new->args);
+	if(*head!=NULL)
+		printf("%d %d\n", *head, *tail);
+	if(*head == NULL){/*if this is first node*/
+		printf("Head is null");
 		*head = new;
 		*tail = new;
-		printf("Head is: %s\n", (*head)->cmd_index);		
+		printf("Head is: %d\n", (*head)->cmd_index);		
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
@@ -110,6 +115,7 @@ void add_instruction_node(instructionLine** head, instructionLine** tail, char* 
 		(*tail)->next = new;
 		*tail = new;
 	}
+	printf("After\n");
 }
 
 

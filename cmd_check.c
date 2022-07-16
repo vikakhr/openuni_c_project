@@ -88,7 +88,7 @@ int check_arg_register(char *word){
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, struct CmdNames *cmd){
-	printf("Inside check_cmd_args for: %s %d\n", command, cmd_index);
+
 	char *cmdCopy, *label, *instruction, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, isError = 0;
@@ -103,20 +103,29 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 	}
 	else 
 		instruction = strtok(cmdCopy, white_space);
-	
 
-	while((arg = strtok(NULL, ","))!=NULL){
-		printf("Argument is: %s\n", arg);
-		arg = remove_blanks(arg);
-		if((++arg_count) == 1)
-			source = arg;
-		else if((arg_count) == 2)
-			destination = arg;
+
+	if((source = strtok(NULL, white_space))!=NULL){
+		if(ispunct(source[0]) && source[0]!='#'){
+			printf("Error, extraneous punctuation mark between command and first argument, in line number: %d\n", line_num);
+			return ERROR;
+		}
+		arg_count++;
+		source = remove_blanks(source);
+		if((destination = strtok(NULL, ","))!=NULL){
+			arg_count++;
+			destination = remove_blanks(destination);
+		}
 		else {
-			printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
-			isError = -1;
+			destination = source;
+			source = NULL;
 		}
 	}
+	if((arg = strtok(NULL, ","))!=NULL){
+		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+		return ERROR;
+	}
+
 	if(arg_count < cmd[cmd_index].args && !isError){
 		printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
 		isError = -1;
