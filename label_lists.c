@@ -62,11 +62,10 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 	new->memory_number = 0;
 	new->next = NULL;
 	strcpy(new->label, name);
-	printf("Inside add to label list: %s\n", new->label);
+
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
 		*tail = new;
-		printf("Head is: %s\n", (*head)->label);		
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/

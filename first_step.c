@@ -13,15 +13,19 @@ void check_cmd_line(char *sourceFileName){
 	int cmd_type;
 	char *command, *commandCopy, *commandFinal;
 	char *firstWord, *secondWord, *thirdWord, *word, *label;
+	
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
 	int cmd_index, drctv_index;	
-	int isError = 0;
+	int isError;
+	
 
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	
-	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*list of directives*/
-	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*list of opcodes*/
+	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
+	
+	
+
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
@@ -46,6 +50,7 @@ void check_cmd_line(char *sourceFileName){
 		
 		line_num++;/*count line*/
 		printf("Command is: %s\n", command);
+		
 		if(command[strlen(command)-1]!='\n'){/*if given length is not enough for line*/
 			printf("Error, too long command line, in line number: %d\n", line_num);
 			FOREVER {/*ignores the too long line*/
@@ -53,31 +58,23 @@ void check_cmd_line(char *sourceFileName){
 					break;
 				if(command[strlen(command)-1]=='\n')/*if given length is enough for line*/
 					break;			
-			}/*end of nested forever*/
+				}/*end of nested forever*/
 			continue;
 		}
 
-		command = remove_blanks(command);/*remove whitespaces by sides of line*/
+		command = remove_blanks(command);/*remove whitespaces by sides of line*/		
 
-		if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces*/
-			continue;
+		if((line_typo_errors_check(command, line_num))==ERROR)
+			continue;		
 
-		if(command[0] == ';')/*if this is comment line - ignore and go to next*/
-			continue;
 
-		if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a "" punctuation mark at the end of command*/ 
-			printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
-			continue;
-		}
-
-		if((checkCommas(command, line_num))==ERROR)/*check consecutive commas*/
-			continue;
-		
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 		strcpy(commandFinal, command);/*makes a copy of original command*/
 	
 		isLabel = 0;
-
+		isError = 0;
+		
+		
 		if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
 			continue;	
 		
@@ -194,15 +191,12 @@ void check_cmd_line(char *sourceFileName){
 
 
 
-
-
-
-
 			
 		}
 
 		else {/*if not directive check if instruction*/
 			printf("Instruction\n");
+			
 			if(isLabel)/*if label check if second word is legal command*/
 				cmd_index = check_cmd(secondWord, cmd);
 			else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
@@ -211,6 +205,13 @@ void check_cmd_line(char *sourceFileName){
 				printf("Undefined command name in line number: %d\n", line_num);
 				continue;
 			}
+			
+			if((check_cmd_args(commandCopy, line_num, isLabel, cmd_index, cmd)) == ERROR)
+				continue;
+			if((line_instruction_check(commandCopy, line_num, isLabel, cmd_index)) == ERROR)
+				continue;
+			if(isLabel)
+			add_node_label(&head_lbl, &tail_lbl, label, line_num, ENTRY);
 
 			/*switch(cmd_index){/*switch by func index of struct
 			case 0: 
@@ -245,10 +246,6 @@ void check_cmd_line(char *sourceFileName){
 		}/*end of switch*/
 
 
-			if(isLabel)
-				add_node_label(&head_lbl, &tail_lbl, label, line_num, ENTRY);	
-			
-			add_instruction_node(&head_instruction, &tail_instruction, line_num, commandCopy, isLabel, cmd_index);
 		}
 
 	
@@ -257,7 +254,7 @@ void check_cmd_line(char *sourceFileName){
 	
 print_label_list(head_lbl);
 	
-	
+	printf("Before free\n");
 free(command);
 free(commandCopy);
 free(commandFinal);
@@ -269,9 +266,60 @@ fclose(sfp);
 	
 }/*end of checkcmdline func*/
 
+int line_typo_errors_check(char* command, int line_num){
+	
 
+	if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces*/
+		return ERROR;
 
+	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
+		return ERROR;
 
+	if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a "" punctuation mark at the end of command*/ 
+			printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
+		return ERROR;
+	}
+
+	if((checkCommas(command, line_num))==ERROR)/*check consecutive commas*/
+		return ERROR;
+	return 0;
+}
+
+int line_instruction_check(char* command, int line_num, int isLabel, int cmd_index){
+	int args_counter = 0;
+	char *source, *destination, *word;
+	char *white_space = " \t\v\f\r\n";
+	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*head and tail of instructions list*/	
+
+	if(isLabel){
+		word = strtok(command, white_space);
+		word = strtok(NULL, white_space);
+	}
+	else 
+		word = strtok(command, white_space);
+	printf("Before strtok: %s\n", word);
+			
+	if((source = strtok(NULL, ","))!=NULL){
+		args_counter++; /*argument counter*/
+		source = remove_blanks(source);
+		if((destination = strtok(NULL, white_space))!=NULL){
+			args_counter++; /*argument counter*/
+			destination = remove_blanks(destination);
+		}
+	}
+			
+	
+	if(!args_counter)
+		add_instruction_node(&head_instruction, &tail_instruction, NULL, NULL, cmd_index, line_num, cmd[cmd_index].args);
+	if(args_counter==1)
+		add_instruction_node(&head_instruction, &tail_instruction, NULL, source, cmd_index, line_num, cmd[cmd_index].args);
+	else if(args_counter==2)
+		add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);
+
+	/**/print_instruction_list(head_instruction);/************************************/
+	return 0;
+
+}
 
 
 

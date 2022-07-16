@@ -35,6 +35,12 @@ int check_label_islegal(char* label, int line_num){
 		return ERROR;
 	}
 
+	/*if(!isspace(label[strlen(label)-1])){/*if there is whitespace between label name and :
+		printf("%s\n", label);
+		printf("Label name is not legal, in line number: %d\n", line_num);
+		return ERROR;
+	}*/
+
 	if(strlen(label)==regNameLength){/*if length of label string is two check if is not register name*/
 		for(i=0; i<REGLENGTH; i++)
 			if(!strcmp(label, REGISTER[i])){
@@ -80,21 +86,24 @@ int check_arg_register(char *word){
 
 
 
-/*Function receives command, line num, command type and struct of opcodes, and checks if arguments of given command are right*/
-int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
-	printf("Inside check_cmd_args for: %s - %d\n", command, type);
-	char *label, *opcode, *arg, *source, *destination;
+/*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
+int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, struct CmdNames *cmd){
+	printf("Inside check_cmd_args for: %s %d\n", command, cmd_index);
+	char *cmdCopy, *label, *instruction, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
-	int arg_count = 0, cmd_index;
-	
-	if(type == LABEL_CMD){
-		label = strtok(command, white_space);
-		opcode = strtok(NULL, white_space);
+	int arg_count = 0, isError = 0;
+	cmdCopy = (char*)malloc(strlen(command)+1);
+	if(cmdCopy==NULL)
+		return;
+	strcpy(cmdCopy, command);	
+
+	if(isLabel){
+		label = strtok(cmdCopy, white_space);
+		instruction = strtok(NULL, white_space);
 	}
 	else 
-		opcode = strtok(command, white_space);
+		instruction = strtok(cmdCopy, white_space);
 	
-	cmd_index = check_cmd(opcode, cmd);/*index of opcode*/
 
 	while((arg = strtok(NULL, ","))!=NULL){
 		printf("Argument is: %s\n", arg);
@@ -104,25 +113,23 @@ int check_cmd_args(char *command, int line_num, int type, struct CmdNames *cmd){
 		else if((arg_count) == 2)
 			destination = arg;
 		else {
-			printf("Error, extraneous number of arguments for opcode, in line number: %d\n", line_num);
-			return ERROR;
+			printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+			isError = -1;
 		}
 	}
-	if(arg_count < cmd[cmd_index].args){
-		printf("Error, missing arguments for opcode, in line number: %d\n", line_num);
-		return ERROR;
+	if(arg_count < cmd[cmd_index].args && !isError){
+		printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
+		isError = -1;
 	}
-	else if(arg_count > cmd[cmd_index].args){
-		printf("Error, extraneous number of arguments for opcode, in line number: %d\n", line_num);
-		return ERROR;
+	if((arg_count > cmd[cmd_index].args) && !isError){
+		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+		isError = -1;
 	}
-	else {
 		
-	}/*end of else*/
-
-	/*add label to linked list of labels*/
-	/*if all is ok go to funct add node to linked list of opcodes*/
-	return ERROR;
+	free(cmdCopy);
+	if(!isError)
+		return 1;
+	else return ERROR;
 }
 
 
