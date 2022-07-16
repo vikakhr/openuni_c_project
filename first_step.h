@@ -42,7 +42,7 @@ typedef struct node_cmd instructionLine;/*lines with instructions*/
 
 void check_cmd_line(char *sourceFileName);
 int line_typo_errors_check(char* command, int line_num);
-line_instruction_check(char* command, int line_num, int isLabel, int cmd_index);
+
 
 
 

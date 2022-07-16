@@ -101,10 +101,12 @@ void add_instruction_node(instructionLine** head, instructionLine** tail, char* 
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
+		printf("2\n");
 		(*head)->next = new;
 		*tail = new;
 	}
 	else {	
+		printf("3\n");
 		(*tail)->next = new;
 		*tail = new;
 	}

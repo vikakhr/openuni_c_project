@@ -13,7 +13,8 @@ void check_cmd_line(char *sourceFileName){
 	int cmd_type;
 	char *command, *commandCopy, *commandFinal;
 	char *firstWord, *secondWord, *thirdWord, *word, *label;
-	
+	int args_counter = 0;
+	char *source, *destination;
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
 	int cmd_index, drctv_index;	
@@ -23,7 +24,7 @@ void check_cmd_line(char *sourceFileName){
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	
 	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
-	
+	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*head and tail of instructions list*/
 	
 
 
@@ -73,7 +74,7 @@ void check_cmd_line(char *sourceFileName){
 	
 		isLabel = 0;
 		isError = 0;
-		
+		args_counter = 0;
 		
 		if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
 			continue;	
@@ -208,10 +209,38 @@ void check_cmd_line(char *sourceFileName){
 			
 			if((check_cmd_args(commandCopy, line_num, isLabel, cmd_index, cmd)) == ERROR)
 				continue;
-			if((line_instruction_check(commandCopy, line_num, isLabel, cmd_index)) == ERROR)
-				continue;
+
+				
 			if(isLabel)
 			add_node_label(&head_lbl, &tail_lbl, label, line_num, ENTRY);
+
+			if(isLabel){
+				word = strtok(commandCopy, white_space);
+				word = strtok(NULL, white_space);
+			}
+			else 
+				word = strtok(commandCopy, white_space);
+			printf("Before strtok: %s\n", word);
+					
+			if((source = strtok(NULL, ","))!=NULL){
+				args_counter++; /*argument counter*/
+				source = remove_blanks(source);
+			if((destination = strtok(NULL, white_space))!=NULL){
+				args_counter++; /*argument counter*/
+				destination = remove_blanks(destination);
+			}
+		}
+			
+	
+		if(!args_counter)
+
+			add_instruction_node(&head_instruction, &tail_instruction, NULL, NULL, cmd_index, line_num, cmd[cmd_index].args);
+		if(args_counter==1)
+
+			add_instruction_node(&head_instruction, &tail_instruction, NULL, source, cmd_index, line_num, cmd[cmd_index].args);
+		else if(args_counter==2)
+
+			add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);
 
 			/*switch(cmd_index){/*switch by func index of struct
 			case 0: 
@@ -253,7 +282,7 @@ void check_cmd_line(char *sourceFileName){
 	}/*end of forever*/	
 	
 print_label_list(head_lbl);
-	
+/**/print_instruction_list(head_instruction);/************************************/
 	printf("Before free\n");
 free(command);
 free(commandCopy);
@@ -284,42 +313,5 @@ int line_typo_errors_check(char* command, int line_num){
 		return ERROR;
 	return 0;
 }
-
-int line_instruction_check(char* command, int line_num, int isLabel, int cmd_index){
-	int args_counter = 0;
-	char *source, *destination, *word;
-	char *white_space = " \t\v\f\r\n";
-	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*head and tail of instructions list*/	
-
-	if(isLabel){
-		word = strtok(command, white_space);
-		word = strtok(NULL, white_space);
-	}
-	else 
-		word = strtok(command, white_space);
-	printf("Before strtok: %s\n", word);
-			
-	if((source = strtok(NULL, ","))!=NULL){
-		args_counter++; /*argument counter*/
-		source = remove_blanks(source);
-		if((destination = strtok(NULL, white_space))!=NULL){
-			args_counter++; /*argument counter*/
-			destination = remove_blanks(destination);
-		}
-	}
-			
-	
-	if(!args_counter)
-		add_instruction_node(&head_instruction, &tail_instruction, NULL, NULL, cmd_index, line_num, cmd[cmd_index].args);
-	if(args_counter==1)
-		add_instruction_node(&head_instruction, &tail_instruction, NULL, source, cmd_index, line_num, cmd[cmd_index].args);
-	else if(args_counter==2)
-		add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);
-
-	/**/print_instruction_list(head_instruction);/************************************/
-	return 0;
-
-}
-
 
 
