@@ -223,56 +223,24 @@ void check_cmd_line(char *sourceFileName){
 			printf("Before strtok: %s\n", word);
 					
 			if((source = strtok(NULL, ","))!=NULL){
-				args_counter++; /*argument counter*/
-				source = remove_blanks(source);
-			if((destination = strtok(NULL, white_space))!=NULL){
-				args_counter++; /*argument counter*/
-				destination = remove_blanks(destination);
+					args_counter++; /*argument counter*/
+					source = remove_blanks(source);
+				if((destination = strtok(NULL, white_space))!=NULL){
+					args_counter++; /*argument counter*/
+					destination = remove_blanks(destination);
+				}
+				else {
+					destination = source;
+					source = NULL;
+				}
 			}
-		}
-			
-	
-		if(!args_counter)
-
-			add_instruction_node(&head_instruction, &tail_instruction, NULL, NULL, cmd_index, line_num, cmd[cmd_index].args);
-		if(args_counter==1)
-
-			add_instruction_node(&head_instruction, &tail_instruction, NULL, source, cmd_index, line_num, cmd[cmd_index].args);
-		else if(args_counter==2)
+			else/*if no arguments for instruction*/
+				destination = NULL;
+				
 
 			add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);
 
-			/*switch(cmd_index){/*switch by func index of struct
-			case 0: 
-			case 1:		
-			case 2:
-			case 3:	
-				if(((*(cmd[cmd_index].func))(source, destination, line_num))==ERROR)
-							break;
-			case 4:
-						
-			case 5: 
-				if(((*(cmd[cmd_index].func))(destination))==ERROR)
-							break;
-						
-			case 6:
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
-							break;	
-			case 7: 
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 12:
-			case 13:
-				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
-							break;
-
-			case 14: 
-			case 15:
-
-			break;
-		}/*end of switch*/
+			
 
 
 		}

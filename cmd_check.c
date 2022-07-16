@@ -126,6 +126,39 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 		isError = -1;
 	}
 		
+	/*switch(cmd_index){/*switch by func index of struct
+			case 0: 
+			case 1:		
+			case 2:
+			case 3:	
+				if(((*(cmd[cmd_index].func))(source, destination, line_num))==ERROR)
+							break;
+			case 4:
+						
+			case 5: 
+				if(((*(cmd[cmd_index].func))(destination))==ERROR)
+							break;
+						
+			case 6:
+				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
+							break;	
+			case 7: 
+			case 8:
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+				if(((*(cmd[cmd_index].func))(source, destination))==ERROR)
+							break;
+
+			case 14: 
+			case 15:
+
+			break;
+		}/*end of switch*/
+
+
 	free(cmdCopy);
 	if(!isError)
 		return 1;
