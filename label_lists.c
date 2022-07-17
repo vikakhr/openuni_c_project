@@ -158,19 +158,19 @@ void check_label_defined(labels** head_label, externs **head_ext, instructionLin
 	externs *ptr_ext = *head_ext;
 	instructionLine *temp, *ptr_instruction = *head_instruction;
 	
-
 	while(ptr_instruction!=NULL){
 		if(ptr_instruction->source!=NULL){
 			if((check_arg_register(ptr_instruction->source))==ERROR){/*if source not register*/
 				if((check_arg_number(ptr_instruction->source))==ERROR){/*if source not number*/
 					while(ptr_label!=NULL){/*check if source is label*/
 						if(!(strcmp(ptr_label->label, ptr_instruction->source)))/*if label was found*/					
-							continue;
+							break;
+						printf("%s - %s\n", ptr_label->label, ptr_instruction->source);
 						ptr_label = ptr_label->next;
 					}
 					while(ptr_ext!=NULL){/*check if source is extern label*/
 						if(!(strcmp(ptr_ext->ext_label, ptr_instruction->source)))/*if extern label*/					
-							continue;
+							break;
 						ptr_ext = ptr_ext->next;
 					}
 					printf("Error, label name of source parameter is not defined, int line_number: %d\n", ptr_instruction->line_num);
@@ -180,6 +180,7 @@ void check_label_defined(labels** head_label, externs **head_ext, instructionLin
 				}
 			}
 		}
+	ptr_instruction = ptr_instruction->next;
 	}
 }
 

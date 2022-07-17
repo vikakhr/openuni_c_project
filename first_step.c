@@ -224,7 +224,8 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 	}/*end of forever*/	
 	
 print_label_list(*head_lbl);
-/**/print_instruction_list(*head_instruction);/************************************/
+print_instruction_list(*head_instruction);/************************************/
+print_directive_list(*head_drctv);
 	printf("Before free\n");
 free(command);
 free(commandCopy);

@@ -35,12 +35,6 @@ int check_label_islegal(char* label, int line_num){
 		return ERROR;
 	}
 
-	/*if(!isspace(label[strlen(label)-1])){/*if there is whitespace between label name and :
-		printf("%s\n", label);
-		printf("Label name is not legal, in line number: %d\n", line_num);
-		return ERROR;
-	}*/
-
 	if(strlen(label)==regNameLength){/*if length of label string is two check if is not register name*/
 		for(i=0; i<REGLENGTH; i++)
 			if(!strcmp(label, REGISTER[i])){
@@ -84,6 +78,25 @@ int check_arg_register(char *word){
 	return ERROR;
 }
 
+/**********************************************************************TO FINISH THIS FUNC*******
+int check_arg_struct(char *word, int line_num){
+	char *ptr, *new;
+	if(strchr(word, '.')==NULL)
+		return ERROR;
+	cmdCopy = (char*)malloc(strlen(word)+1);
+	if(word==NULL)
+		return;
+	strcpy(new, word);
+
+	ptr = strtok(new, ".");
+	if(check_label_islegal(ptr, line_num)==ERROR)
+		return ERROR;
+	return 1;
+
+
+
+
+}*/
 
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/

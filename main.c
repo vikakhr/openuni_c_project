@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
 		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
 		check_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_instruction, &tail_instruction, &head_extern, &tail_extern); /*check errors*/
-		
+		check_label_defined(&head_lbl, &head_extern, &head_instruction);
 
 		fclose(ifp);
 

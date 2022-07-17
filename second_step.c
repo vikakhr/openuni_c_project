@@ -111,6 +111,27 @@ void print_instruction_list(instructionLine* head){
 	}
 }
 
+/*Function frees nodes and linked list*/
+void print_directive_list(directiveLine* head){
+	directiveLine* ptr;
+	ptr = head;
+	int i=1;
+	printf("Inside print directive node:\n");
+	while(ptr!=NULL){
+
+		printf("%d: %s - type: %d, line_nume: %d\n", i, ptr->drctv_line, ptr->directive_type, ptr->line_num);
+		
+		 ptr = ptr->next;
+		i++;
+	}
+}
+
+
+
+
+
+
+
 /*Function receives head of linkes list of instruction and line number of node need to be deleted, search this node and frees a memory of node and it's members*/
 void delete_instruction_node(instructionLine **head, int line_num){
 	instructionLine *ptr = *head;
