@@ -103,15 +103,42 @@ void print_instruction_list(instructionLine* head){
 	int i=1;
 	printf("Inside print instruction node:\n");
 	while(ptr!=NULL){
-		printf("Before i++, %d\n", ptr);
+
 		printf("%d: cmd_index: %d, source: %s, destination: %s, line_num: %d, num_args:%d\n", i, ptr->cmd_index, ptr->source, ptr->destination, ptr->line_num, ptr->args);
 		
 		 ptr = ptr->next;
 		i++;
-		printf("After i++\n");
+	}
+}
+
+/*Function receives head of linkes list of instruction and line number of node need to be deleted, search this node and frees a memory of node and it's members*/
+void delete_instruction_node(instructionLine **head, int line_num){
+	instructionLine *ptr = *head;
+	instructionLine *temp;
+	
+	if((*head)->line_num  == line_num){
+		temp = *head;
+		*head = (*head)->next;		
+	}		
+	else {
+		while(ptr->next != NULL){
+			if((ptr->next)->line_num == line_num){
+				temp = ptr->next;
+				ptr->next = (ptr->next)->next;
+				break;
+			}
+			else ptr = ptr->next;
+		}
 	}
 
-	printf("After\n");
-	
+	if(temp->args == 1)/*free contains if one arg*/
+		free(temp->destination);
+	if(temp->args == 2){/*free contains if two args*/
+		free(temp->source);
+		free(temp->destination);
+	}
+	free(temp);/*free node*/
+
+
 
 }

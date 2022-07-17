@@ -13,7 +13,42 @@
 #define REGLENGTH 8 /*number of registers*/
 #define DRCTVNUM 5 /*number of directives*/
 
+typedef struct node_label{/*linked list of labels*/
+	char* label;
+	int line_number;
+	int label_type;
+	int memory_number;
+	struct node_label* next;
+}node_label; 
+
+typedef struct node_ext{/*linked list of labels*/
+	char* ext_label;
+	int line_number;
+	struct node_label* next;
+}node_ext; 
+
+
+struct node_cmd{/*linked list to save binary representation??????*/
+	int cmd_index;	
+	int args;
+	char* source;
+	char* destination;
+	int line_num;
+	struct node_cmd* next;
+}node_cmd; 
+
+
+struct node_directive{/*linked list to save binary representation??????*/
+	char* drctv_line;
+	int isLabel;
+	int directive_type; 
+	int line_num;
+	struct node_directive* next;
+}node_directive; 
 
 
 
-
+typedef struct node_directive directiveLine;/*lines with directive*/
+typedef struct node_cmd instructionLine;/*lines with instructions*/
+typedef struct node_label labels;/*lines with labels*/
+typedef struct node_ext externs;/*lines with labels*/

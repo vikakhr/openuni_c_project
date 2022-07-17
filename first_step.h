@@ -13,36 +13,14 @@ typedef struct DrctvNames{/*linked list of opcodes*/
 }DrctvNames; 
 
 
-struct node_cmd{/*linked list to save binary representation??????*/
-	int cmd_index;	
-	int args;
-	char* source;
-	char* destination;
-	int line_num;
-	struct node_cmd* next;
-}node_cmd; 
-
-
-struct node_directive{/*linked list to save binary representation??????*/
-	char* drctv_line;
-	int isLabel;
-	int directive_type; 
-	int line_num;
-	struct node_directive* next;
-}node_directive; 
 
 
 
 
-
-typedef struct node_directive directiveLine;/*lines with directive*/
-typedef struct node_cmd instructionLine;/*lines with instructions*/
+void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern);
 
 
-void check_cmd_line(char *sourceFileName);
-
-
-
+int line_typo_errors_check(char* command, int line_num);
 
 
 
@@ -52,7 +30,7 @@ int check_cmd_args(char *word, int line_num, int isLabel, int cmd_index, struct 
 int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
 
 
-
+void delete_instruction_node(instructionLine **head, int line_num);
 void print_instruction_list(instructionLine* head);
 
 void add_instruction_node(instructionLine** head, instructionLine** tail, char* source, char* destination, int cmd_index, int line_num, int args);

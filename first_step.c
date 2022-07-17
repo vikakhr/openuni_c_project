@@ -1,13 +1,12 @@
 #include "main.h" /*main libraries*/
 #include "first_step.h" /*functions*/
-#include "second_step.h"
 #include "cmd_check.h" /*check functions*/
 #include "label_lists.h" /*lists of labels and structs*/
 
 
 
 
-void check_cmd_line(char *sourceFileName){
+void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern){
 	FILE *sfp;
 	int line_num = 0;
 	int cmd_type;
@@ -21,12 +20,8 @@ void check_cmd_line(char *sourceFileName){
 	int isError;
 	
 
-	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	
-	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
-	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*head and tail of instructions list*/
 	
-
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
@@ -103,11 +98,11 @@ void check_cmd_line(char *sourceFileName){
 				}
 				printf("Data directive is ok \n");
 				if(isLabel) /*add label if exists*/{
-					if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+					if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
 						break;
-					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num, ENTRY);
+					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
 				}		
-				add_directive_node(&head_drctv, &tail_drctv, line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/	
+				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/	
 				break;	
 			case 1:/*.string*/
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
@@ -117,11 +112,11 @@ void check_cmd_line(char *sourceFileName){
 				}
 				printf("String directive is ok \n");
 				if(isLabel){
-					if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+					if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
 						break;
-					add_node_label(&head_lbl, &tail_lbl, firstWord, line_num, ENTRY);
+					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
 				}
-				add_directive_node(&head_drctv, &tail_drctv, line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
+				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
 				break;
 			case 2: /*.struct*/
 				if(!isLabel){
@@ -129,11 +124,11 @@ void check_cmd_line(char *sourceFileName){
 					isError = 1;
 					break;
 				}
-				if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
 					break;
 
-				add_node_label(&head_lbl, &tail_lbl, label, line_num, STRUCT);
-				add_directive_node(&head_drctv, &tail_drctv, line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
+				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, STRUCT);
+				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
 				printf("This is struct directive, added to list \n");
 				break;
 			case 3: /*.entry*/
@@ -153,9 +148,9 @@ void check_cmd_line(char *sourceFileName){
 					break;
 				}
 				printf("This is entry \n");
-				if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, ENTRY, line_num))==ERROR)
+				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
 					break;
-				add_node_label(&head_lbl, &tail_lbl, secondWord, line_num, ENTRY);
+				add_node_label(&(*head_lbl), &(*tail_lbl), secondWord, line_num, ENTRY);
 				break;
 			case 4: /*.extern*/
 				if(isLabel){/*if label before .extern word*/
@@ -174,9 +169,9 @@ void check_cmd_line(char *sourceFileName){
 					break;
 				}
 				printf("This is extern \n");
-				if((check_label_positioning(&head_lbl, &tail_lbl, secondWord, EXTERN, line_num))==ERROR)
+				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, EXTERN, line_num))==ERROR)
 					break;
-				add_node_label(&head_lbl, &tail_lbl, secondWord, line_num, EXTERN);	
+				add_node_extern(&(*head_extern), &(*tail_extern), secondWord, line_num);
 				break;
 			break;		
 			}/*end of switch*/
@@ -199,7 +194,7 @@ void check_cmd_line(char *sourceFileName){
 				continue;
 				
 			if(isLabel)
-			add_node_label(&head_lbl, &tail_lbl, label, line_num, ENTRY);
+			add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, ENTRY);
 
 			if(isLabel){
 				word = strtok(commandCopy, white_space);
@@ -224,12 +219,12 @@ void check_cmd_line(char *sourceFileName){
 			else/*if no arguments for instruction*/
 				destination = NULL;
 				
-			add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);	
+			add_instruction_node(&(*head_instruction), &(*tail_instruction), source, destination, cmd_index, line_num, cmd[cmd_index].args);	
 		}
 	}/*end of forever*/	
 	
-print_label_list(head_lbl);
-/**/print_instruction_list(head_instruction);/************************************/
+print_label_list(*head_lbl);
+/**/print_instruction_list(*head_instruction);/************************************/
 	printf("Before free\n");
 free(command);
 free(commandCopy);
