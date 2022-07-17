@@ -11,7 +11,7 @@ void check_cmd_line(char *sourceFileName){
 	FILE *sfp;
 	int line_num = 0;
 	int cmd_type;
-	char *command, *commandCopy, *commandFinal;
+	char *command, *commandCopy;
 	char *firstWord, *secondWord, *thirdWord, *word, *label;
 	int args_counter = 0;
 	char *source, *destination;
@@ -41,10 +41,6 @@ void check_cmd_line(char *sourceFileName){
 		commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);/*to check all parameters are legal*/
 		if(commandCopy==NULL)
 			return;
-	
-		commandFinal = (char *)malloc(sizeof(char)*LINESIZE+1);/*to save all arguments of legal line*/
-		if(commandFinal==NULL)
-			return;
 
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
@@ -68,9 +64,7 @@ void check_cmd_line(char *sourceFileName){
 		if((line_typo_errors_check(command, line_num))==ERROR)
 			continue;		
 
-
 		strcpy(commandCopy, command);/*makes a copy of original command*/
-		strcpy(commandFinal, command);/*makes a copy of original command*/
 	
 		isLabel = 0;
 		isError = 0;
@@ -87,11 +81,11 @@ void check_cmd_line(char *sourceFileName){
 		thirdWord = strtok(NULL, white_space); /*take third word for check 3 words containing label positioning*/
 
 		if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
-		label = strtok(firstWord, ":");/*take label name*/
+			label = strtok(firstWord, ":");/*take label name*/		
+			if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
+				continue;
+		}
 			
-		if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
-			continue;
-		}			
 		if(isLabel)/*choose next word to check*/
 			word = secondWord;
 		else word = firstWord;
@@ -172,8 +166,7 @@ void check_cmd_line(char *sourceFileName){
 						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
 						isError = 1;
 						break;
-					}
-					
+					}					
 				}
 				
 				if(check_label_islegal(secondWord, line_num)==ERROR){
@@ -192,8 +185,7 @@ void check_cmd_line(char *sourceFileName){
 		}
 
 		else {/*if not directive check if instruction*/
-			printf("Instruction\n");
-			
+			printf("Instruction\n");		
 			if(isLabel)/*if label check if second word is legal command*/
 				cmd_index = check_cmd(secondWord, cmd);
 			else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
@@ -205,7 +197,6 @@ void check_cmd_line(char *sourceFileName){
 			
 			if((check_cmd_args(commandCopy, line_num, isLabel, cmd_index, cmd)) == ERROR)
 				continue;
-
 				
 			if(isLabel)
 			add_node_label(&head_lbl, &tail_lbl, label, line_num, ENTRY);
@@ -233,12 +224,8 @@ void check_cmd_line(char *sourceFileName){
 			else/*if no arguments for instruction*/
 				destination = NULL;
 				
-
 			add_instruction_node(&head_instruction, &tail_instruction, source, destination, cmd_index, line_num, cmd[cmd_index].args);	
 		}
-
-	
-
 	}/*end of forever*/	
 	
 print_label_list(head_lbl);
@@ -246,7 +233,7 @@ print_label_list(head_lbl);
 	printf("Before free\n");
 free(command);
 free(commandCopy);
-free(commandFinal);
+
 
 
 /*here need to free all lists*/
@@ -257,7 +244,6 @@ fclose(sfp);
 
 int line_typo_errors_check(char* command, int line_num){
 	
-
 	if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces*/
 		return ERROR;
 
@@ -265,7 +251,7 @@ int line_typo_errors_check(char* command, int line_num){
 		return ERROR;
 
 	if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a "" punctuation mark at the end of command*/ 
-			printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
+		printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
 		return ERROR;
 	}
 
