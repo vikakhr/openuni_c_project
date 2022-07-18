@@ -12,9 +12,9 @@ int main(int argc, char *argv[]){
 	char *file_name, *ptr;
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
-	
 	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
 	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*head and tail of instructions list*/
+	
 
 
 	if(argc == 1)

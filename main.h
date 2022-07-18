@@ -13,6 +13,7 @@
 #define REGLENGTH 8 /*number of registers*/
 #define DRCTVNUM 5 /*number of directives*/
 
+
 typedef struct node_label{/*linked list of labels*/
 	char* label;
 	int line_number;

@@ -159,7 +159,8 @@ void delete_instruction_node(instructionLine **head, int line_num){
 		free(temp->destination);
 	}
 	free(temp);/*free node*/
-
-
-
 }
+
+
+
+
