@@ -98,7 +98,7 @@ int check_one_num(char *num){
 	return 0;
 }
 
-/*Receives pointer to the command line string and checks if numbers are legal for .data arguments. If no errors returns 0, ERROR otherwise*/
+/*Receives pointer to the command line string and checks if numbers are legal for .data arguments. If no errors returns amount of numbers, ERROR otherwise*/
 int check_nums(char *line, int isLabel){				
 	char *word;	
 	char *ptr;
@@ -156,7 +156,7 @@ int check_nums(char *line, int isLabel){
 	}
 	printf("Is ok\n");
 	free(numbers);	
-	return 0;
+	return count;
 }
 
 /*Function checks if string is legal and returns 1, ERROR otherwise*/

@@ -21,7 +21,7 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 
 
 int line_typo_errors_check(char* command, int line_num);
-
+void add_data_arg(char* line, int isLabel, int line_num, char *label, directiveLine **head, directiveLine **tail);
 
 
 int check_cmd (char *word, struct CmdNames *cmd);

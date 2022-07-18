@@ -18,7 +18,7 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 	char *white_space = " \t\v\f\r\n";
 	int cmd_index, drctv_index;	
 	int isError;
-	
+
 
 	
 	
@@ -62,9 +62,10 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 	
 		isLabel = 0;
+		label = NULL;
 		isError = 0;
 		args_counter = 0;
-		
+
 		if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
 			continue;	
 		
@@ -92,7 +93,7 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 			printf("Directive\n");
 			switch(drctv_index){/*switch by func index of struct*/
 			case 0:/*.data*/ 
-				if(check_nums(commandCopy, isLabel)==ERROR){/*check data parameters*/
+				if((args_counter = check_nums(commandCopy, isLabel))==ERROR){/*check data parameters*/
 					isError = 1;
 					break;
 				}
@@ -101,8 +102,9 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 					if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
 						break;
 					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
-				}		
-				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/	
+				}
+				add_data_arg(commandCopy, isLabel, line_num, label, &(*head_drctv), &(*tail_drctv));	
+				/*add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, label, isLabel, drctv_index);/*adds directive to linked list*/	
 				break;	
 			case 1:/*.string*/
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
@@ -116,7 +118,7 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 						break;
 					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
 				}
-				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
+				/*add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, label, isLabel, drctv_index);/*adds directive to linked list*/
 				break;
 			case 2: /*.struct*/
 				if(!isLabel){
@@ -128,7 +130,7 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 					break;
 
 				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, STRUCT);
-				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, commandCopy, isLabel, drctv_index);/*adds directive to linked list*/
+				/*add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, label, isLabel, drctv_index);/*adds directive to linked list*/
 				printf("This is struct directive, added to list \n");
 				break;
 			case 3: /*.entry*/
@@ -255,5 +257,37 @@ int line_typo_errors_check(char* command, int line_num){
 		return ERROR;
 	return 0;
 }
+
+void add_data_arg(char* line, int isLabel, int line_num, char *label, directiveLine **head_drctv, directiveLine **tail_drctv){
+	char *ptr;
+	char *white_space = " \t\v\f\r\n";
+	short int arg;
+	char *new_label;
+	char* number = (char*)malloc(strlen(line)+1);
+	if(number==NULL)
+		return;
+	strcpy(number, line);
+	new_label = (char*)malloc(strlen(label)+1);
+	if(new_label==NULL)
+		return;
+	strcpy(new_label, label);
+
+	if(isLabel){
+
+		ptr = strtok(number, white_space);
+		ptr = strtok(NULL, white_space);
+	}
+	else ptr = strtok(number, white_space);
+
+	while((ptr = strtok(NULL, ","))!=NULL){
+		arg = (short)atoi(ptr);
+		printf("%d\n", arg);
+		add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, new_label, isLabel, arg);/*adds directive arg into linked list*/	
+
+	}
+
+	free(number);	
+}
+
 
 

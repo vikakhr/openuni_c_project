@@ -40,9 +40,9 @@ struct node_cmd{/*linked list to save binary representation??????*/
 
 
 struct node_directive{/*linked list to save binary representation??????*/
-	char* drctv_line;
+	char* label;
 	int isLabel;
-	int directive_type; 
+	short int arg; 
 	int line_num;
 	struct node_directive* next;
 }node_directive; 

@@ -1,7 +1,7 @@
 #include "main.h"
 #include "preprocessor.h"
 #include "first_step.h"
-
+#include "label_lists.h"
 #include "cmd_check.h"
 
 
@@ -38,7 +38,6 @@ int main(int argc, char *argv[]){
 		check_label_defined(&head_lbl, &head_extern, &head_instruction);
 
 		fclose(ifp);
-
 		}
 }
 

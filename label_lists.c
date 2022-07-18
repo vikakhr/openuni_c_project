@@ -25,7 +25,6 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 	externs *ptr_ext = *ext_head;
 	printf("Inside check label positioning\n");
 	while(ptr_ext!=NULL){
-		printf("1\n");
 		if(!(strcmp(label, ptr_ext->ext_label))){
 			if(label_type == ENTRY){
 				printf("Error, conflicting positioning type for label defined multiple times, in line number: %d\n", line_num);
@@ -40,7 +39,6 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 	}
 
 	while(ptr!=NULL){
-		printf("2\n");
 		if(!(strcmp(label, ptr->label))){
 			if(label_type == EXTERN){
 				printf("Error, conflicting positioning type for label defined multiple times, in line number: %d\n", line_num);
@@ -182,6 +180,7 @@ void check_label_defined(labels** head_label, externs **head_ext, instructionLin
 		}
 	ptr_instruction = ptr_instruction->next;
 	}
+	printf("After check label defined\n");
 }
 
 /*Function makes numeration of memory*/

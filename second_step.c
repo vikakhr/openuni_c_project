@@ -63,25 +63,26 @@ void add_instruction_node(instructionLine **head, instructionLine **tail, char* 
 
 
 /*Function receives directive line and it's details, creates and adds new node to linked list of opcode commands*/
-void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, char *line, int isLabel, int directive_type){
+void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, char *label, int isLabel, int arg){
 	
 	directiveLine *new = malloc(sizeof(directiveLine));
 	if(new==NULL)
 		return;
 	
-	new->drctv_line = (char*)malloc(strlen(line)+1);
-	if(new->drctv_line==NULL)
+	new->label = (char*)malloc(strlen(label)+1);
+	if(new->label==NULL)
 		return;
-
-	strcpy(new->drctv_line, line);
-	new->directive_type = directive_type;
+	printf("Inside add directive node\n");
+	strcpy(new->label, label);
+	new->arg = arg;
 	new->isLabel = isLabel;
 	new->line_num = line_num;
-	
+		printf("Inside add directive node\n");
 	if(*head==NULL){/*if this is first node*/
+			printf("Inside add directive node!!!!\n");
 		*head = new;
 		*tail = new;
-		printf("Head is: %s\n", (*head)->drctv_line);		
+		printf("Head is: %s\n", (*head)->label);		
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
@@ -119,7 +120,7 @@ void print_directive_list(directiveLine* head){
 	printf("Inside print directive node:\n");
 	while(ptr!=NULL){
 
-		printf("%d: %s - type: %d, line_nume: %d\n", i, ptr->drctv_line, ptr->directive_type, ptr->line_num);
+		printf("%d: %s - arg: %d, line_num: %d\n", i, ptr->label, ptr->arg, ptr->line_num);
 		
 		 ptr = ptr->next;
 		i++;
@@ -136,7 +137,7 @@ void print_directive_list(directiveLine* head){
 void delete_instruction_node(instructionLine **head, int line_num){
 	instructionLine *ptr = *head;
 	instructionLine *temp;
-	
+	printf("Inside delete instruction node\n");
 	if((*head)->line_num  == line_num){
 		temp = *head;
 		*head = (*head)->next;		
