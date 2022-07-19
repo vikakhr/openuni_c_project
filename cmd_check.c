@@ -77,25 +77,44 @@ int check_arg_register(char *word){
 	return ERROR;
 }
 
-/**********************************************************************TO FINISH THIS FUNC*******
-int check_arg_struct(char *word, int line_num){
-	char *ptr, *new;
-	if(strchr(word, '.')==NULL)
-		return ERROR;
-	cmdCopy = (char*)malloc(strlen(word)+1);
-	if(word==NULL)
+/*Function checks if argument can be a struct, if it is returns num of addressing type, otherwise returns -1*/
+int check_struct_arg(char *line, int line_num, int isLabel){
+	char *separator = " \t\v\f\r";
+	char *ptr;
+	char *lineCopy = (char*)malloc(strlen(line)+1);
+	if(lineCopy==NULL)
 		return;
-	strcpy(new, word);
+	strcpy(lineCopy, line);
+	if(isLabel){
+		ptr = strtok(lineCopy, separator);/*take label*/
+		ptr = strtok(NULL, separator);/*take directive name*/
+	}
+	else 	ptr = strtok(lineCopy, separator);
 
-	ptr = strtok(new, ".");
-	if(check_label_islegal(ptr, line_num)==ERROR)
+	if((ptr = strtok(NULL, ",")) == NULL){/*if no first argument*/
+		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
 		return ERROR;
-	return 1;
+	}
+	
+	if((check_one_num(ptr))==ERROR){/*if struct field num is not integer*/
+		printf("Error, first field of struct is not integer, in line number: %d\n", line_num);	
+		return ERROR;
+	}
 
+	if((ptr = strtok(NULL, separator))==NULL){/*if no second argument*/
+		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
+		return ERROR;
+	}
 
+	if(ptr[0] == '"' && ptr[strlen(ptr)-1] == '"')/*if string has "" by sides*/
+		return 1;	
+	
+	else {
+		printf("Error, string parameter is not legal, in line number: %d\n", line_num);
+		return ERROR;
+	}	
+}
 
-
-}*/
 
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
@@ -158,11 +177,10 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 					return ERROR;
 						
 			case 6:
-				printf("lea func\n");
 				if(check_arg_register(source)!=ERROR)/*if source is register - ERROR*/
 					return ERROR;
 				if(check_one_num(source)!=ERROR){/*if source is number - ERROR*/
-					printf("Source parameter is not legal, in line number: %d\n", line_num);
+					printf("Error, source parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
 				}
 				if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
@@ -173,7 +191,6 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 			case 9:
 			case 10:
 			case 11: if(check_one_num(destination)!=ERROR){/*if destination is number - ERROR*/
-					printf("destination is number\n");
 					return ERROR;
 					}
 			case 12: return 1;

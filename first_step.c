@@ -104,7 +104,6 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
 				}
 				add_data_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));	
-				/*add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, label, isLabel, drctv_index);/*adds directive to linked list*/	
 				break;	
 			case 1:/*.string*/
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
@@ -119,7 +118,7 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
 				}
 				add_string_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
-				/*add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, label, isLabel, drctv_index);/*adds directive to linked list*/
+
 				break;
 			case 2: /*.struct*/
 				if(!isLabel){
@@ -129,9 +128,10 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 				}
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
 					break;
-
+				check_struct_arg(commandCopy, line_num, isLabel);
 				add_node_label(&(*head_lbl), &(*tail_lbl), secondWord, line_num, STRUCT);
-				/*add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, label, isLabel, drctv_index);/*adds directive to linked list*/
+				add_struct_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
+
 
 				break;
 			case 3: /*.entry*/
@@ -254,7 +254,7 @@ int line_typo_errors_check(char* command, int line_num){
 		return ERROR;
 	}
 
-	if((checkCommas(command, line_num))==ERROR)/*check consecutive commas*/
+	if((check_commas(command, line_num))==ERROR)/*check consecutive commas*/
 		return ERROR;
 	return 0;
 }
@@ -270,7 +270,6 @@ void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_dr
 	strcpy(number, line);
 
 	if(isLabel){
-
 		ptr = strtok(number, white_space);
 		ptr = strtok(NULL, white_space);
 	}
@@ -294,7 +293,6 @@ void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_
 		return;
 	strcpy(lineCopy, line);
 	
-
 	for(i=0; i<strlen(line); i++){
 		if(lineCopy[i]=='"'){
 			if(inString){
@@ -333,15 +331,12 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 	
 	ptr = strtok(NULL, ",");
 	arg = (short)atoi(ptr);
-	printf("%d\n", arg);
+
 	add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, arg);/*adds directive num arg into linked list*/	
 	
 	for(i=0; i<strlen(line); i++){
-		printf("%c\t", lineCopy[i]);
 		if(lineCopy[i]=='"'){
-			printf("Entering string, %d\n", inString);
 			if(inString){
-				printf("if\n");
 				if(lineCopy[i+1]=='\n')
 					break;	
 			}
@@ -349,7 +344,6 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 		}
 		else {
 			if(inString){
-				printf("%d\n", (short)lineCopy[i]);
 				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, (short)lineCopy[i]);/*adds string arg into linked list*/	
 			}		
 		}	

@@ -38,7 +38,7 @@ void add_instruction_node(instructionLine **head, instructionLine **tail, char* 
 	new->args = args;	
 	new->line_num = line_num;
 	new->cmd_index = cmd_index;
-	printf("Inside add instruction node: %d %s %s %d %d %d\n", cmd_index, new->source, new->destination, new->line_num, new->cmd_index, new->args);
+
 	if(*head!=NULL)
 		printf("%d %d\n", *head, *tail);
 	if(*head == NULL){/*if this is first node*/
@@ -67,14 +67,12 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 	directiveLine *new = malloc(sizeof(directiveLine));
 	if(new==NULL)
 		return;
-		printf("******\n");
 	
 	new->arg = arg;
 	new->isLabel = isLabel;
 	new->line_num = line_num;
-		printf("Inside add directive node\n");
+
 	if(*head==NULL){/*if this is first node*/
-			printf("Inside add directive node!!!!\n");
 		*head = new;
 		*tail = new;
 		return;
@@ -131,7 +129,7 @@ void print_directive_list(directiveLine* head){
 void delete_instruction_node(instructionLine **head, int line_num){
 	instructionLine *ptr = *head;
 	instructionLine *temp;
-	printf("Inside delete instruction node\n");
+
 	if((*head)->line_num  == line_num){
 		temp = *head;
 		*head = (*head)->next;		

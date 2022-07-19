@@ -34,7 +34,7 @@ char* remove_blanks(char* word){
 }
 
 /*Receives a pointer to the whole command line string and checks commas errors. If no errors returns 0, ERROR otherwise*/
-int checkCommas (char *word, int line_num){
+int check_commas (char *word, int line_num){
 	int comma = ',';
 	int i=0,j=0;	
 	if(strchr(word,comma) == NULL){/*no commas*/
@@ -189,35 +189,5 @@ int check_string_islegal(char* line, int isLabel){
 }
 
 
-/*Function checks if argument can be a struct, if it is returns num of addressing type, otherwise returns -1*/
-int check_arg_struct(char line, int line_num){
-	char *separator = " \t\v\f\r";
-	char *ptr;
 
-	ptr = strtok(line, separator);/*take label*/
-	ptr = strtok(NULL, separator);/*take label*/
-
-	if((ptr = strtok(NULL, ",")) == NULL){/*if no first argument*/
-		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
-		return ERROR;
-	}
-	
-	if((check_one_num(ptr))==ERROR){/*if struct field num is not integer*/
-		printf("Error, first field of struct is not integer, in line number: %d\n", line_num);	
-		return ERROR;
-	}
-
-	if((ptr = strtok(NULL, separator))==NULL){/*if no second argument*/
-		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
-		return ERROR;
-	}
-
-	if(ptr[0] == '"' && ptr[strlen(ptr)-1] == '"')/*if string has "" by sides*/
-		return 1;	
-	
-	else {
-		printf("Error, string parameter is not legal, in line number: %d\n", line_num);
-		return ERROR;
-	}	
-}
 
