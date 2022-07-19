@@ -40,7 +40,6 @@ struct node_cmd{/*linked list to save binary representation??????*/
 
 
 struct node_directive{/*linked list to save binary representation??????*/
-	char* label;
 	int isLabel;
 	short int arg; 
 	int line_num;

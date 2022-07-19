@@ -21,7 +21,10 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 
 
 int line_typo_errors_check(char* command, int line_num);
-void add_data_arg(char* line, int isLabel, int line_num, char *label, directiveLine **head, directiveLine **tail);
+void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head, directiveLine **tail);
+void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv);
+void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv);
+
 
 
 int check_cmd (char *word, struct CmdNames *cmd);
@@ -34,7 +37,7 @@ void delete_instruction_node(instructionLine **head, int line_num);
 void print_instruction_list(instructionLine* head);
 
 void add_instruction_node(instructionLine** head, instructionLine** tail, char* source, char* destination, int cmd_index, int line_num, int args);
-void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, char *line, int isLabel, int directive_type);
+void add_directive_node(directiveLine **head, directiveLine **tail, int line_num,  int isLabel, int directive_type);
 
 static char *OPCODE[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "get", "prn", "jsr", "rts", "hlt"};
 

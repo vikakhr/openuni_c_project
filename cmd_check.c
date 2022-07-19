@@ -30,7 +30,6 @@ int check_label_islegal(char* label, int line_num){
 		return ERROR;
 	}	
 	if(!isalpha(label[0])){/*if first char is not a character*/
-		printf("%s\n", label);
 		printf("Label name is not legal, in line number: %d\n", line_num);
 		return ERROR;
 	}

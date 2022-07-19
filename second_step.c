@@ -63,17 +63,12 @@ void add_instruction_node(instructionLine **head, instructionLine **tail, char* 
 
 
 /*Function receives directive line and it's details, creates and adds new node to linked list of opcode commands*/
-void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, char *label, int isLabel, int arg){
-	
+void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, int isLabel, int arg){
 	directiveLine *new = malloc(sizeof(directiveLine));
 	if(new==NULL)
 		return;
+		printf("******\n");
 	
-	new->label = (char*)malloc(strlen(label)+1);
-	if(new->label==NULL)
-		return;
-	printf("Inside add directive node\n");
-	strcpy(new->label, label);
 	new->arg = arg;
 	new->isLabel = isLabel;
 	new->line_num = line_num;
@@ -82,7 +77,6 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 			printf("Inside add directive node!!!!\n");
 		*head = new;
 		*tail = new;
-		printf("Head is: %s\n", (*head)->label);		
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
@@ -120,7 +114,7 @@ void print_directive_list(directiveLine* head){
 	printf("Inside print directive node:\n");
 	while(ptr!=NULL){
 
-		printf("%d: %s - arg: %d, line_num: %d\n", i, ptr->label, ptr->arg, ptr->line_num);
+		printf("%d:  arg: %d, line_num: %d\n", i, ptr->arg, ptr->line_num);
 		
 		 ptr = ptr->next;
 		i++;

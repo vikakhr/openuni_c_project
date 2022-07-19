@@ -12,8 +12,9 @@ prn #-5
 .extern W
 endmacro
 m1
+.string "abc"
 S5: .struct 8, "ab"
 P: .data 22
 .extern LENGTH
-
+strct: .struct 8, "ab"
 
