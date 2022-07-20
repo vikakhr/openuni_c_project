@@ -14,7 +14,9 @@ int main(int argc, char *argv[]){
 	externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
 	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
 	instructionLine *head_instruction = NULL, *tail_instruction = NULL; /*head and tail of instructions list*/
-	
+	char *line = (char*) malloc(sizeof(char)*LINESIZE);
+	if(line==NULL)
+		exit(0);
 
 
 	if(argc == 1)
@@ -34,7 +36,8 @@ int main(int argc, char *argv[]){
 		ptr = strchr(file_name, '.');
 		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
-		check_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_instruction, &tail_instruction, &head_extern, &tail_extern); /*check errors*/
+		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_instruction, &tail_instruction, &head_extern, &tail_extern); /*check errors*/
+		
 		check_label_defined(&head_lbl, &head_extern, &head_instruction);
 
 		fclose(ifp);

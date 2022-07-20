@@ -5,21 +5,12 @@
 
 
 
-
-void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern){
+/*Function receives file name and linked lists for saving data, read file line by line and makes first error checks, if checks are ok passes line to function for further treatment*/
+void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern){
 	FILE *sfp;
 	int line_num = 0;
-	int cmd_type;
-	char *command, *commandCopy;
-	char *firstWord, *secondWord, *thirdWord, *word, *label;
-	int args_counter = 0;
-	char *source, *destination;
-	int isLabel = 0; /*label flag*/
-	char *white_space = " \t\v\f\r\n";
-	int cmd_index, drctv_index;	
-	int isError;
-
 	
+	char *command;
 	
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
@@ -30,10 +21,6 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 	FOREVER {
 		command = (char*)malloc(sizeof(char)*LINESIZE+1);/*to check typo errors*/
 		if(command==NULL)
-			return;
-
-		commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);/*to check all parameters are legal*/
-		if(commandCopy==NULL)
 			return;
 
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
@@ -55,43 +42,65 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 
 		command = remove_blanks(command);/*remove whitespaces by sides of line*/		
 		
-
-		if((line_typo_errors_check(command, line_num))==ERROR)
+		if((line_typo_errors_check(command, line_num))==ERROR)/*to check typo errors*/
 			continue;		
 
-		strcpy(commandCopy, command);/*makes a copy of original command*/
+		check_cmd_line(command, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_instruction), &(*tail_instruction), 
+		&(*head_extern), &(*tail_extern));/*pass all parameters to next step checks*/
+
+	}/*end of forever*/
+
+	print_label_list(*head_lbl);
+	print_instruction_list(*head_instruction);
+	print_directive_list(*head_drctv);
+	free(command);
+	fclose(sfp);
+}
+
+
+/*Function receives line, it's number and linked lists for saving data, checks errors and saves legal line's data inside linked lists*/
+void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern){
 	
-		isLabel = 0;
-		label = NULL;
-		isError = 0;
-		args_counter = 0;
+	char *firstWord, *secondWord, *thirdWord, *word, *label = NULL;/*pointers to separate words*/
+	int args_counter = 0;/*counter number of arguments of the command*/
+	char *source, *destination;/*of instruction line*/
+	int cmd_index, drctv_index;/*indexes of command names*/	
+	int isLabel = 0; /*label flag*/
+	int isError = 0;/*error flag*/
+	char *white_space = " \t\v\f\r\n";
 
-		if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
-			continue;	
+	char *commandCopy = (char*)malloc(sizeof(char)*LINESIZE+1);
+	if(command==NULL)
+		return;
+
+	strcpy(commandCopy, command);/*makes a copy of original command*/
+
+	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
+		return;	
 		
-		if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
-			printf("Error, missing arguments in line number: %d\n", line_num);
-			continue;
-		}
+	if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
+		printf("Error, missing arguments in line number: %d\n", line_num);
+		return;
+	}
 
-		thirdWord = strtok(NULL, white_space); /*take third word for check 3 words containing label positioning*/
+	thirdWord = strtok(NULL, white_space); /*take third word for check 3 words containing label positioning*/
 
-		if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
-			label = strtok(firstWord, ":");/*take label name*/		
-			if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
-				continue;
-		}
+	if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
+		label = strtok(firstWord, ":");/*take label name*/		
+		if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
+			return;
+	}
 			
-		if(isLabel)/*choose next word to check*/
-			word = secondWord;
-		else word = firstWord;
+	if(isLabel)/*choose next word to check*/
+		word = secondWord;
+	else word = firstWord;
 
-		if(word[0] == '.'){/*if is directive*/
+	if(word[0] == '.'){/*if is directive*/
 
-			if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
-				continue;
+		if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
+			return;
 
-			switch(drctv_index){/*switch by func index of struct*/
+		switch(drctv_index){/*switch by func index of struct*/
 			case 0:/*.data*/ 
 				if((args_counter = check_nums(commandCopy, isLabel))==ERROR){/*check data parameters*/
 					isError = 1;
@@ -99,9 +108,9 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 				}
 
 				if(isLabel) /*add label if exists*/{
-					if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
+					if((check_label_positioning(&(*head_lbl), &(*head_extern), label, ENTRY, line_num))==ERROR)
 						break;
-					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
+					add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, ENTRY);
 				}
 				add_data_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));	
 				break;	
@@ -113,12 +122,11 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 				}
 
 				if(isLabel){
-					if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
+					if((check_label_positioning(&(*head_lbl), &(*head_extern), label, ENTRY, line_num))==ERROR)
 						break;
-					add_node_label(&(*head_lbl), &(*tail_lbl), firstWord, line_num, ENTRY);
+					add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, ENTRY);
 				}
 				add_string_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
-
 				break;
 			case 2: /*.struct*/
 				if(!isLabel){
@@ -126,13 +134,11 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 					isError = 1;
 					break;
 				}
-				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, ENTRY, line_num))==ERROR)
+				if((check_label_positioning(&(*head_lbl), &(*head_extern), label, ENTRY, line_num))==ERROR)
 					break;
 				check_struct_arg(commandCopy, line_num, isLabel);
-				add_node_label(&(*head_lbl), &(*tail_lbl), secondWord, line_num, STRUCT);
+				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, STRUCT);
 				add_struct_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
-
-
 				break;
 			case 3: /*.entry*/
 				if(isLabel){/*if label before .entry word*/
@@ -177,10 +183,8 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 				add_node_extern(&(*head_extern), &(*tail_extern), secondWord, line_num);
 				break;
 			break;		
-			}/*end of switch*/
-
-			
-		}
+			}/*end of switch*/			
+		}/*end of if*/
 
 		else {/*if not directive check if instruction*/
 
@@ -190,11 +194,11 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 
 			if(cmd_index==ERROR){/*command isn't legal*/
 				printf("Undefined command name in line number: %d\n", line_num);
-				continue;
+				return;
 			}
 			
 			if((check_cmd_args(commandCopy, line_num, isLabel, cmd_index, cmd)) == ERROR)
-				continue;
+				return;
 				
 			if(isLabel)
 			add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, ENTRY);
@@ -224,22 +228,11 @@ void check_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, 
 				
 			add_instruction_node(&(*head_instruction), &(*tail_instruction), source, destination, cmd_index, line_num, cmd[cmd_index].args);	
 		}
-	}/*end of forever*/	
-	
-print_label_list(*head_lbl);
-print_instruction_list(*head_instruction);/************************************/
-print_directive_list(*head_drctv);
+	free(commandCopy);
 
-free(command);
-free(commandCopy);
-
-
-
-/*here need to free all lists*/
-
-fclose(sfp);
-	
 }/*end of checkcmdline func*/
+
+
 
 int line_typo_errors_check(char* command, int line_num){
 	

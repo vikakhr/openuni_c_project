@@ -1,5 +1,8 @@
 #include "main.h"
 #include "label_lists.h"
+#include "second_step.h"
+
+
 
 
 
@@ -8,9 +11,8 @@ int check_repeated_labels(char* name, labels* head){
 	labels* ptr = head;
 	
 	while(ptr!=NULL){
-		if(!strcmp(ptr->label, name)){/*list of labels already has this label*/
-
-			return 0;
+		if(!strcmp(ptr->label, name)){/*list of labels already has this label name*/
+		return 0;
 		}
 		ptr = ptr->next;
 	}
@@ -56,11 +58,6 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 
 
 
-
-
-
-
-/*DELETE MALLOC AND MAKE LABEL SIZE??????????????*/
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
 void add_node_label(labels** head, labels** tail, char* name, int line, int label_type){
 	labels *new = malloc(sizeof(labels));
@@ -154,7 +151,8 @@ message and deletes error line from linked list of instructions*/
 void check_label_defined(labels** head_label, externs **head_ext, instructionLine **head_instruction){
 	labels *ptr_label = *head_label;
 	externs *ptr_ext = *head_ext;
-	instructionLine *temp, *ptr_instruction = *head_instruction;
+	instructionLine *temp;
+	instructionLine *ptr_instruction = *head_instruction;
 	
 	while(ptr_instruction!=NULL){
 		if(ptr_instruction->source!=NULL){
@@ -163,7 +161,6 @@ void check_label_defined(labels** head_label, externs **head_ext, instructionLin
 					while(ptr_label!=NULL){/*check if source is label*/
 						if(!(strcmp(ptr_label->label, ptr_instruction->source)))/*if label was found*/					
 							break;
-						printf("%s - %s\n", ptr_label->label, ptr_instruction->source);
 						ptr_label = ptr_label->next;
 					}
 					while(ptr_ext!=NULL){/*check if source is extern label*/
@@ -180,7 +177,6 @@ void check_label_defined(labels** head_label, externs **head_ext, instructionLin
 		}
 	ptr_instruction = ptr_instruction->next;
 	}
-	printf("After check label defined\n");
 }
 
 /*Function makes numeration of memory*/
