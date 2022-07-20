@@ -6,8 +6,8 @@
 
 
 
-void add_instruction_node(instructionLine **head, instructionLine **tail, char* source, char* destination, int cmd_index, int line_num, int args){
-	instructionLine *new = malloc(sizeof(instructionLine));
+void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel){
+	cmdLine *new = malloc(sizeof(cmdLine));
 	if(new==NULL)
 		return;
 	if(*head==NULL)
@@ -38,6 +38,7 @@ void add_instruction_node(instructionLine **head, instructionLine **tail, char* 
 	new->args = args;	
 	new->line_num = line_num;
 	new->cmd_index = cmd_index;
+	new->is_label = isLabel;
 
 	if(*head!=NULL)
 		printf("%d %d\n", *head, *tail);
@@ -71,6 +72,7 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 	new->arg = arg;
 	new->isLabel = isLabel;
 	new->line_num = line_num;
+	new->memory_count = 0;
 
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
@@ -90,8 +92,8 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 
 
 /*Function frees nodes and linked list*/
-void print_instruction_list(instructionLine* head){
-	instructionLine* ptr;
+void print_instruction_list(cmdLine* head){
+	cmdLine* ptr;
 	ptr = head;
 	int i=1;
 	printf("Inside print instruction node:\n");
@@ -126,9 +128,9 @@ void print_directive_list(directiveLine* head){
 
 
 /*Function receives head of linkes list of instruction and line number of node need to be deleted, search this node and frees a memory of node and it's members*/
-void delete_instruction_node(instructionLine **head, int line_num){
-	instructionLine *ptr = *head;
-	instructionLine *temp;
+void delete_instruction_node(cmdLine **head, int line_num){
+	cmdLine *ptr = *head;
+	cmdLine *temp;
 
 	if((*head)->line_num  == line_num){
 		temp = *head;
@@ -156,4 +158,44 @@ void delete_instruction_node(instructionLine **head, int line_num){
 
 
 
+
+
+
+
+
+/*void add_memory_num(cmdLine **ins_head, directiveLine **drctv_head, labels** lbl_head){
+	int num = 100;
+	char *ins_ptr = *ins_head;
+	char *drctv_ptr = *drctv_head;
+	char *lbl_ptr = *lbl_head;
+
+	while(ins_ptr!=NULL){
+		ins_ptr->memory_count = num;
+		if(ins_ptr->isLabel){
+			while(lbl_ptr!=NULL){
+				if(lbl_ptr->line_num==ins_ptr->line_num)){
+					lbl_ptr->memory_count = num;
+					break;
+				}
+				lbl_ptr = lbl_ptr->next;
+			}
+		}
+		if(!ins_ptr->args){
+			num++;
+			continue;
+		}
+		if(ins_ptr->args==1){
+				check type of source;
+
+	
+		}
+		if(ins_ptr->args==2){
+			check type of dest;
+
+	
+		}
+
+
+
+}*/
 

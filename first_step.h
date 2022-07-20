@@ -17,8 +17,8 @@ typedef struct DrctvNames{/*linked list of opcodes*/
 
 
 
-void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern);
-void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern);
+void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern);
+void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern);
 
 
 int line_typo_errors_check(char* command, int line_num);
@@ -34,10 +34,10 @@ int check_cmd_args(char *word, int line_num, int isLabel, int cmd_index, struct 
 int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
 
 
-void delete_instruction_node(instructionLine **head, int line_num);
-void print_instruction_list(instructionLine* head);
+void delete_instruction_node(cmdLine **head, int line_num);
+void print_instruction_list(cmdLine* head);
 
-void add_instruction_node(instructionLine** head, instructionLine** tail, char* source, char* destination, int cmd_index, int line_num, int args);
+void add_instruction_node(cmdLine** head, cmdLine** tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel);
 void add_directive_node(directiveLine **head, directiveLine **tail, int line_num,  int isLabel, int directive_type);
 
 static char *OPCODE[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "get", "prn", "jsr", "rts", "hlt"};

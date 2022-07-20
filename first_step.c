@@ -6,7 +6,7 @@
 
 
 /*Function receives file name and linked lists for saving data, read file line by line and makes first error checks, if checks are ok passes line to function for further treatment*/
-void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern){
+void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern){
 	FILE *sfp;
 	int line_num = 0;
 	
@@ -45,13 +45,13 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 		if((line_typo_errors_check(command, line_num))==ERROR)/*to check typo errors*/
 			continue;		
 
-		check_cmd_line(command, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_instruction), &(*tail_instruction), 
+		check_cmd_line(command, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_cmd), &(*tail_cmd), 
 		&(*head_extern), &(*tail_extern));/*pass all parameters to next step checks*/
 
 	}/*end of forever*/
 
 	print_label_list(*head_lbl);
-	print_instruction_list(*head_instruction);
+	print_instruction_list(*head_cmd);
 	print_directive_list(*head_drctv);
 	free(command);
 	fclose(sfp);
@@ -59,14 +59,13 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 
 
 /*Function receives line, it's number and linked lists for saving data, checks errors and saves legal line's data inside linked lists*/
-void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, instructionLine **head_instruction, instructionLine **tail_instruction, externs **head_extern, externs **tail_extern){
+void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern){
 	
 	char *firstWord, *secondWord, *thirdWord, *word, *label = NULL;/*pointers to separate words*/
 	int args_counter = 0;/*counter number of arguments of the command*/
 	char *source, *destination;/*of instruction line*/
 	int cmd_index, drctv_index;/*indexes of command names*/	
 	int isLabel = 0; /*label flag*/
-	int isError = 0;/*error flag*/
 	char *white_space = " \t\v\f\r\n";
 
 	char *commandCopy = (char*)malloc(sizeof(char)*LINESIZE+1);
@@ -103,7 +102,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 		switch(drctv_index){/*switch by func index of struct*/
 			case 0:/*.data*/ 
 				if((args_counter = check_nums(commandCopy, isLabel))==ERROR){/*check data parameters*/
-					isError = 1;
 					break;
 				}
 
@@ -117,7 +115,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			case 1:/*.string*/
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
 					printf("String for .string directive is not legal, in line: %d\n", line_num);
-					isError = 1;
 					break;
 				}
 
@@ -131,7 +128,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			case 2: /*.struct*/
 				if(!isLabel){
 					printf("Error, struct definition without initialization, in line num: %d\n", line_num);
-					isError = 1;
 					break;
 				}
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), label, ENTRY, line_num))==ERROR)
@@ -147,13 +143,11 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 					secondWord = thirdWord;
 					if(secondWord == NULL){
 						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
-						isError = 1;
 						break;
 					}
 				}
 				
 				if(check_label_islegal(secondWord, line_num)==ERROR){
-					isError = 1;
 					break;
 				}
 
@@ -168,15 +162,13 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 					secondWord = thirdWord;
 					if(secondWord == NULL){
 						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
-						isError = 1;
 						break;
 					}					
 				}
 				
-				if(check_label_islegal(secondWord, line_num)==ERROR){
-					isError = 1;
+				if(check_label_islegal(secondWord, line_num)==ERROR)
 					break;
-				}
+				
 				printf("This is extern \n");
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, EXTERN, line_num))==ERROR)
 					break;
@@ -226,7 +218,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			else/*if no arguments for instruction*/
 				destination = NULL;
 				
-			add_instruction_node(&(*head_instruction), &(*tail_instruction), source, destination, cmd_index, line_num, cmd[cmd_index].args);	
+			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, cmd[cmd_index].args, isLabel);	
 		}
 	free(commandCopy);
 
@@ -234,23 +226,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 
 
-int line_typo_errors_check(char* command, int line_num){
-	
-	if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces*/
-		return ERROR;
 
-	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
-		return ERROR;
-
-	if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a "" punctuation mark at the end of command*/ 
-		printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
-		return ERROR;
-	}
-
-	if((check_commas(command, line_num))==ERROR)/*check consecutive commas*/
-		return ERROR;
-	return 0;
-}
 
 /*Function receives directive .data line, it's details, head and tail of linked list of directives and adds arguments of data directive to linked list*/
 void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv){

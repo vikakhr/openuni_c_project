@@ -64,6 +64,27 @@ int check_commas (char *word, int line_num){
 	return 0;
 }
 
+/*Function receives command line and line number and checks typo errors, if there is error in line returns ERROR, 0 otherwise*/
+int line_typo_errors_check(char* command, int line_num){
+	
+	if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces*/
+		return ERROR;
+
+	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
+		return ERROR;
+
+	if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a " punctuation mark at the end of command*/ 
+		printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
+		return ERROR;
+	}
+
+	if((check_commas(command, line_num))==ERROR)/*check consecutive commas*/
+		return ERROR;
+	return 0;
+}
+
+
+
 /*Function receives a number and checks if it legal*/
 int check_one_num(char *num){	
 	char *ptr;

@@ -18,4 +18,4 @@ void add_node_extern(externs** head, externs** tail, char* name, int line);
 
 void print_label_list(labels* head);
 
-void check_label_defined(labels** head_label, externs **head_ext, instructionLine **head_instruction);
+void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd);

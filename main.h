@@ -18,7 +18,7 @@ typedef struct node_label{/*linked list of labels*/
 	char* label;
 	int line_number;
 	int label_type;
-	int memory_number;
+	int memory_count;
 	struct node_label* next;
 }node_label; 
 
@@ -35,6 +35,7 @@ struct node_cmd{/*linked list to save binary representation??????*/
 	char* source;
 	char* destination;
 	int line_num;
+	int is_label;
 	struct node_cmd* next;
 }node_cmd; 
 
@@ -43,12 +44,22 @@ struct node_directive{/*linked list to save binary representation??????*/
 	int isLabel;
 	short int arg; 
 	int line_num;
+	int memory_count;
 	struct node_directive* next;
 }node_directive; 
 
+struct node_code{
+	int memory_num;
+	short int arg;
+}
 
 
-typedef struct node_directive directiveLine;/*lines with directive*/
-typedef struct node_cmd instructionLine;/*lines with instructions*/
-typedef struct node_label labels;/*lines with labels*/
-typedef struct node_ext externs;/*lines with labels*/
+
+
+
+typedef struct node_directive directiveLine;/*linked list to save operands of data commands*/
+typedef struct node_cmd cmdLine;/*linked list to save lines of operands of instruction command*/
+typedef struct node_label labels;/*linked list to save labels*/
+typedef struct node_ext externs;/*linked list to save extern labels*/
+typedef struct node_code codeWords; /*linked list to save command binary machine code*/
+

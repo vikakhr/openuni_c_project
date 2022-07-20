@@ -68,7 +68,7 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 		return;
 	new->line_number = line;
 	new->label_type = label_type;
-	new->memory_number = 0;
+	new->memory_count = 0;
 	new->next = NULL;
 	strcpy(new->label, name);
 
@@ -148,34 +148,34 @@ void print_label_list(labels* head){
 
 /*Function receives head of instruction lines, labels and extern labels. Checks if label in argument of instruction is defined in label tables, if not prints error
 message and deletes error line from linked list of instructions*/
-void check_label_defined(labels** head_label, externs **head_ext, instructionLine **head_instruction){
+void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd){
 	labels *ptr_label = *head_label;
 	externs *ptr_ext = *head_ext;
-	instructionLine *temp;
-	instructionLine *ptr_instruction = *head_instruction;
+	cmdLine *temp;
+	cmdLine *ptr_cmd = *head_cmd;
 	
-	while(ptr_instruction!=NULL){
-		if(ptr_instruction->source!=NULL){
-			if((check_arg_register(ptr_instruction->source))==ERROR){/*if source not register*/
-				if((check_arg_number(ptr_instruction->source))==ERROR){/*if source not number*/
+	while(ptr_cmd!=NULL){
+		if(ptr_cmd->source!=NULL){
+			if((check_arg_register(ptr_cmd->source))==ERROR){/*if source not register*/
+				if((check_arg_number(ptr_cmd->source))==ERROR){/*if source not number*/
 					while(ptr_label!=NULL){/*check if source is label*/
-						if(!(strcmp(ptr_label->label, ptr_instruction->source)))/*if label was found*/					
+						if(!(strcmp(ptr_label->label, ptr_cmd->source)))/*if label was found*/					
 							break;
 						ptr_label = ptr_label->next;
 					}
 					while(ptr_ext!=NULL){/*check if source is extern label*/
-						if(!(strcmp(ptr_ext->ext_label, ptr_instruction->source)))/*if extern label*/					
+						if(!(strcmp(ptr_ext->ext_label, ptr_cmd->source)))/*if extern label*/					
 							break;
 						ptr_ext = ptr_ext->next;
 					}
-					printf("Error, label name of source parameter is not defined, int line_number: %d\n", ptr_instruction->line_num);
-					temp = ptr_instruction;
-					ptr_instruction = ptr_instruction->next;
-					delete_instruction_node(head_instruction,temp->line_num);/*deletes and frees memory of node that contains error*/
+					printf("Error, label name of source parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
+					temp = ptr_cmd;
+					ptr_cmd = ptr_cmd->next;
+					delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
 				}
 			}
 		}
-	ptr_instruction = ptr_instruction->next;
+	ptr_cmd = ptr_cmd->next;
 	}
 }
 
