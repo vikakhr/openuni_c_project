@@ -109,14 +109,13 @@ int check_one_num(char *num){
 
 	
 	strcpy(number,num);
-		
-	value = strtol(number, &ptr, 10);			
 
+	value = strtol(number, &ptr, 10);			
 	if(*ptr!='\0' && *ptr!='\n'){
 		free(number);
 		return ERROR;
 	}
-	if(value<CHAR_MIN || value<CHAR_MAX){/*if number is beyond the limits of signed 8 bits - can't be translated to machine code*/
+	if(value<CHAR_MIN || value>CHAR_MAX){/*if number is beyond the limits of signed 8 bits - can't be translated to machine code*/
 		free(number);
 		return ERROR;
 	}

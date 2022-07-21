@@ -58,6 +58,7 @@ int check_label_islegal(char* label, int line_num){
 
 /*Function checks if argument is an integer, if it is returns num of addressing type, otherwise returns -1*/
 int check_arg_number(char *num){
+	printf("Inside check atg number %s\n", num);
 	if(num[0]!='#')
 		return ERROR;
 	else 
@@ -126,7 +127,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 	if(cmdCopy==NULL)
 		return;
 	strcpy(cmdCopy, command);	
-
+	printf("Inside check cmd args in cmd_check of command: %s index: %d\n", cmdCopy, cmd_index);
 	if(isLabel){
 		label = strtok(cmdCopy, white_space);
 		instruction = strtok(NULL, white_space);
@@ -139,9 +140,15 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 			printf("Error, extraneous punctuation mark between command and first argument, in line number: %d\n", line_num);
 			return ERROR;
 		}
+		printf("Source is: %s\n", source);
 		arg_count++;
 		source = remove_blanks(source);
+
 		if((destination = strtok(NULL, ","))!=NULL){
+			if((arg = strtok(NULL, ","))!=NULL){
+				printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+				return ERROR;
+			}
 			arg_count++;
 			destination = remove_blanks(destination);
 		}
@@ -150,10 +157,8 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 			source = NULL;
 		}
 	}
-	if((arg = strtok(NULL, ","))!=NULL){
-		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
-		return ERROR;
-	}
+	
+	
 
 	if(arg_count < cmd[cmd_index].args && !isError){
 		printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
@@ -165,38 +170,51 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 	}
 
 	switch(cmd_index){/*switch by func index of struct*/
-			case 0: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+			case 0: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
+					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
+				}
+				break;
 			case 1:	return 1;	
 			case 2:	
 			case 3:	
 				
 			case 4:
 						
-			case 5: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+			case 5: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
+					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
-						
+				}
+				break;		
 			case 6:
-				if(check_arg_register(source)!=ERROR)/*if source is register - ERROR*/
-					return ERROR;
-				if(check_one_num(source)!=ERROR){/*if source is number - ERROR*/
+				if(check_arg_register(source)!=ERROR){/*if source is register - ERROR*/
 					printf("Error, source parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
 				}
-				if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+				if(check_arg_number(source)!=ERROR){/*if source is number - ERROR*/
+					printf("Error, source parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
-
+				}
+				if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
+					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
+					return ERROR;
+				}
+				break;
 			case 7: 
 			case 8:
 			case 9:
 			case 10:
-			case 11: if(check_one_num(destination)!=ERROR){/*if destination is number - ERROR*/
+			case 11: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
+					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
 					}
+				break;
 			case 12: return 1;
-			case 13: if(check_one_num(destination)!=ERROR)/*if destination is number - ERROR*/
+			case 13: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
+					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
-
+				}	
+				break;
 			case 14: 
 			case 15:
 

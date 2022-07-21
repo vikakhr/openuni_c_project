@@ -3,14 +3,14 @@
 #include "label_lists.h"
 #include "cmd_check.h"
 
-void translate_lines(cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs *head_extern){
+void translate_lines(codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs *head_extern){
 	int memory_count = 100;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 
-	codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
+	
 
 	printf("Inside translate lines\n");
-	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &head_code, &tail_code, memory_count);
+	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), memory_count);
 
 	/*numerate directives*/
 	/*second command translation*/
@@ -18,7 +18,7 @@ void translate_lines(cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **hea
 
 
 
-	print_code_list(&head_code);
+	print_code_list(*head_code);
 } 
 
 
@@ -33,47 +33,66 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 
 	printf("Inside cmd translation\n");
 	while(ptr_cmd!=NULL){
-		code = code&&(ptr_cmd->cmd_index<<6);
+		printf("Command to translate:  %d  %s  %s %d %d\n", ptr_cmd->cmd_index, ptr_cmd->source, ptr_cmd->destination, ptr_cmd->line_num, ptr_cmd->args);
+		printf("%d\n", ptr_cmd->cmd_index<<6);
+		code = code|(ptr_cmd->cmd_index<<6);
+		printf("Cmd is: %d\n", code);
 		if(!ptr_cmd->args){
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code);/*if no arguments add with cmd index*/
 			memory_count++;
+			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
 		if(ptr_cmd->args==1){
+			
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
-			code = code&&(num_d<<2);
+			printf("Command has one arg %s - after translation cmd: %d, arg: %d\n", ptr_cmd->destination, code, num_d);
+			
+			
 			/*put into linked list*/
 			if(num_d==OPERAND_NUMBER || num_d==OPERAND_REGISTER){
+				printf("Inside check addr type in translator, dest is register\n");
 				add_node_code(&(*head_code), &(*tail_code), memory_count, num_d);
 				memory_count++;
+				ptr_cmd = ptr_cmd->next;
 				continue;
 			}
 			if(num_d == OPERAND_LABEL){/*if this is label' it's address still unknown*/
+				printf("Is label");
 				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);
 				memory_count++;
 			}
-			if(num_d == 1){/*if this is struct*/
+			if(num_d == OPERAND_STRUCT){/*if this is struct*/
 				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);
 				memory_count++;
 				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);/*add it's number <<2*/
 				memory_count++;
 				
 			}
-			
-			break;
+			if(num_d == OPERAND_EXTERN){
+				printf("This is extern label\n");
+				code = code|(1<<2);
+				add_node_code(&(*head_code), &(*tail_code), memory_count, code);/*add extern type*/
+				memory_count++;
+				add_node_code(&(*head_code), &(*tail_code), memory_count, 1);/*add extern type*/
+				memory_count++;
+			}
+			ptr_cmd = ptr_cmd->next;
+			continue;
 		}
 		if(ptr_cmd->args==2){
 			num_s = check_addressing_type(ptr_cmd->source, &(*head_lbl), code);
-			code = code&&(num_s<<4);
+			code = code|(num_s<<4);
 
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
-			code = code&&(num_d<<2);
-
+			code = code|(num_d<<2);
+			
 			/*put into linked list*/
 			/*add code line of source and destination*/
 			/*translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count)*/
-			memory_count++;
-			break;
+			translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count)
+			ptr_cmd = ptr_cmd->next;
+			continue;
 		}
 	}
 	return memory_count;
@@ -105,7 +124,7 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	return OPERAND_EXTERN;/*if this is entry or extern label*/		
 }
 
-void translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count){
+int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count){
 	int code = 0, num_s, num_d;
 	if(source_type==OPERAND_REGISTER){
 		num_s = check_arg_register(source);
@@ -114,7 +133,7 @@ void translate_two_operands(char *source, char *destination, int source_type, in
 			num_d = check_arg_register(destination);
 			code = code&&num_d<<2;	
 			/*add code into linked list*/
-			return;
+			return memory_count;
 		}
 	}
 
@@ -139,27 +158,28 @@ void translate_two_operands(char *source, char *destination, int source_type, in
 		num_d = check_arg_register(destination);
 		code = code&&num_d<<2;	
 		/*add code into linked list*/
-		return;
+		return memory_count;
 	}
 	if(destination_type==OPERAND_NUMBER){
 		num_s = check_arg_number(destination);
 		/*add code into linked list*/
-		return;
+		return memory_count;
 	}
 	if(destination_type==OPERAND_STRUCT){
 		/*first add -1 into linked list, memorycount++*/
 		/*second add number of struct, memorycount++*/
-		return;
+		return memory_count;
 	}
 	if(destination_type==OPERAND_LABEL){
 		/*add -1 into linked list*/
-		return;
+		return memory_count;
 	}
 	if(destination_type==OPERAND_EXTERN){
 		/*add 1 (extern) to linked list*/
-		return;
+		return memory_count;
 
-	}
+	}		
+	return memory_count;
 
 }
 
@@ -169,7 +189,7 @@ void add_node_code(codeWords **head, codeWords **tail, int memory_count, int cod
 	codeWords *new = malloc(sizeof(codeWords));
 	if(new==NULL)
 		return;
-	
+	printf("Inside add node: %d %d\n", memory_count, code);
 	new->code = code;
 	new->memory_count = memory_count;
 	new->next = NULL;

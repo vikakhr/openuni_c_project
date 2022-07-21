@@ -1,18 +1,7 @@
-mov r1, r2 
-LABEL: mov	
-TAKE: aaa
-M: 
-aa
-aaaaaaaaa
-aaa 	 
-a1 a1 a1 a1 a1
-a2 a2
- 	
-a1 a1 a1 a1 a1
-a2 a2
- 	
-a1 a1 a1 a1 a1
-a2 a2
- 	
-	aa
-	bbb
+sub r1, r4
+.extern L3
+bne LOOP
+LOOP: jmp END
+END: hlt
+.extern W
+

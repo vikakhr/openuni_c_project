@@ -51,6 +51,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 	}/*end of forever*/
 
 	print_label_list(*head_lbl);
+	print_extlabel_list(*head_extern);
 	print_instruction_list(*head_cmd);
 	print_directive_list(*head_drctv);
 	free(command);
@@ -95,7 +96,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	else word = firstWord;
 
 	if(word[0] == '.'){/*if is directive*/
-
+		printf("Command is directive: %s\n", command);
 		if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
 			return;
 
@@ -179,7 +180,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 		}/*end of if*/
 
 		else {/*if not directive check if instruction*/
-
+			printf("Command is instruction\n");
 			if(isLabel)/*if label check if second word is legal command*/
 				cmd_index = check_cmd(secondWord, cmd);
 			else cmd_index = check_cmd(firstWord, cmd);/*else check first word*/
@@ -188,12 +189,12 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				printf("Undefined command name in line number: %d\n", line_num);
 				return;
 			}
-			
+
 			if((check_cmd_args(commandCopy, line_num, isLabel, cmd_index, cmd)) == ERROR)
 				return;
-				
+
 			if(isLabel)
-			add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, ENTRY);
+				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, ENTRY);
 
 			if(isLabel){
 				word = strtok(commandCopy, white_space);

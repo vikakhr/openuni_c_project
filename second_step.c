@@ -8,11 +8,12 @@
 
 void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel){
 	cmdLine *new = malloc(sizeof(cmdLine));
+
 	if(new==NULL)
 		return;
 	if(*head==NULL)
 		printf("%d %d\n", *head, *tail);
-
+	printf("Inside add instr node: %s\n", source);
 	if(!args){
 		new->source=NULL;
 		new->destination=NULL;
@@ -25,12 +26,14 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 		new->destination = (char*)malloc(strlen(destination)+1);
 		if(new->destination==NULL)
 			return;
+	
 		strcpy(new->destination, destination);
 	}
 	else if(args==1){
 		new->destination = (char*)malloc(strlen(destination)+1);
 		if(new->destination==NULL)
 			return;
+		
 		strcpy(new->destination, destination);
 		new->source=NULL;
 	}
@@ -40,8 +43,6 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 	new->cmd_index = cmd_index;
 	new->is_label = isLabel;
 
-	if(*head!=NULL)
-		printf("%d %d\n", *head, *tail);
 	if(*head == NULL){/*if this is first node*/
 		*head = new;
 		*tail = new;

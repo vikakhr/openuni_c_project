@@ -120,6 +120,30 @@ void add_node_extern(externs** head, externs** tail, char* name, int line){
 
 
 /*Function frees nodes and linked list*/
+void print_extlabel_list(externs* head){
+	externs* ptr = head;
+	int i=1;
+	printf("Inside print extern label:\n");
+	while(ptr!=NULL){
+		printf("%d - %s - %d\n", i, ptr->ext_label, ptr->line_number);
+		 ptr = ptr->next;
+		i++;
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	}
+
+
+	/*while(head!=NULL){
+		ptr = head;
+		 head = head->next;
+		printf("1. %s - %d\n", ptr->label, ptr->line_number);
+		/*free(ptr->name);free memory of name
+		free(ptr);/*free memory of node*/
+	
+
+}
+
+/*Function frees nodes and linked list*/
 void print_label_list(labels* head){
 	labels* ptr;
 	ptr = head;
@@ -146,6 +170,8 @@ void print_label_list(labels* head){
 
 
 
+
+
 /*Function receives head of instruction lines, labels and extern labels. Checks if label in argument of instruction is defined in label tables, if not prints error
 message and deletes error line from linked list of instructions*/
 void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd){
@@ -153,11 +179,23 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 	externs *ptr_ext = *head_ext;
 	cmdLine *temp;
 	cmdLine *ptr_cmd = *head_cmd;
-	
-	while(ptr_cmd!=NULL){
-		if(ptr_cmd->source!=NULL){
-			if((check_arg_register(ptr_cmd->source))==ERROR){/*if source not register*/
-				if((check_arg_number(ptr_cmd->source))==ERROR){/*if source not number*/
+	char *strct_name;
+
+	if(ptr_cmd->source!=NULL){
+		if(strchr(ptr_cmd->source, '.')){/*if struct*/
+			strct_name = strtok(ptr_cmd->source, ".");
+			while(ptr_cmd!=NULL){
+				if(!(strcmp(ptr_label->label, strct_name)))/*if struct was found*/					
+					break;
+				ptr_label = ptr_label->next;
+			}
+			temp = ptr_cmd;
+			ptr_cmd = ptr_cmd->next;
+			delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+		}
+		else if((check_arg_register(ptr_cmd->source))==ERROR && (check_arg_number(ptr_cmd->source))==ERROR){/*if source not number or register*/
+			while(ptr_cmd!=NULL){
+				if(ptr_cmd->source!=NULL){
 					while(ptr_label!=NULL){/*check if source is label*/
 						if(!(strcmp(ptr_label->label, ptr_cmd->source)))/*if label was found*/					
 							break;
@@ -173,10 +211,45 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 					ptr_cmd = ptr_cmd->next;
 					delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
 				}
+			ptr_cmd = ptr_cmd->next;
 			}
 		}
-	ptr_cmd = ptr_cmd->next;
 	}
+	if(ptr_cmd->destination!=NULL){
+		if(strchr(ptr_cmd->destination, '.')){/*if struct*/
+			strct_name = strtok(ptr_cmd->destination, ".");
+			while(ptr_cmd!=NULL){
+				if(!(strcmp(ptr_label->label, strct_name)))/*if struct was found*/					
+					break;
+				ptr_label = ptr_label->next;
+			}
+			temp = ptr_cmd;
+			ptr_cmd = ptr_cmd->next;
+			delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+		}
+		else if((check_arg_register(ptr_cmd->destination))==ERROR && (check_arg_number(ptr_cmd->destination))==ERROR){/*if destination not number or register*/
+			while(ptr_cmd!=NULL){
+				if(ptr_cmd->destination!=NULL){
+					while(ptr_label!=NULL){/*check if destination is label*/
+						if(!(strcmp(ptr_label->label, ptr_cmd->destination)))/*if label was found*/					
+							break;
+						ptr_label = ptr_label->next;
+					}
+					while(ptr_ext!=NULL){/*check if destination is extern label*/
+						if(!(strcmp(ptr_ext->ext_label, ptr_cmd->destination)))/*if extern label*/					
+							break;
+						ptr_ext = ptr_ext->next;
+					}
+					printf("Error, label name of destination parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
+					temp = ptr_cmd;
+					ptr_cmd = ptr_cmd->next;
+					delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+				}
+			ptr_cmd = ptr_cmd->next;
+			}
+		}
+	}
+
 }
 
 /*Function makes numeration of memory*/

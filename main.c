@@ -14,6 +14,8 @@ int main(int argc, char *argv[]){
 	externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
 	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
 	cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
+	codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
+
 	char *line = (char*) malloc(sizeof(char)*LINESIZE);
 	if(line==NULL)
 		exit(0);
@@ -38,7 +40,7 @@ int main(int argc, char *argv[]){
 
 		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/		
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
-		translate_lines(&head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
+		translate_lines(&head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
 
 
 		fclose(ifp);
