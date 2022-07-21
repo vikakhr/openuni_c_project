@@ -58,7 +58,7 @@ int check_label_islegal(char* label, int line_num){
 
 /*Function checks if argument is an integer, if it is returns num of addressing type, otherwise returns -1*/
 int check_arg_number(char *num){
-	printf("Inside check atg number %s\n", num);
+	printf("Inside check arg number %s\n", num);
 	if(num[0]!='#')
 		return ERROR;
 	else 
