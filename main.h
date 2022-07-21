@@ -49,12 +49,10 @@ struct node_directive{/*linked list to save binary representation??????*/
 }node_directive; 
 
 struct node_code{
-	int memory_num;
-	short int arg;
-}
-
-
-
+	int memory_count;
+	short int code;
+	struct node_code* next;
+}node_code;
 
 
 typedef struct node_directive directiveLine;/*linked list to save operands of data commands*/

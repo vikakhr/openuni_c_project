@@ -13,4 +13,5 @@ int check_label_islegal(char* label, int line_num);
 int check_string_islegal(char* line, int isLabel);
 int check_struct_arg(char *line, int line_num, int isLabel);
 
-
+int check_arg_number(char *num);
+int check_arg_register(char *word);

@@ -1,3 +1,4 @@
+#include <limits.h> /*for char_max and char_min*/
 #include "main.h"
 #include "first_step.h"
 #include "cmd_check.h"
@@ -88,6 +89,7 @@ int line_typo_errors_check(char* command, int line_num){
 /*Function receives a number and checks if it legal*/
 int check_one_num(char *num){	
 	char *ptr;
+	long int value;
 	char *number = (char *)malloc(strlen(num)+1);
 	if(number == NULL)
 		return ERROR;
@@ -108,15 +110,19 @@ int check_one_num(char *num){
 	
 	strcpy(number,num);
 		
-	strtol(number, &ptr, 10);			
+	value = strtol(number, &ptr, 10);			
 
 	if(*ptr!='\0' && *ptr!='\n'){
 		free(number);
 		return ERROR;
 	}
+	if(value<CHAR_MIN || value<CHAR_MAX){/*if number is beyond the limits of signed 8 bits - can't be translated to machine code*/
+		free(number);
+		return ERROR;
+	}
 		
 	free(number);
-	return 0;
+	return (int)value;
 }
 
 /*Receives pointer to the command line string and checks if numbers are legal for .data arguments. If no errors returns amount of numbers, ERROR otherwise*/

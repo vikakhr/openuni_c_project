@@ -36,9 +36,10 @@ int main(int argc, char *argv[]){
 		ptr = strchr(file_name, '.');
 		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
-		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
-		
+		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/		
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
+		translate_lines(&head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
+
 
 		fclose(ifp);
 		}
