@@ -71,7 +71,6 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 	new->memory_count = 0;
 	new->next = NULL;
 	strcpy(new->label, name);
-
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
 		*tail = new;
@@ -150,7 +149,7 @@ void print_label_list(labels* head){
 	int i=1;
 	printf("Inside print label:\n");
 	while(ptr!=NULL){
-		printf("%d - %s - %d\n", i, ptr->label, ptr->label_type);
+		printf("%d - %s - %d,line: %d memory_num: %d\n", i, ptr->label, ptr->label_type, ptr->line_number,ptr->memory_count);
 		 ptr = ptr->next;
 		i++;
 		/*free(ptr->name);free memory of name
@@ -254,9 +253,10 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 
 /*Function receives head of label's list, line number and memory counter. Assigns memory counter to the label*/
 void add_label_memory_num(labels** head_label, int memory_count, int line_number){
-	labels *ptr = head_label;
+	labels *ptr = *head_label;
+	printf("Inside func add label memory num: memory %d line %d\n", memory_count, line_number);
 	while(ptr!=NULL){
-		if(ptr->line_number == line_number){
+		if((ptr->line_number) == line_number){
 			ptr->memory_count = memory_count;
 			break;
 		}

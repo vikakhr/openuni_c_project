@@ -43,6 +43,9 @@ int main(int argc, char *argv[]){
 		translate_lines(&head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
 
 
+
+
+
 		fclose(ifp);
 		}
 }
