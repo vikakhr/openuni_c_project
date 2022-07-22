@@ -37,6 +37,7 @@ int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drct
 void delete_instruction_node(cmdLine **head, int line_num);
 void print_instruction_list(cmdLine* head);
 
+
 void add_instruction_node(cmdLine** head, cmdLine** tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel);
 void add_directive_node(directiveLine **head, directiveLine **tail, int line_num,  int isLabel, int directive_type);
 

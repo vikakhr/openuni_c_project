@@ -189,14 +189,14 @@ char* take_macro_name(char* string){
 /*writes data into file*/
 int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	node_macro* ptr = head;
-	char* p, *copy;
+	char *copy;
 	char *white_space = " \t\v\f\r";
 	copy = (char*)malloc(strlen(string)+1);
 	if(copy == NULL)
 		exit(0);
 	copy = remove_blanks(string);
 
-	p = strtok(copy, white_space);
+	strtok(copy, white_space);
 
 	while(ptr!=NULL){
 		if(!strcmp(ptr->name, copy)){/*search name of macro in the list*/

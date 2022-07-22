@@ -53,7 +53,6 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 	print_label_list(*head_lbl);
 	print_extlabel_list(*head_extern);
 	print_instruction_list(*head_cmd);
-	print_directive_list(*head_drctv);
 	free(command);
 	fclose(sfp);
 }

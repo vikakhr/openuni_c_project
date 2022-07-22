@@ -3,7 +3,7 @@
 #include "first_step.h"
 #include "label_lists.h"
 #include "cmd_check.h"
-
+#include "translator.h"
 
 
 

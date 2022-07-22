@@ -21,3 +21,4 @@ void print_extlabel_list(externs* head);
 
 
 void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd);
+void add_label_memory_num(labels** head_label, int memory_count, int line_number);

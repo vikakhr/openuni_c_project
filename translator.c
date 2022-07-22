@@ -27,7 +27,6 @@ void translate_lines(codeWords **head_code, codeWords **tail_code, cmdLine **hea
 int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, int memory_count){
 
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/
-	codeWords *ptr_code = *head_code;
 	short int code;
 	int num_s, num_d;
 	
@@ -39,6 +38,8 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 		printf("%d\n", ptr_cmd->cmd_index<<6);
 		code = code|(ptr_cmd->cmd_index<<6);
 		printf("Cmd is: %d\n", code);
+		if(ptr_cmd->is_label)
+			add_label_memory_num(&(*head_lbl), memory_count, ptr_cmd->line_num);
 		if(!ptr_cmd->args){
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code);/*if no arguments add with cmd index*/
 			memory_count++;
@@ -68,7 +69,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			/*put into linked list*/
 			/*add code line of source and destination*/
 			/*translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count)*/
-			memory_count = translate_two_operands(code, ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, &(*head_code), &(*tail_code));
+			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, &(*head_code), &(*tail_code));
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
@@ -103,12 +104,18 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 }
 
 int translate_one_operand(char *destination, int destination_type, int memory_count, codeWords **head_code, codeWords **tail_code){
-	int i;
+	int i, value;
 	short int unknown = -1;
 	short int code = 0;
+	char *ptr;
 	printf("Inside translate one operand, %s\n", destination);
 	switch(destination_type){
 		case OPERAND_NUMBER: 
+			value = strtol(destination, &ptr, 10);
+			code = (short)value<<2;
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code);
+			memory_count++;
+			break;
 		case OPERAND_LABEL:	
 			printf("Is label\n");
 			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);
@@ -117,7 +124,10 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 		case OPERAND_STRUCT:	
 			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);
 			memory_count++;
-			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);/*add it's number <<2*/
+			if(destination[strlen(destination)-1]=='1')
+				code = 1<<2;
+			else code = 2<<2;
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code);/*add it's number <<2*/
 			memory_count++;
 			break;
 		case OPERAND_REGISTER:
@@ -142,62 +152,74 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 
 }
 
-int translate_two_operands(int code, char *source, char *destination, int source_type, int destination_type, int memory_count, codeWords **head_code, codeWords **tail_code){
+int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, codeWords **head_code, codeWords **tail_code){
 	int num_s, num_d;
-	printf("Inside translate teo operands\n");
+	int code = 0;
+	int i, value;
+	char *ptr;
+	int unknown = -1;
+
+	printf("Inside translate two operands\n");
 	if(source_type==OPERAND_REGISTER){
-		num_s = check_arg_register(source);
-		code = code|num_s<<4;
+		printf("source is register\n");
+		for(i=0; i<REGLENGTH; i++){
+			if(!strcmp(source, REGISTER[i]))
+				num_s = i;
+		}
+		code = code|num_s<<6;
 		if(destination_type==OPERAND_REGISTER){/*if source and destination are registers*/
-			num_d = check_arg_register(destination);
+			for(i=0; i<REGLENGTH; i++){
+				if(!strcmp(destination, REGISTER[i]))
+					num_d = i;
+			}
+			printf("reg: %d\n", i);
 			code = code|num_d<<2;	
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code);
 			return ++memory_count;
 		}
 	}
 
-	if(source_type==OPERAND_NUMBER){
-		num_s = check_arg_number(source);
-		/*add code into linked list*/
-	}
-	if(source_type==OPERAND_STRUCT){
-		/*first add -1 into linked list, memorycount++*/
-		/*second add number of struct, memorycount++*/
-	}
-	if(source_type==OPERAND_LABEL){
-		/*add -1 into linked list*/
+	switch(source_type){
+			case OPERAND_NUMBER:
+				value = strtol(destination, &ptr, 10);
+				code = (short)value<<4;
+				add_node_code(&(*head_code), &(*tail_code), memory_count, code);
+				memory_count++;
+				break;
+			case OPERAND_LABEL:
+				printf("Is label\n");
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);
+				memory_count++;
+				break;
+			case OPERAND_STRUCT:
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown);
+				memory_count++;
+				if(destination[strlen(destination)-1]=='1')
+					code = 1<<4;
+				else code = 2<<4;
+				add_node_code(&(*head_code), &(*tail_code), memory_count, code);/*add it's number <<2*/
+				memory_count++;
+				break;
+			case OPERAND_REGISTER:
+				for(i=0; i<REGLENGTH; i++){
+					if(!strcmp(destination, REGISTER[i])){
+						code = code|(i<<4);
+						add_node_code(&(*head_code), &(*tail_code), memory_count, code);
+						memory_count++;
+					}
+				}
+				break;
 
-	}
-	if(source_type==OPERAND_EXTERN){
-		/*add 1 (extern) to linked list*/
+			case OPERAND_EXTERN:
+				add_node_code(&(*head_code), &(*tail_code), memory_count, 1);/*add extern type*/
+				memory_count++;
+				break;
+
+			break;
+		}
+	translate_one_operand(destination, destination_type, memory_count, &(*head_code), &(*tail_code));
 
 
-	}
-	if(destination_type==OPERAND_REGISTER){/*if source and destination are registers*/
-		num_d = check_arg_register(destination);
-		code = code&&num_d<<2;	
-		/*add code into linked list*/
-		return memory_count;
-	}
-	if(destination_type==OPERAND_NUMBER){
-		num_s = check_arg_number(destination);
-		/*add code into linked list*/
-		return memory_count;
-	}
-	if(destination_type==OPERAND_STRUCT){
-		/*first add -1 into linked list, memorycount++*/
-		/*second add number of struct, memorycount++*/
-		return memory_count;
-	}
-	if(destination_type==OPERAND_LABEL){
-		/*add -1 into linked list*/
-		return memory_count;
-	}
-	if(destination_type==OPERAND_EXTERN){
-		/*add 1 (extern) to linked list*/
-		return memory_count;
-
-	}		
 	return memory_count;
 
 }
