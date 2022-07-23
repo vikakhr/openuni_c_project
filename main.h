@@ -51,7 +51,7 @@ struct node_directive{/*linked list to save binary representation??????*/
 struct node_code{
 	int memory_count;
 	short int code;
-	int line_number;
+	char *literal;
 	struct node_code* next;
 }node_code;
 

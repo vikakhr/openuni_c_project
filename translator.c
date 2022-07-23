@@ -5,23 +5,22 @@
 #include "cmd_check.h"
 
 void translate_lines(codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs *head_extern){
-	int memory_count = 100;
+	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 
-	
-
-	printf("Inside translate lines\n");
 	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), memory_count);
+	/*Here free cmd lines list*/
+	cmd_code_count = memory_count - (STARTMEMORY+1);
+	memory_count = add_drctv_memory_count(&(*head_drctv), memory_count);
+	drctv_code_count = memory_count - cmd_code_count - (STARTMEMORY+1);
 
-	/*numerate directives*/
-	/*second command translation*/
+	printf("Commands: %d, directives: %d\n", cmd_code_count, drctv_code_count);
+	add_address_of_labels(&(*head_code),  &(*head_lbl));
+
 	/*make obj ouput*/
 
-
-
-
-	add_address_of_labels(&(*head_code),  &(*head_lbl));
 	print_code_list(*head_code);
+	print_directive_list(*head_drctv);
 	print_label_list(*head_lbl);
 } 
 
@@ -43,16 +42,15 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			add_label_memory_num(&(*head_lbl), memory_count, ptr_cmd->line_num);
 		}
 		if(!ptr_cmd->args){
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, ptr_cmd->line_num);/*if no arguments add with cmd index*/
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*if no arguments add with cmd index*/
 			memory_count++;
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
 		if(ptr_cmd->args==1){
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
-			printf("Command has one arg %s - after translation cmd: %d, arg: %d\n", ptr_cmd->destination, code, num_d);
 			code = code|(num_d<<2);
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, ptr_cmd->line_num);/*if no arguments add with cmd index*/
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*if no arguments add with cmd index*/
 			memory_count++;
 			memory_count = translate_one_operand(ptr_cmd->destination, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code));
 			ptr_cmd = ptr_cmd->next;
@@ -65,8 +63,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
 			code = code|(num_d<<2);
-			printf("Code is: %d\n", code);
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, ptr_cmd->line_num);
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
 
 			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code));
@@ -113,35 +110,35 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 		case OPERAND_NUMBER: 
 			value = strtol(destination, &ptr, 10);
 			code = (short)value<<2;
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
 			break;
 		case OPERAND_LABEL:	
 			printf("Is label\n");
-			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, line_number);
+			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, destination);
 			memory_count++;
 			break;
 		case OPERAND_STRUCT:	
-			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, line_number);
+			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, destination);
 			memory_count++;
 			if(destination[strlen(destination)-1]=='1')
 				code = 1<<2;
 			else code = 2<<2;
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);/*add it's number <<2*/
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*add it's number <<2*/
 			memory_count++;
 			break;
 		case OPERAND_REGISTER:
 			for(i=0; i<REGLENGTH; i++){
 				if(!strcmp(destination, REGISTER[i])){
 					code = code|(i<<2);
-					add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);
+					add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 					memory_count++;
 				}
 			}	
 			break;
 				
 		case OPERAND_EXTERN:
-			add_node_code(&(*head_code), &(*tail_code), memory_count, 1, line_number);/*add extern type*/
+			add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
 			memory_count++;
 			break;
 
@@ -161,7 +158,6 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 	printf("Inside translate two operands\n");
 	if(source_type==OPERAND_REGISTER){
-		printf("source is register\n");
 		for(i=0; i<REGLENGTH; i++){
 			if(!strcmp(source, REGISTER[i]))
 				num_s = i;
@@ -172,9 +168,8 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 				if(!strcmp(destination, REGISTER[i]))
 					num_d = i;
 			}
-			printf("reg: %d\n", i);
 			code = code|num_d<<2;	
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			return ++memory_count;
 		}
 	}
@@ -183,35 +178,34 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 			case OPERAND_NUMBER:
 				value = strtol(destination, &ptr, 10);
 				code = (short)value<<4;
-				add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);
+				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 				memory_count++;
 				break;
 			case OPERAND_LABEL:
-				printf("Is label\n");
-				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, line_number);
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source_type);
 				memory_count++;
 				break;
 			case OPERAND_STRUCT:
-				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, line_number);
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source_type);
 				memory_count++;
 				if(destination[strlen(destination)-1]=='1')
 					code = 1<<4;
 				else code = 2<<4;
-				add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);/*add it's number <<2*/
+				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*add it's number <<2*/
 				memory_count++;
 				break;
 			case OPERAND_REGISTER:
 				for(i=0; i<REGLENGTH; i++){
 					if(!strcmp(destination, REGISTER[i])){
 						code = code|(i<<4);
-						add_node_code(&(*head_code), &(*tail_code), memory_count, code, line_number);
+						add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 						memory_count++;
 					}
 				}
 				break;
 
 			case OPERAND_EXTERN:
-				add_node_code(&(*head_code), &(*tail_code), memory_count, 1, line_number);/*add extern type*/
+				add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
 				memory_count++;
 				break;
 
@@ -226,15 +220,23 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
-void add_node_code(codeWords **head, codeWords **tail, int memory_count, int code, int line_number){
+void add_node_code(codeWords **head, codeWords **tail, int memory_count, int code, char *literal){
 	codeWords *new = malloc(sizeof(codeWords));
 	if(new==NULL)
 		return;
-	printf("Inside add node: %d %d\n", memory_count, code);
+
+	if(literal == NULL)
+		new->literal = literal;
+	else {
+		new->literal = (char *)malloc(strlen(literal)+1);
+		if(new->literal == NULL)
+			return;
+		strcpy(new->literal, literal);
+	}
+
 	new->code = code;
 	new->memory_count = memory_count;
 	new->next = NULL;
-	new->line_number = line_number;
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
 		*tail = new;
@@ -262,23 +264,38 @@ void print_code_list(codeWords* head){/*DELETE AFTER*/
 	 
 }
 
+/*Function re*/
 void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 	codeWords *ptr_code = *head_code;
 	labels *ptr_label = *head_lbl;
-	int unknown = -1;
-	int line_num;
+	int unknown = -1, isFound = 0;;
 
 	while(ptr_code!=NULL){
+		if(isFound){
+			ptr_label = *head_lbl;
+			isFound = 0;
+		}
 		if(ptr_code->code==unknown){
-			while(ptr_label!=NULL){
-				if(line_num == ptr_code->line_number){
+			while(ptr_label!=NULL && !isFound){
+				if(!strcmp(ptr_label->label, ptr_code->literal)){
 					ptr_code->code = ptr_label->memory_count;
-					ptr_code = *head_code;
-					continue;
+					isFound = 1;
 				}
-				else ptr_label = ptr_label->next;
+				ptr_label = ptr_label->next;
 			}
 		}
 		ptr_code = ptr_code->next;
 	}
 }
+
+int add_drctv_memory_count(directiveLine **head_drctv, int memory_count){
+	directiveLine *ptr_drctv = *head_drctv;
+	while(ptr_drctv!=NULL){
+		ptr_drctv->memory_count = memory_count;
+		memory_count++;
+		ptr_drctv = ptr_drctv->next;
+	}
+
+		return memory_count;
+}
+

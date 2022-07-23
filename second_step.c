@@ -115,7 +115,7 @@ void print_directive_list(directiveLine* head){
 	printf("Inside print directive node:\n");
 	while(ptr!=NULL){
 
-		printf("%d:  arg: %d, line_num: %d\n", i, ptr->arg, ptr->line_num);
+		printf("%d:  arg: %d, line_num: %d memory_num: %d\n", i, ptr->arg, ptr->line_num, ptr->memory_count);
 		
 		 ptr = ptr->next;
 		i++;
