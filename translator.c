@@ -4,9 +4,10 @@
 #include "label_lists.h"
 #include "cmd_check.h"
 
-void translate_lines(codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs *head_extern){
+void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs *head_extern){
 	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
+	char *ptr;
 
 	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), memory_count);
 	/*Here free cmd lines list*/
@@ -22,6 +23,11 @@ void translate_lines(codeWords **head_code, codeWords **tail_code, cmdLine **hea
 	print_code_list(*head_code);
 	print_directive_list(*head_drctv);
 	print_label_list(*head_lbl);
+	ptr = strchr(file_name, '.');
+
+	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv));
+	output_entry_labels(file_name, &(*head_lbl));
+	output_extern_labels(file_name, &(*head_extern));
 } 
 
 
@@ -299,3 +305,129 @@ int add_drctv_memory_count(directiveLine **head_drctv, int memory_count){
 		return memory_count;
 }
 
+/*Function receives head of label's list, line number and memory counter. Assigns memory counter to the label*/
+void add_label_memory_num(labels** head_label, int memory_count, int line_number){
+	labels *ptr = *head_label;
+	printf("Inside func add label memory num: memory %d line %d\n", memory_count, line_number);
+	while(ptr!=NULL){
+		if((ptr->line_number) == line_number){
+			ptr->memory_count = memory_count;
+			break;
+		}
+		ptr = ptr->next;
+	}
+}
+
+
+void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv){
+	FILE *dfp;
+	codeWords *ptr_code = *head_code;
+	directiveLine *ptr_drctv = *head_drctv;
+	char* objFileName = (char*)malloc(strlen(file_name)+4);/*allocates memory for new .obj file*/
+		if(objFileName==NULL)
+			return;
+
+	sprintf(objFileName,"%s.ob", file_name);/*writes a full name of file*/
+
+	printf("*******New file will be created: %s\n", objFileName);
+	if((dfp = fopen(objFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
+			printf("Cannot open %s\n", objFileName);
+			free(objFileName);
+			return;
+	}
+	fprintf(dfp, "\t%s\t%s\n", tanslate_to_base32((short)cmd_code_count), tanslate_to_base32(drctv_code_count)); /*write inside .am file*/
+
+	while(ptr_code!=NULL){
+		fprintf(dfp, "%s\t%s\n", tanslate_to_base32((short)ptr_code->memory_count), tanslate_to_base32(ptr_code->code)); /*write inside .am file*/
+		ptr_code = ptr_code->next;
+	}
+	while(ptr_drctv!=NULL){
+			fprintf(dfp, "%s\t%s\n", tanslate_to_base32((short)ptr_drctv->memory_count), tanslate_to_base32(ptr_drctv->arg)); /*write inside .am file*/
+			ptr_drctv = ptr_drctv->next;
+	}
+	free(objFileName);
+	fclose(dfp);
+}
+
+
+char* tanslate_to_base32(short int num){
+	char base_32[32] = {'!','@','#','$','%','^','&','*','<','>','a','b','c','d','e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
+	char *p = (char *)malloc(3);
+	int first, second, i;
+	int base = 32;
+	first = num%base;
+	second = (num - first)/base;
+	for(i=0; i<32; i++){
+		if(i==second){
+			p[0] = base_32[i];
+			break;
+		}
+	}
+	for(i=0; i<32; i++){
+		if(i==first){
+			p[1] = base_32[i];
+			break;
+		}
+	}
+	p[2] = '\0';
+
+	return p;
+}
+
+
+void output_entry_labels(char *file_name, labels **head_lbl){
+	FILE *dfp;	
+	labels *ptr_lbl = *head_lbl;
+	char* objFileName;
+	if(ptr_lbl==NULL)
+		return;
+
+	objFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
+			if(objFileName==NULL)
+				return;
+
+	sprintf(objFileName,"%s.ent", file_name);/*writes a full name of file*/
+	if((dfp = fopen(objFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
+				printf("Cannot open %s\n", objFileName);
+				free(objFileName);
+				return;
+		}
+
+	while(ptr_lbl!=NULL){
+		if(ptr_lbl->label_type == ENTRY){
+			fprintf(dfp, "%s\t%s\n", ptr_lbl->label, tanslate_to_base32(ptr_lbl->memory_count)); /*write inside .am file*/
+		}
+		ptr_lbl = ptr_lbl->next;
+	}
+		free(objFileName);
+		fclose(dfp);
+
+}
+
+void output_extern_labels(char *file_name, externs **head_extern){
+	FILE *dfp;
+	externs *ptr_extern = *head_extern;
+	char* objFileName;
+	if(ptr_extern==NULL)
+		return;
+
+	objFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
+			if(objFileName==NULL)
+				return;
+
+	sprintf(objFileName,"%s.ext", file_name);/*writes a full name of file*/
+	if((dfp = fopen(objFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
+				printf("Cannot open %s\n", objFileName);
+				free(objFileName);
+				return;
+	}
+
+	while(ptr_extern!=NULL){
+		fprintf(dfp, "%s\tHere need to put memory num\n", ptr_extern->ext_label); /*write inside .am file*/
+
+			ptr_extern = ptr_extern->next;
+		}
+			free(objFileName);
+			fclose(dfp);
+
+}

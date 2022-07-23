@@ -5,15 +5,6 @@ typedef struct CmdNames{/*linked list of opcodes*/
 	int args;/*amount of arguments for command*/
 }CmdNames; 
 
-typedef struct DrctvNames{/*linked list of opcodes*/
-	char *name;
-	int num;
-	int args;/*amount of arguments for command*/
-	void (*func)();
-}DrctvNames; 
-
-
-
 
 
 
@@ -41,11 +32,7 @@ void print_instruction_list(cmdLine* head);
 void add_instruction_node(cmdLine** head, cmdLine** tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel);
 void add_directive_node(directiveLine **head, directiveLine **tail, int line_num,  int isLabel, int directive_type);
 
-static char *OPCODE[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "get", "prn", "jsr", "rts", "hlt"};
 
-static char *REGISTER[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"}; 
-
-static char *DIRECTIVE[] = {".data",".string",".struct",".entry",".extern"};
 
 
 /*struct array of commands*/

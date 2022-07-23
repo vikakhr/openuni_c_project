@@ -1,6 +1,5 @@
 #include "main.h"
 #include "label_lists.h"
-#include "second_step.h"
 
 
 
@@ -251,18 +250,6 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 
 }
 
-/*Function receives head of label's list, line number and memory counter. Assigns memory counter to the label*/
-void add_label_memory_num(labels** head_label, int memory_count, int line_number){
-	labels *ptr = *head_label;
-	printf("Inside func add label memory num: memory %d line %d\n", memory_count, line_number);
-	while(ptr!=NULL){
-		if((ptr->line_number) == line_number){
-			ptr->memory_count = memory_count;
-			break;
-		}
-		ptr = ptr->next;
-	}
-}
 
 
 

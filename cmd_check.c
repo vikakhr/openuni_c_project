@@ -84,7 +84,7 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	char *ptr;
 	char *lineCopy = (char*)malloc(strlen(line)+1);
 	if(lineCopy==NULL)
-		return;
+		return ERROR;
 	strcpy(lineCopy, line);
 	if(isLabel){
 		ptr = strtok(lineCopy, separator);/*take label*/
@@ -125,7 +125,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 	int arg_count = 0, isError = 0;
 	cmdCopy = (char*)malloc(strlen(command)+1);
 	if(cmdCopy==NULL)
-		return;
+		return ERROR;
 	strcpy(cmdCopy, command);	
 	printf("Inside check cmd args in cmd_check of command: %s index: %d\n", cmdCopy, cmd_index);
 	if(isLabel){

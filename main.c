@@ -1,15 +1,16 @@
 #include "main.h"
 #include "preprocessor.h"
 #include "first_step.h"
+#include "translator.h"
 #include "label_lists.h"
 #include "cmd_check.h"
-#include "translator.h"
+
 
 
 
 int main(int argc, char *argv[]){
 	FILE *ifp;
-	char *file_name, *ptr;
+	char *file_name, *copy_file_name;
 	labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 	externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
 	directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
@@ -28,6 +29,11 @@ int main(int argc, char *argv[]){
 		if(file_name==NULL)
 			return 1;
 	
+		copy_file_name = (char*)malloc(strlen(file_name)+1);/*copies original file name without extension*/
+		if(copy_file_name==NULL)
+					return 1;
+		strcpy(copy_file_name, *argv);
+
 		sprintf(file_name,"%s.as", *argv);/*writes a full name of file*/
 
 		if((ifp = fopen(file_name, "r")) == NULL){/*cannot open file, go to the next one*/
@@ -35,12 +41,11 @@ int main(int argc, char *argv[]){
 		}
 	else {
 		preprocessor(file_name);/*preprocessor function*/
-		ptr = strchr(file_name, '.');
 		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
 		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/		
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
-		translate_lines(&head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
+		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
 
 
 
@@ -51,6 +56,6 @@ int main(int argc, char *argv[]){
 }
 
 	free(file_name);
-
+	free(copy_file_name);
 return 0;
 }

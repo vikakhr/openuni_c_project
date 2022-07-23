@@ -5,7 +5,6 @@
 
 #define FOREVER for(;;)
 #define LINESIZE 81
-#define MAXMEMORYSIZE 256
 #define ERROR -1
 #define OK 1
 #define LABELSIZE 30 /*max length of label name*/
@@ -28,7 +27,6 @@ typedef struct node_ext{/*linked list of labels*/
 	struct node_label* next;
 }node_ext; 
 
-
 struct node_cmd{/*linked list to save binary representation??????*/
 	int cmd_index;	
 	int args;
@@ -38,7 +36,6 @@ struct node_cmd{/*linked list to save binary representation??????*/
 	int is_label;
 	struct node_cmd* next;
 }node_cmd; 
-
 
 struct node_directive{/*linked list to save binary representation??????*/
 	int isLabel;
