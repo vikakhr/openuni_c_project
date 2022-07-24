@@ -45,11 +45,10 @@ int main(int argc, char *argv[]){
 
 		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/		
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
-		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern, &tail_extern);
-
-		print_extlabel_list(&(*head_extern));/*CHECK*/
-
-
+		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
+		free_all_lists(&head_code, &head_cmd, &head_extern, &head_drctv);
+		if(head_extern == NULL)
+			printf("Freed\n");
 
 		fclose(ifp);
 		}
@@ -58,4 +57,52 @@ int main(int argc, char *argv[]){
 	free(file_name);
 	free(copy_file_name);
 return 0;
+}
+
+
+
+void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv){
+	free_directive_list(&(*head_drctv));
+	free_cmd_list(&(*head_cmd));
+	free_ext_list(&(*head_extern));
+	free_code_list(&(*head_code));
+}
+
+void free_directive_list(directiveLine **head_drctv){
+	directiveLine *ptr;
+	while(*head_drctv!=NULL){
+		ptr = *head_drctv;
+		*head_drctv = (*head_drctv)->next;
+		free(ptr);
+	}
+}
+
+void free_cmd_list(cmdLine **head_cmd){
+	cmdLine *ptr;
+	while(*head_cmd!=NULL){
+		ptr = *head_cmd;
+		*head_cmd = (*head_cmd)->next;
+		free(ptr->source);
+		free(ptr->destination);
+		free(ptr);
+	}
+}
+
+void free_ext_list(externs **head_extern){
+	externs *ptr;
+	while(*head_extern!=NULL){
+		ptr = *head_extern;
+		*head_extern = (*head_extern)->next;
+		free(ptr->ext_label);
+		free(ptr);
+	}
+}
+
+void free_code_list(codeWords **head_code){
+	codeWords *ptr;
+	while(*head_code!=NULL){
+		ptr = *head_code;
+		*head_code = (*head_code)->next;
+		free(ptr);
+	}
 }

@@ -23,7 +23,6 @@ typedef struct node_label{/*linked list of labels*/
 
 typedef struct node_ext{/*linked list of labels*/
 	char* ext_label;
-	int memory_count;/*is used in the translation function*/
 	struct node_label* next;
 }node_ext; 
 
@@ -58,4 +57,9 @@ typedef struct node_cmd cmdLine;/*linked list to save lines of operands of instr
 typedef struct node_label labels;/*linked list to save labels*/
 typedef struct node_ext externs;/*linked list to save extern labels*/
 typedef struct node_code codeWords; /*linked list to save command binary machine code*/
+
+
+void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv);
+void free_directive_list(directiveLine **head_drctv);
+void free_cmd_list(cmdLine **head_cmd);
 

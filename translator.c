@@ -4,12 +4,13 @@
 #include "label_lists.h"
 #include "cmd_check.h"
 
-void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs **head_ext, externs **tail_ext){
+void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl){
 	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 	char *ptr;
+	ext *head_extern = NULL, *tail_extern;
 
-	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext), memory_count);
+	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &head_extern, &tail_extern, memory_count);
 	/*Here free cmd lines list*/
 	cmd_code_count = memory_count - (STARTMEMORY+1);
 	memory_count = add_drctv_memory_count(&(*head_drctv), memory_count);
@@ -26,13 +27,13 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	ptr = strchr(file_name, '.');
 
 	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv));
-	output_entry_labels(file_name, &(*head_lbl));
-	output_extern_labels(file_name, &(*head_ext));
+	output_and_free_entry_labels(file_name, &(*head_lbl));
+	output_and_free_ext_labels(file_name, head_extern);
 } 
 
 
 /*Function receives linked list of command lines, labels, decimal machine code and memory counter, makes first translations of instruction command to machine code and adds into linked list, counting memory*/
-int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, externs **head_ext, externs **tail_ext, int memory_count){
+int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext, int memory_count){
 
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/
 	short int code;
@@ -106,7 +107,7 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	return OPERAND_EXTERN;/*if this is entry or extern label*/		
 }
 
-int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, externs **head_ext, externs **tail_ext){
+int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
 	int i, value;
 	short int unknown = -1;
 	short int code = 0;
@@ -145,7 +146,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 				
 		case OPERAND_EXTERN:
 			add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
-			add_memory_extern_arg(&(*head_ext), &(*tail_ext), destination, memory_count);/*add it's memory count into extrens*/
+			add_memory_extern_arg(&(*head_ext), &(*tail_ext), destination, memory_count);
 			memory_count++;
 			break;
 
@@ -156,7 +157,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 
 }
 
-int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, externs **head_ext, externs **tail_ext){
+int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
 	int num_s, num_d;
 	int code = 0;
 	int i, value;
@@ -213,7 +214,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 			case OPERAND_EXTERN:
 				add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
-				add_memory_extern_arg(&(*head_ext), &(*tail_ext), destination, memory_count);/*add it's memory count into extrens*/
+				add_memory_extern_arg(&(*head_ext), &(*tail_ext), source, memory_count);
 				memory_count++;
 				break;
 
@@ -337,14 +338,14 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 			free(objFileName);
 			return;
 	}
-	fprintf(dfp, "\t%s\t%s\n", tanslate_to_base32((short)cmd_code_count), tanslate_to_base32(drctv_code_count)); /*write inside .am file*/
+	fprintf(dfp, "\t%s\t%s\n", translate_to_base32((short)cmd_code_count), translate_to_base32(drctv_code_count)); /*write inside .am file*/
 
 	while(ptr_code!=NULL){
-		fprintf(dfp, "%s\t%s\n", tanslate_to_base32((short)ptr_code->memory_count), tanslate_to_base32(ptr_code->code)); /*write inside .am file*/
+		fprintf(dfp, "%s\t%s\n", translate_to_base32((short)ptr_code->memory_count), translate_to_base32(ptr_code->code)); /*write inside .am file*/
 		ptr_code = ptr_code->next;
 	}
 	while(ptr_drctv!=NULL){
-			fprintf(dfp, "%s\t%s\n", tanslate_to_base32((short)ptr_drctv->memory_count), tanslate_to_base32(ptr_drctv->arg)); /*write inside .am file*/
+			fprintf(dfp, "%s\t%s\n", translate_to_base32((short)ptr_drctv->memory_count), translate_to_base32(ptr_drctv->arg)); /*write inside .am file*/
 			ptr_drctv = ptr_drctv->next;
 	}
 	free(objFileName);
@@ -352,7 +353,7 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 }
 
 
-char* tanslate_to_base32(short int num){
+char* translate_to_base32(short int num){
 	char base_32[32] = {'!','@','#','$','%','^','&','*','<','>','a','b','c','d','e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
 	char *p = (char *)malloc(3);
 	int first, second, i;
@@ -377,92 +378,97 @@ char* tanslate_to_base32(short int num){
 }
 
 
-void output_entry_labels(char *file_name, labels **head_lbl){
+void output_and_free_entry_labels(char *file_name, labels **head_lbl){
 	FILE *dfp;	
-	labels *ptr_lbl = *head_lbl;
-	char* objFileName;
-	if(ptr_lbl==NULL)
+	labels *ptr_lbl;
+	char* entFileName;
+	if(head_lbl==NULL)
 		return;
 
-	objFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
-			if(objFileName==NULL)
+	entFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
+			if(entFileName==NULL)
 				return;
 
-	sprintf(objFileName,"%s.ent", file_name);/*writes a full name of file*/
-	if((dfp = fopen(objFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
-				printf("Cannot open %s\n", objFileName);
-				free(objFileName);
+	sprintf(entFileName,"%s.ent", file_name);/*writes a full name of file*/
+	if((dfp = fopen(entFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
+				printf("Cannot open %s\n", entFileName);
+				free(entFileName);
 				return;
 		}
 
-	while(ptr_lbl!=NULL){
-		if(ptr_lbl->label_type == ENTRY){
-			fprintf(dfp, "%s\t%s\n", ptr_lbl->label, tanslate_to_base32(ptr_lbl->memory_count)); /*write inside .am file*/
-		}
-		ptr_lbl = ptr_lbl->next;
+	while(*head_lbl!=NULL){
+		ptr_lbl = *head_lbl;
+		*head_lbl = (*head_lbl)->next;
+		if(ptr_lbl->label_type == ENTRY)
+			fprintf(dfp, "%s\t%s\n", ptr_lbl->label, translate_to_base32(ptr_lbl->memory_count)); /*write inside .am file*/
+
+		free(ptr_lbl->label);
+		free(ptr_lbl);
 	}
-		free(objFileName);
+		free(entFileName);
 		fclose(dfp);
 
 }
 
 /*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count ta label as argument
  * if it first appearance, if is not passes to add node extern function*/
-void add_memory_extern_arg(externs** head, externs** tail, char* name, int memory_count){
-	externs *ptr_ext = *head;
-	int unknown = -1;
-	int isFilled = 0;
-	if(ptr_ext == NULL)
+void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count){
+	ext *ptr = *head;
+	ext *new = malloc(sizeof(ext));
+	if(new==NULL)
 		return;
-	printf("*****Add memory extern arg\n");
-	while(ptr_ext!=NULL){
-		if(!strcmp(ptr_ext->ext_label, name)){
-			printf("Found extern label in argument: %s\n", name);
-			if(ptr_ext->memory_count==unknown){
-				printf("Momory count is -1, change to %d\n", memory_count);
-				ptr_ext->memory_count = memory_count;
-				isFilled = 1;
-				break;
-			}
-		}
-		ptr_ext = ptr_ext->next;
+
+	new->ext_label = (char*)malloc(strlen(name)+1);
+	if(new->ext_label==NULL)
+		return;
+	new->memory_count = memory_count;
+	new->next = NULL;
+	strcpy(new->ext_label, name);
+
+	if(*head==NULL){/*if this is first node*/
+		*head = new;
+		*tail = new;
+		return;
 	}
-	printf("After changing, %d\n", isFilled);
-	if(isFilled)
-		return;
+
+	else if(*tail == NULL){/*if this is second node*/
+		(*head)->next = new;
+		*tail = new;
+	}
 	else {
-		add_node_extern(&(*head), &(*tail), name, memory_count);
+		(*tail)->next = new;
+		*tail = new;
 	}
-
-
 }
 
 
 
-void output_extern_labels(char *file_name, externs **head_extern){
+void output_and_free_ext_labels(char *file_name, ext *head_extern){
 	FILE *dfp;
-	externs *ptr_extern = *head_extern;
-	char* objFileName;
-	if(ptr_extern==NULL)
+	ext *ptr_extern;
+	char* extFileName;
+	if(head_extern==NULL)
 		return;
 
-	objFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
-			if(objFileName==NULL)
-				return;
+	extFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ext file*/
+		if(extFileName==NULL)
+			return;
 
-	sprintf(objFileName,"%s.ext", file_name);/*writes a full name of file*/
-	if((dfp = fopen(objFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
-				printf("Cannot open %s\n", objFileName);
-				free(objFileName);
-				return;
+	sprintf(extFileName,"%s.ext", file_name);/*writes a full name of file*/
+	if((dfp = fopen(extFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
+		printf("Cannot open %s\n", extFileName);
+		free(extFileName);
+		return;
 	}
 
-	while(ptr_extern!=NULL){
-		fprintf(dfp, "%s\t%d\n", ptr_extern->ext_label, ptr_extern->memory_count); /*write inside .am file*/
+	while(head_extern!=NULL){
+		ptr_extern = head_extern;
+		head_extern = head_extern->next;
+		fprintf(dfp, "%s\t%s\n", ptr_extern->ext_label, translate_to_base32((short)ptr_extern->memory_count)); /*write inside .am file*/
+		free(ptr_extern->ext_label);
+		free(ptr_extern);
+	}
 
-			ptr_extern = ptr_extern->next;
-		}
-			free(objFileName);
-			fclose(dfp);
-
+	free(extFileName);
+	fclose(dfp);
 }
