@@ -45,9 +45,9 @@ int main(int argc, char *argv[]){
 
 		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/		
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
-		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern);
+		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl, &head_extern, &tail_extern);
 
-
+		print_extlabel_list(&(*head_extern));/*CHECK*/
 
 
 

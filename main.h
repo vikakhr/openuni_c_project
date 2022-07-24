@@ -23,7 +23,7 @@ typedef struct node_label{/*linked list of labels*/
 
 typedef struct node_ext{/*linked list of labels*/
 	char* ext_label;
-	int line_number;
+	int memory_count;/*is used in the translation function*/
 	struct node_label* next;
 }node_ext; 
 

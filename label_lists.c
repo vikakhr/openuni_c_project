@@ -86,14 +86,17 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 }
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
-void add_node_extern(externs** head, externs** tail, char* name, int line){
+void add_node_extern(externs** head, externs** tail, char* name, int memory_count){
+	externs *ptr = *head;
+	int unknown = -1;
 	externs *new = malloc(sizeof(externs));
 	if(new==NULL)
 		return;
+
 	new->ext_label = (char*)malloc(strlen(name)+1);
 	if(new->ext_label==NULL)
 		return;
-	new->line_number = line;
+	new->memory_count = memory_count;
 	new->next = NULL;
 	strcpy(new->ext_label, name);
 
@@ -101,15 +104,23 @@ void add_node_extern(externs** head, externs** tail, char* name, int line){
 		*head = new;
 		*tail = new;
 		return;
-	}		
-	else if(*tail == NULL){/*if this is second node*/
+	}
+	else {
+		while(ptr->next!=NULL && ((ptr->next)->memory_count<memory_count)){
+			ptr = ptr->next;
+		}
+		new->next = ptr->next;
+		ptr->next = new;
+	}
+	/*
+	else if(*tail == NULL){/*if this is second node
 		(*head)->next = new;
 		*tail = new;
 	}
 	else {	
 		(*tail)->next = new;
 		*tail = new;
-	}
+	}*/
 }
 
 
@@ -123,7 +134,7 @@ void print_extlabel_list(externs* head){
 	int i=1;
 	printf("Inside print extern label:\n");
 	while(ptr!=NULL){
-		printf("%d - %s - %d\n", i, ptr->ext_label, ptr->line_number);
+		printf("%d - %s - %d\n", i, ptr->ext_label, ptr->memory_count);
 		 ptr = ptr->next;
 		i++;
 		/*free(ptr->name);free memory of name
@@ -249,7 +260,6 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 	}
 
 }
-
 
 
 

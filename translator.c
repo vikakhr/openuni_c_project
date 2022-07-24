@@ -4,12 +4,12 @@
 #include "label_lists.h"
 #include "cmd_check.h"
 
-void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs *head_extern){
+void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl, externs **head_ext, externs **tail_ext){
 	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 	char *ptr;
 
-	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), memory_count);
+	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext), memory_count);
 	/*Here free cmd lines list*/
 	cmd_code_count = memory_count - (STARTMEMORY+1);
 	memory_count = add_drctv_memory_count(&(*head_drctv), memory_count);
@@ -27,12 +27,12 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 
 	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv));
 	output_entry_labels(file_name, &(*head_lbl));
-	output_extern_labels(file_name, &(*head_extern));
+	output_extern_labels(file_name, &(*head_ext));
 } 
 
 
 /*Function receives linked list of command lines, labels, decimal machine code and memory counter, makes first translations of instruction command to machine code and adds into linked list, counting memory*/
-int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, int memory_count){
+int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, externs **head_ext, externs **tail_ext, int memory_count){
 
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/
 	short int code;
@@ -58,7 +58,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			code = code|(num_d<<2);
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*if no arguments add with cmd index*/
 			memory_count++;
-			memory_count = translate_one_operand(ptr_cmd->destination, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code));
+			memory_count = translate_one_operand(ptr_cmd->destination, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
@@ -72,7 +72,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
 
-			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code));
+			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
@@ -106,7 +106,7 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	return OPERAND_EXTERN;/*if this is entry or extern label*/		
 }
 
-int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code){
+int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, externs **head_ext, externs **tail_ext){
 	int i, value;
 	short int unknown = -1;
 	short int code = 0;
@@ -145,6 +145,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 				
 		case OPERAND_EXTERN:
 			add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
+			add_memory_extern_arg(&(*head_ext), &(*tail_ext), destination, memory_count);/*add it's memory count into extrens*/
 			memory_count++;
 			break;
 
@@ -155,7 +156,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 
 }
 
-int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code){
+int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, externs **head_ext, externs **tail_ext){
 	int num_s, num_d;
 	int code = 0;
 	int i, value;
@@ -212,12 +213,13 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 			case OPERAND_EXTERN:
 				add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
+				add_memory_extern_arg(&(*head_ext), &(*tail_ext), destination, memory_count);/*add it's memory count into extrens*/
 				memory_count++;
 				break;
 
 			break;
 		}
-	translate_one_operand(destination, destination_type, memory_count, line_number, &(*head_code), &(*tail_code));
+	translate_one_operand(destination, destination_type, memory_count, line_number, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 
 
 	return memory_count;
@@ -404,6 +406,39 @@ void output_entry_labels(char *file_name, labels **head_lbl){
 
 }
 
+/*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count ta label as argument
+ * if it first appearance, if is not passes to add node extern function*/
+void add_memory_extern_arg(externs** head, externs** tail, char* name, int memory_count){
+	externs *ptr_ext = *head;
+	int unknown = -1;
+	int isFilled = 0;
+	if(ptr_ext == NULL)
+		return;
+	printf("*****Add memory extern arg\n");
+	while(ptr_ext!=NULL){
+		if(!strcmp(ptr_ext->ext_label, name)){
+			printf("Found extern label in argument: %s\n", name);
+			if(ptr_ext->memory_count==unknown){
+				printf("Momory count is -1, change to %d\n", memory_count);
+				ptr_ext->memory_count = memory_count;
+				isFilled = 1;
+				break;
+			}
+		}
+		ptr_ext = ptr_ext->next;
+	}
+	printf("After changing, %d\n", isFilled);
+	if(isFilled)
+		return;
+	else {
+		add_node_extern(&(*head), &(*tail), name, memory_count);
+	}
+
+
+}
+
+
+
 void output_extern_labels(char *file_name, externs **head_extern){
 	FILE *dfp;
 	externs *ptr_extern = *head_extern;
@@ -423,7 +458,7 @@ void output_extern_labels(char *file_name, externs **head_extern){
 	}
 
 	while(ptr_extern!=NULL){
-		fprintf(dfp, "%s\tHere need to put memory num\n", ptr_extern->ext_label); /*write inside .am file*/
+		fprintf(dfp, "%s\t%d\n", ptr_extern->ext_label, ptr_extern->memory_count); /*write inside .am file*/
 
 			ptr_extern = ptr_extern->next;
 		}

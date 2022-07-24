@@ -67,6 +67,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	int cmd_index, drctv_index;/*indexes of command names*/	
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
+	int unknown = -1;
 
 	char *commandCopy = (char*)malloc(sizeof(char)*LINESIZE+1);
 	if(command==NULL)
@@ -172,7 +173,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				printf("This is extern \n");
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, EXTERN, line_num))==ERROR)
 					break;
-				add_node_extern(&(*head_extern), &(*tail_extern), secondWord, line_num);
+				add_node_extern(&(*head_extern), &(*tail_extern), secondWord, unknown);
 				break;
 			break;		
 			}/*end of switch*/			
