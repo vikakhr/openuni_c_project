@@ -87,7 +87,6 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
 void add_node_extern(externs** head, externs** tail, char* name){
-	externs *ptr = *head;
 	externs *new = malloc(sizeof(externs));
 	if(new==NULL)
 		return;
@@ -177,83 +176,97 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 	externs *ptr_ext = *head_ext;
 	cmdLine *temp;
 	cmdLine *ptr_cmd = *head_cmd;
-	char *strct_name;
+	int isFound = 0; /*flag if label was found*/
+	char *strct_name = (char*)malloc(LABELSIZE+1);
+	if(strct_name == NULL)
+		return;
 
+	printf("Inside check label defined\n");
 	if(ptr_cmd->source!=NULL){
 		if(strchr(ptr_cmd->source, '.')){/*if struct*/
-			strct_name = strtok(ptr_cmd->source, ".");
-			while(ptr_cmd!=NULL){
-				if(!(strcmp(ptr_label->label, strct_name)))/*if struct was found*/					
-					break;
+			strcpy(strct_name, ptr_cmd->source);
+			strct_name = strtok(strct_name, ".");
+			while(ptr_cmd!=NULL && !isFound){
+				if(!(strcmp(ptr_label->label, strct_name)))/*if struct was found*/
+					isFound = 1;
 				ptr_label = ptr_label->next;
 			}
-			temp = ptr_cmd;
-			ptr_cmd = ptr_cmd->next;
-			delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+			if (!isFound){
+				temp = ptr_cmd;
+				ptr_cmd = ptr_cmd->next;
+				delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+			}
 		}
 		else if((check_arg_register(ptr_cmd->source))==ERROR && (check_arg_number(ptr_cmd->source))==ERROR){/*if source not number or register*/
 			while(ptr_cmd!=NULL){
 				if(ptr_cmd->source!=NULL){
-					while(ptr_label!=NULL){/*check if source is label*/
-						if(!(strcmp(ptr_label->label, ptr_cmd->source)))/*if label was found*/					
-							break;
+					while(ptr_label!=NULL && !isFound){/*check if source is label*/
+						if(!(strcmp(ptr_label->label, ptr_cmd->source)))/*if label was found*/
+							isFound = 1;
 						ptr_label = ptr_label->next;
 					}
-					while(ptr_ext!=NULL){/*check if source is extern label*/
-						if(!(strcmp(ptr_ext->ext_label, ptr_cmd->source)))/*if extern label*/					
-							break;
+					while(ptr_ext!=NULL && !isFound){/*check if source is extern label*/
+						if(!(strcmp(ptr_ext->ext_label, ptr_cmd->source)))/*if extern label*/
+							isFound = 1;
 						ptr_ext = ptr_ext->next;
 					}
 					printf("Error, label name of source parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
-					temp = ptr_cmd;
-					ptr_cmd = ptr_cmd->next;
-					delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+					if(!isFound){
+						temp = ptr_cmd;
+						ptr_cmd = ptr_cmd->next;
+						delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+					}
 				}
 			ptr_cmd = ptr_cmd->next;
 			}
 		}
 	}
 	if(ptr_cmd->destination!=NULL){
+		isFound = 0;
 		ptr_label = *head_label;
 		ptr_cmd = *head_cmd;
 		ptr_ext = *head_ext;
 		if(strchr(ptr_cmd->destination, '.')){/*if struct*/
 			strct_name = strtok(ptr_cmd->destination, ".");
-			while(ptr_cmd!=NULL){
+			while(ptr_cmd!=NULL && !isFound){
 				if(!(strcmp(ptr_label->label, strct_name)))/*if struct was found*/					
-					return;
+					isFound = 1;
 				ptr_label = ptr_label->next;
 			}
-			temp = ptr_cmd;
-			ptr_cmd = ptr_cmd->next;
-			delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+			if(!isFound){
+				temp = ptr_cmd;
+				ptr_cmd = ptr_cmd->next;
+				delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+			}
 		}
 		else if((check_arg_register(ptr_cmd->destination))==ERROR && (check_arg_number(ptr_cmd->destination))==ERROR){/*if destination not number or register*/
 			printf("Destination is not register nor number: %s\n", ptr_cmd->destination);
-			while(ptr_cmd!=NULL){
+			while(ptr_cmd!=NULL && !isFound){
 				if(ptr_cmd->destination!=NULL){
 					while(ptr_label!=NULL){/*check if destination is label*/
 						if(!(strcmp(ptr_label->label, ptr_cmd->destination))){/*if label was found*/
-							return;
+							isFound = 1;
 						}
 						ptr_label = ptr_label->next;
 					}
-					while(ptr_ext!=NULL){/*check if destination is extern label*/
+					while(ptr_ext!=NULL && !isFound){/*check if destination is extern label*/
 						if(!(strcmp(ptr_ext->ext_label, ptr_cmd->destination)))/*if extern label*/					
-							return;
+							isFound = 1;
 						ptr_ext = ptr_ext->next;
 					}
 					ptr_cmd->destination = remove_blanks(ptr_cmd->destination);
-					printf("Error, label name of destination parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
-					temp = ptr_cmd;
-					ptr_cmd = ptr_cmd->next;
-					delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+					if(!isFound){
+						printf("Error, label name of destination parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
+						temp = ptr_cmd;
+						ptr_cmd = ptr_cmd->next;
+						delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+					}
 				}
 			ptr_cmd = ptr_cmd->next;
 			}
 		}
 	}
-
+	free(strct_name);
 }
 
 

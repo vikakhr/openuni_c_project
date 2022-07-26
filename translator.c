@@ -9,7 +9,7 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 	char *ptr;
 	ext *head_extern = NULL, *tail_extern;
-	printf("Inside translate lines line of head is: %d\n", (*head_cmd)->line_num);
+	printf("Inside translate lines line of head is: %s\n", (*head_cmd)->source);
 	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &head_extern, &tail_extern, memory_count);
 	/*Here free cmd lines list*/
 	cmd_code_count = memory_count - (STARTMEMORY+1);
@@ -34,11 +34,9 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 
 /*Function receives linked list of command lines, labels, decimal machine code and memory counter, makes first translations of instruction command to machine code and adds into linked list, counting memory*/
 int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext, int memory_count){
-
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/
 	short int code;
 	int num_s, num_d;
-
 
 	printf("Inside cmd translation, line of head is: %d\n", (*head_cmd)->line_num);
 	while(ptr_cmd!=NULL){
@@ -66,6 +64,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 
 		if(ptr_cmd->args==2){
 			num_s = check_addressing_type(ptr_cmd->source, &(*head_lbl), code);
+			printf("addr type of %s id %d****\n", ptr_cmd->source, num_s);
 			code = code|(num_s<<4);
 
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
@@ -74,6 +73,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			memory_count++;
 
 			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
+			printf("After translate two operands");
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
@@ -89,22 +89,22 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	int type, num;
 	labels *ptr_lbl = *head_lbl;/*label lists*/
 
-	if((type = check_arg_number(word))!=ERROR)/*if number*/
-			return OPERAND_NUMBER;
+	if(strchr(word, '.'))/*if struct*/
+		return OPERAND_STRUCT;
 
-	else if((num = check_arg_register(word))!=ERROR)/*if register*/
-			return	OPERAND_REGISTER;
-	else{
-		while(ptr_lbl!=NULL){
-			if(!strcmp(ptr_lbl->label, word)){/*if this is label defined in this file*/		
-				if(ptr_lbl->label_type==STRUCT)
-					return OPERAND_STRUCT;
-				else return OPERAND_LABEL;
-			}
-			ptr_lbl = ptr_lbl->next;
-		}/*end od while*/
-	}
-	return OPERAND_EXTERN;/*if this is entry or extern label*/		
+	if((type = check_arg_number(word))!=ERROR)/*if number*/
+		return OPERAND_NUMBER;
+
+	if((num = check_arg_register(word))!=ERROR)/*if register*/
+		return OPERAND_REGISTER;
+
+	while(ptr_lbl!=NULL){
+		if(!strcmp(ptr_lbl->label, word))/*if this is label defined in this file*/
+			return OPERAND_LABEL;
+		ptr_lbl = ptr_lbl->next;
+	}/*end of while*/
+
+	return OPERAND_EXTERN;
 }
 
 int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
@@ -112,7 +112,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 	short int unknown = -1;
 	short int code = 0;
 	char *ptr;
-	printf("Inside translate one operand, %s\n", destination);
+	printf("Inside translate one operand, %s - %d\n", destination, destination_type);
 	switch(destination_type){
 		case OPERAND_NUMBER: 
 			value = strtol(destination, &ptr, 10);
@@ -164,7 +164,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 	char *ptr;
 	int unknown = -1;
 
-	printf("Inside translate two operands\n");
+	printf("Inside translate two operands %s %s %d %d\n", source, destination, source_type, destination_type);
 	if(source_type==OPERAND_REGISTER){
 		for(i=0; i<REGLENGTH; i++){
 			if(!strcmp(source, REGISTER[i]))
@@ -190,15 +190,17 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 				memory_count++;
 				break;
 			case OPERAND_LABEL:
-				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source_type);
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source);
 				memory_count++;
 				break;
 			case OPERAND_STRUCT:
-				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source_type);
+				printf("Struct - before add code nose\n********");
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source);
 				memory_count++;
 				if(destination[strlen(destination)-1]=='1')
 					code = 1<<4;
 				else code = 2<<4;
+				printf("Struct - before add code nose\n********");
 				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*add it's number <<2*/
 				memory_count++;
 				break;
@@ -220,6 +222,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 			break;
 		}
+	printf("Before translate one operand inside two\n");
 	translate_one_operand(destination, destination_type, memory_count, line_number, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 
 
@@ -230,6 +233,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
 void add_node_code(codeWords **head, codeWords **tail, int memory_count, int code, char *literal){
+	char *ptr;
 	codeWords *new = malloc(sizeof(codeWords));
 	if(new==NULL)
 		return;
@@ -240,7 +244,11 @@ void add_node_code(codeWords **head, codeWords **tail, int memory_count, int cod
 		new->literal = (char *)malloc(strlen(literal)+1);
 		if(new->literal == NULL)
 			return;
-		strcpy(new->literal, literal);
+		if(strchr(literal, '.')){/*if this is struct*/
+			ptr = strtok(literal, ".");
+			strcpy(new->literal, ptr);
+		}
+		else strcpy(new->literal, literal);
 	}
 
 	new->code = code;
@@ -412,10 +420,9 @@ void output_and_free_entry_labels(char *file_name, labels **head_lbl){
 
 }
 
-/*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count ta label as argument
+/*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count to label as argument
  * if it first appearance, if is not passes to add node extern function*/
 void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count){
-	ext *ptr = *head;
 	ext *new = malloc(sizeof(ext));
 	if(new==NULL)
 		return;
@@ -423,11 +430,12 @@ void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count)
 	new->ext_label = (char*)malloc(strlen(name)+1);
 	if(new->ext_label==NULL)
 		return;
+
 	new->memory_count = memory_count;
 	new->next = NULL;
 	strcpy(new->ext_label, name);
 
-	if(*head==NULL){/*if this is first node*/
+	if(*head == NULL){/*if this is first node*/
 		*head = new;
 		*tail = new;
 		return;
@@ -473,4 +481,13 @@ void output_and_free_ext_labels(char *file_name, ext *head_extern){
 
 	free(extFileName);
 	fclose(dfp);
+}
+
+int take_struct_num(codeWords **head_code, int line_number, char* struct_name){
+	int struct_num;
+	codeWords *ptr = *head_code;
+
+
+	return struct_num;
+
 }
