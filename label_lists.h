@@ -1,5 +1,5 @@
 
-enum {STRUCT, EXTERN, ENTRY}; /*label's type number, data type includes .data and .string*/
+enum {STRUCT, EXTERN, ENTRY, LABEL}; /*label's type number, data type includes .data and .string*/
 
 
 

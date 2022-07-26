@@ -1,7 +1,8 @@
 #include "main.h"
 #include "preprocessor.h"
-#include "first_step.h"
 #include "translator.h"
+#include "first_step.h"
+
 #include "label_lists.h"
 #include "cmd_check.h"
 
@@ -43,8 +44,10 @@ int main(int argc, char *argv[]){
 		preprocessor(file_name);/*preprocessor function*/
 		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
-		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/		
+		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
+		printf("In main after read cmd line head is: %d\n", head_cmd->line_num);		
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
+		printf("In main after check label defined head is: %d\n", head_cmd->line_num);
 		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
 		free_all_lists(&head_code, &head_cmd, &head_extern, &head_drctv);
 		if(head_extern == NULL)

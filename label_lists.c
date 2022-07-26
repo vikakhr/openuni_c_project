@@ -24,14 +24,14 @@ Returns error if label has been defined second time with another positioning, 1 
 int check_label_positioning(labels** head, externs** ext_head, char* label, int label_type, int line_num){
 	labels *ptr = *head;
 	externs *ptr_ext = *ext_head;
-	printf("Inside check label positioning\n");
+	printf("Inside check label positioning , LABEL TYPE: %d\n", label_type);
 	while(ptr_ext!=NULL){
 		if(!(strcmp(label, ptr_ext->ext_label))){
-			if(label_type == ENTRY){
+			if(label_type == ENTRY || label_type == LABEL || label_type == STRUCT){
 				printf("Error, conflicting positioning type for label defined multiple times, in line number: %d\n", line_num);
 		 		return ERROR;
 			}
-			else {
+			else if(label_type == EXTERN){
 				printf("Warning, repeated label positioning definition - will be ignored, in line number: %d\n", line_num);
 				return ERROR;
 			}
@@ -45,7 +45,7 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 				printf("Error, conflicting positioning type for label defined multiple times, in line number: %d\n", line_num);
 		 		return ERROR;
 			}
-			else {
+			else if(label_type == ENTRY && ptr->label_type == ENTRY){
 				printf("Warning, repeated label positioning definition - will be ignored, in line number: %d\n", line_num);
 				return ERROR;
 			}		
@@ -214,11 +214,14 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 		}
 	}
 	if(ptr_cmd->destination!=NULL){
+		ptr_label = *head_label;
+		ptr_cmd = *head_cmd;
+		ptr_ext = *head_ext;
 		if(strchr(ptr_cmd->destination, '.')){/*if struct*/
 			strct_name = strtok(ptr_cmd->destination, ".");
 			while(ptr_cmd!=NULL){
 				if(!(strcmp(ptr_label->label, strct_name)))/*if struct was found*/					
-					break;
+					return;
 				ptr_label = ptr_label->next;
 			}
 			temp = ptr_cmd;
@@ -226,18 +229,21 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 			delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
 		}
 		else if((check_arg_register(ptr_cmd->destination))==ERROR && (check_arg_number(ptr_cmd->destination))==ERROR){/*if destination not number or register*/
+			printf("Destination is not register nor number: %s\n", ptr_cmd->destination);
 			while(ptr_cmd!=NULL){
 				if(ptr_cmd->destination!=NULL){
 					while(ptr_label!=NULL){/*check if destination is label*/
-						if(!(strcmp(ptr_label->label, ptr_cmd->destination)))/*if label was found*/					
-							break;
+						if(!(strcmp(ptr_label->label, ptr_cmd->destination))){/*if label was found*/
+							return;
+						}
 						ptr_label = ptr_label->next;
 					}
 					while(ptr_ext!=NULL){/*check if destination is extern label*/
 						if(!(strcmp(ptr_ext->ext_label, ptr_cmd->destination)))/*if extern label*/					
-							break;
+							return;
 						ptr_ext = ptr_ext->next;
 					}
+					ptr_cmd->destination = remove_blanks(ptr_cmd->destination);
 					printf("Error, label name of destination parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
 					temp = ptr_cmd;
 					ptr_cmd = ptr_cmd->next;

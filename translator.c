@@ -9,7 +9,7 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 	char *ptr;
 	ext *head_extern = NULL, *tail_extern;
-
+	printf("Inside translate lines line of head is: %d\n", (*head_cmd)->line_num);
 	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &head_extern, &tail_extern, memory_count);
 	/*Here free cmd lines list*/
 	cmd_code_count = memory_count - (STARTMEMORY+1);
@@ -40,7 +40,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 	int num_s, num_d;
 
 
-	printf("Inside cmd translation\n");
+	printf("Inside cmd translation, line of head is: %d\n", (*head_cmd)->line_num);
 	while(ptr_cmd!=NULL){
 		code = 0;
 		printf("Command to translate:  %d  %s  %s %d %d\n", ptr_cmd->cmd_index, ptr_cmd->source, ptr_cmd->destination, ptr_cmd->line_num, ptr_cmd->args);
@@ -284,6 +284,8 @@ void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 			ptr_label = *head_lbl;
 			isFound = 0;
 		}
+		if(ptr_label->label_type != ENTRY)
+			continue;
 		if(ptr_code->code==unknown){
 			while(ptr_label!=NULL && !isFound){
 				if(!strcmp(ptr_label->label, ptr_code->literal)){

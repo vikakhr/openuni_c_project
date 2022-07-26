@@ -19,10 +19,9 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 
 
 
-int check_cmd (char *word, struct CmdNames *cmd);
+int check_cmd (char *word);
 int check_directive(char *word);
-int check_cmd_args(char *word, int line_num, int isLabel, int cmd_index, struct CmdNames *cmd);
-int check_drctv_args(char *word, int line_num, int type, struct DrctvNames *drctv);
+int check_cmd_args(char *word, int line_num, int isLabel, int cmd_index);
 
 
 void delete_instruction_node(cmdLine **head, int line_num);

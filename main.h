@@ -62,4 +62,6 @@ typedef struct node_code codeWords; /*linked list to save command binary machine
 void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv);
 void free_directive_list(directiveLine **head_drctv);
 void free_cmd_list(cmdLine **head_cmd);
+void free_ext_list(externs **head_extern);
+void free_code_list(codeWords **head_code);
 

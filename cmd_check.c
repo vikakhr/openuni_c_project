@@ -119,7 +119,7 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
-int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, struct CmdNames *cmd){
+int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 	char *cmdCopy, *label, *instruction, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, isError = 0;
@@ -185,7 +185,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
 					return ERROR;
 				}
-				break;		
+				break;
 			case 6:
 				if(check_arg_register(source)!=ERROR){/*if source is register - ERROR*/
 					printf("Error, source parameter is not legal, in line number: %d\n", line_num);
@@ -237,7 +237,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index, stru
 
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_cmd(char *word, struct CmdNames *cmd){
+int check_cmd(char *word){
 	int cmd_index;	
 	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
 		if(strcmp(word,cmd[cmd_index].name)==0){
