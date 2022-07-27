@@ -311,18 +311,20 @@ void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 	}
 }
 
+/*Function receives heads of directives and labels linked list and last memory count, adds memory count of labels that
+ have been defined in directive instruction*/
 int add_drctv_memory_count(directiveLine **head_drctv, labels** head_label, int memory_count){
 	directiveLine *ptr_drctv = *head_drctv;
-	labels *ptr_label = *head_label;
-	int is_added;
+	labels *ptr_label;
+	int line_num;
 	while(ptr_drctv!=NULL){
-		is_added = 0;
+		ptr_label = *head_label;
 		ptr_drctv->memory_count = memory_count;
-		if(ptr_drctv->isLabel && !is_added){
+		if(ptr_drctv->isLabel && line_num!=ptr_drctv->line_num){
+			line_num = ptr_drctv->line_num;
 			while(ptr_label!=NULL){
 				if(ptr_drctv->line_num == ptr_label->line_number){
 					ptr_label->memory_count = memory_count;
-					is_added = 1;
 				}
 				ptr_label = ptr_label->next;
 			}
@@ -330,7 +332,6 @@ int add_drctv_memory_count(directiveLine **head_drctv, labels** head_label, int 
 		memory_count++;
 		ptr_drctv = ptr_drctv->next;
 	}
-
 		return memory_count;
 }
 
