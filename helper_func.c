@@ -93,11 +93,7 @@ int check_one_num(char *num){
 	char *number = (char *)malloc(strlen(num)+1);
 	if(number == NULL)
 		return ERROR;
-	printf("Inside check num: %s\n", num);
-	if(num[0]!='#'){
-		free(number);
-		return ERROR;
-	}
+
 	num++; /*pointer to number after #*/
 	if(num[0]=='+' || num[0]=='-'){
 		num++;
@@ -107,7 +103,6 @@ int check_one_num(char *num){
 		}
 	}
 
-	
 	strcpy(number,num);
 
 	value = strtol(number, &ptr, 10);			
@@ -146,7 +141,6 @@ int check_nums(char *line, int isLabel){
 	while(word !=NULL){
 		
 		word = remove_blanks(word);/*removes blank spaces from both sides of num*/
-		printf("After removing blanks: %s\n", word);
 		if(word[0]=='+' || word[0]=='-'){
 			word++;
 			if(!isdigit(word[0])){
@@ -154,7 +148,6 @@ int check_nums(char *line, int isLabel){
 				return ERROR;
 			}
 		}
-		printf("After moving +-: %s\n", word);
 		
 		strtol(word, &ptr, 10);		
 		if(*ptr!='\0'){
@@ -180,7 +173,6 @@ int check_nums(char *line, int isLabel){
 			return ERROR;
 		}
 	}
-	printf("Is ok\n");
 	free(numbers);	
 	return count;
 }

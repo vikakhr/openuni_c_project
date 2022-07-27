@@ -16,6 +16,7 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 
 void add_node_extern(externs** head, externs** tail, char* name);
 
+
 void print_label_list(labels* head);
 void print_extlabel_list(externs* head);
 

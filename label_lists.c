@@ -24,7 +24,6 @@ Returns error if label has been defined second time with another positioning, 1 
 int check_label_positioning(labels** head, externs** ext_head, char* label, int label_type, int line_num){
 	labels *ptr = *head;
 	externs *ptr_ext = *ext_head;
-	printf("Inside check label positioning , LABEL TYPE: %d\n", label_type);
 	while(ptr_ext!=NULL){
 		if(!(strcmp(label, ptr_ext->ext_label))){
 			if(label_type == ENTRY || label_type == LABEL || label_type == STRUCT){
@@ -48,7 +47,7 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 			else if(label_type == ENTRY && ptr->label_type == ENTRY){
 				printf("Warning, repeated label positioning definition - will be ignored, in line number: %d\n", line_num);
 				return ERROR;
-			}		
+			}
 		}
 		ptr = ptr->next;
 	}
@@ -115,7 +114,6 @@ void add_node_extern(externs** head, externs** tail, char* name){
 }
 
 
-
 /*Function frees nodes and linked list*/
 void print_extlabel_list(externs* head){
 	externs* ptr = head;
@@ -180,8 +178,6 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 	char *strct_name = (char*)malloc(LABELSIZE+1);
 	if(strct_name == NULL)
 		return;
-
-	printf("Inside check label defined\n");
 	if(ptr_cmd->source!=NULL){
 		if(strchr(ptr_cmd->source, '.')){/*if struct*/
 			strcpy(strct_name, ptr_cmd->source);
@@ -240,7 +236,6 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 			}
 		}
 		else if((check_arg_register(ptr_cmd->destination))==ERROR && (check_arg_number(ptr_cmd->destination))==ERROR){/*if destination not number or register*/
-			printf("Destination is not register nor number: %s\n", ptr_cmd->destination);
 			while(ptr_cmd!=NULL && !isFound){
 				if(ptr_cmd->destination!=NULL){
 					while(ptr_label!=NULL){/*check if destination is label*/

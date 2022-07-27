@@ -45,13 +45,10 @@ int main(int argc, char *argv[]){
 		sprintf(file_name,"%s.am", *argv);/*writes a full name of file*/
 
 		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
-		printf("In main after read cmd line head is: %s\n", head_cmd->source);
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
-		printf("In main after check label defined head is: %s\n", head_cmd->source);
 		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
 		free_all_lists(&head_code, &head_cmd, &head_extern, &head_drctv);
 		if(head_extern == NULL)
-			printf("Freed\n");
 
 		fclose(ifp);
 		}

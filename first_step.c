@@ -26,7 +26,6 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 			break;	
 		
 		line_num++;/*count line*/
-		printf("Command is: %s\n", command);
 		
 		if(command[strlen(command)-1]!='\n'){/*if given length is not enough for line*/
 			printf("Error, too long command line, in line number: %d\n", line_num);
@@ -138,7 +137,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			case 3: /*.entry*/
 				if(isLabel){/*if label before .entry word*/
 					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
-					printf("%s %s %s\n", firstWord, secondWord, thirdWord);
 					secondWord = thirdWord;
 					if(secondWord == NULL){
 						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
@@ -157,7 +155,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			case 4: /*.extern*/
 				if(isLabel){/*if label before .extern word*/
 					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
-					printf("%s %s %s\n", firstWord, secondWord,  thirdWord);
 					secondWord = thirdWord;
 					if(secondWord == NULL){
 						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
@@ -168,7 +165,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				if(check_label_islegal(secondWord, line_num)==ERROR)
 					break;
 				
-				printf("This is extern \n");
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), secondWord, EXTERN, line_num))==ERROR)
 					break;
 				add_node_extern(&(*head_extern), &(*tail_extern), secondWord);
@@ -178,7 +174,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 		}/*end of if*/
 
 		else {/*if not directive check if instruction*/
-			printf("Command is instruction\n");
 			if(isLabel)/*if label check if second word is legal command*/
 				cmd_index = check_cmd(secondWord);
 			else cmd_index = check_cmd(firstWord);/*else check first word*/
@@ -409,11 +404,8 @@ void print_instruction_list(cmdLine* head){
 	cmdLine* ptr;
 	ptr = head;
 	int i=1;
-	printf("Inside print instruction node:\n");
 	while(ptr!=NULL){
-
 		printf("%d: cmd_index: %d, source: %s, destination: %s, line_num: %d, num_args:%d\n", i, ptr->cmd_index, ptr->source, ptr->destination, ptr->line_num, ptr->args);
-
 		 ptr = ptr->next;
 		i++;
 	}
@@ -426,9 +418,7 @@ void print_directive_list(directiveLine* head){
 	int i=1;
 	printf("Inside print directive node:\n");
 	while(ptr!=NULL){
-
 		printf("%d:  arg: %d, line_num: %d memory_num: %d\n", i, ptr->arg, ptr->line_num, ptr->memory_count);
-
 		 ptr = ptr->next;
 		i++;
 	}

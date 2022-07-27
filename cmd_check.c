@@ -58,7 +58,6 @@ int check_label_islegal(char* label, int line_num){
 
 /*Function checks if argument is an integer, if it is returns num of addressing type, otherwise returns -1*/
 int check_arg_number(char *num){
-	printf("Inside check arg number %s\n", num);
 	if(num[0]!='#')
 		return ERROR;
 	else 
@@ -91,12 +90,11 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 		ptr = strtok(NULL, separator);/*take directive name*/
 	}
 	else 	ptr = strtok(lineCopy, separator);
-
 	if((ptr = strtok(NULL, ",")) == NULL){/*if no first argument*/
 		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
 		return ERROR;
 	}
-	
+
 	if((check_one_num(ptr))==ERROR){/*if struct field num is not integer*/
 		printf("Error, first field of struct is not integer, in line number: %d\n", line_num);	
 		return ERROR;
@@ -108,8 +106,7 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	}
 
 	if(ptr[0] == '"' && ptr[strlen(ptr)-1] == '"')/*if string has "" by sides*/
-		return 1;	
-	
+		return 1;
 	else {
 		printf("Error, string parameter is not legal, in line number: %d\n", line_num);
 		return ERROR;
@@ -127,7 +124,6 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 	if(cmdCopy==NULL)
 		return ERROR;
 	strcpy(cmdCopy, command);	
-	printf("Inside check cmd args in cmd_check of command: %s index: %d\n", cmdCopy, cmd_index);
 	if(isLabel){
 		label = strtok(cmdCopy, white_space);
 		instruction = strtok(NULL, white_space);
@@ -140,7 +136,6 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			printf("Error, extraneous punctuation mark between command and first argument, in line number: %d\n", line_num);
 			return ERROR;
 		}
-		printf("Source is: %s\n", source);
 		arg_count++;
 		source = remove_blanks(source);
 
@@ -227,13 +222,6 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 		return 1;
 	else return ERROR;
 }
-
-
-
-
-
-
-
 
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/

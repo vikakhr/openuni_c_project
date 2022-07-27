@@ -22,7 +22,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 void add_node_code(codeWords **head_code, codeWords **tail_code, int memory_count, int code, char *literal);
 void print_code_list(codeWords* head);/*DELETE AFTER*/
 void add_address_of_labels(codeWords **head_code, labels **head_lbl);
-int add_drctv_memory_count(directiveLine **head_drctv, int memory_count);
+int add_drctv_memory_count(directiveLine **head_drctv, labels** head_label, int memory_count);
 void add_label_memory_num(labels** head_label, int memory_count, int line_number);
 char* translate_to_base32(short int num);
 void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv);
