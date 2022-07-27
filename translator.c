@@ -11,9 +11,9 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	ext *head_extern = NULL, *tail_extern;
 	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &head_extern, &tail_extern, memory_count);
 	/*Here free cmd lines list*/
-	cmd_code_count = memory_count - (STARTMEMORY+1);
+	cmd_code_count = memory_count - STARTMEMORY;
 	memory_count = add_drctv_memory_count(&(*head_drctv), &(*head_lbl), memory_count);
-	drctv_code_count = memory_count - cmd_code_count - (STARTMEMORY+1);
+	drctv_code_count = memory_count - cmd_code_count - STARTMEMORY;
 
 	printf("Commands: %d, directives: %d\n", cmd_code_count, drctv_code_count);
 	add_address_of_labels(&(*head_code),  &(*head_lbl));
@@ -37,12 +37,9 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 	short int code;
 	int num_s, num_d;
 
-	printf("Inside cmd translation, line of head is: %d\n", (*head_cmd)->line_num);
 	while(ptr_cmd!=NULL){
 		code = 0;
-		printf("Command to translate:  %d  %s  %s %d %d\n", ptr_cmd->cmd_index, ptr_cmd->source, ptr_cmd->destination, ptr_cmd->line_num, ptr_cmd->args);
 		code = code|(ptr_cmd->cmd_index<<6);
-		printf("First code of line, after cmd index, %d****\n",code);
 		if(ptr_cmd->is_label){
 			add_label_memory_num(&(*head_lbl), memory_count, ptr_cmd->line_num);
 		}
@@ -74,12 +71,9 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			if(num_d == OPERAND_EXTERN)/*here extern is the same type - label*/
 				code = code|(OPERAND_LABEL<<2);
 			else code = code|(num_d<<2);
-			printf("Before adding first line, source: %s----%d  dest:%s----%d\n", ptr_cmd->source, num_s,ptr_cmd->destination, num_d );
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
-
 			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
-			memory_count++;
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
@@ -117,7 +111,6 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 	int i, num;
 	short int unknown = -1;
 	short int code = 0;
-	printf("Inside translate one operand, %s - %d\n", destination, destination_type);
 
 	switch(destination_type){
 		case OPERAND_NUMBER: 
@@ -154,7 +147,6 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 			add_node_code(&(*head_code), &(*tail_code), memory_count, 1, NULL);/*add extern type*/
 			add_memory_extern_arg(&(*head_ext), &(*tail_ext), destination, memory_count);
 			memory_count++;
-			printf("Operand extern - memory: %d\n", memory_count);
 			break;
 
 		break;
@@ -168,10 +160,8 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 	int num_s, num_d;
 	int code = 0;
 	int i, value;
-	char *ptr, *strct;
+	char *ptr;
 	int unknown = -1;
-
-	printf("Inside translate two operands %s %s %d %d\n", source, destination, source_type, destination_type);
 
 	switch(source_type){
 			case OPERAND_NUMBER:
@@ -185,16 +175,13 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 				memory_count++;
 				break;
 			case OPERAND_STRUCT:
-				printf("Inside translate two operands, source struct is %s\n", source);
 				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source);
 				memory_count++;
 				code = 0;
 				if(source[strlen(source)-1]=='1'){
 					code = 1<<2;
-					printf("Struct ends with 1\n");
 				}
 				else code = 2<<2;
-				printf("Struct - before add code nose\n********");
 				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*add it's number <<2*/
 				memory_count++;
 				break;
@@ -225,10 +212,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 			break;
 		}
-	printf("Before translate one operand inside two\n");
-	translate_one_operand(destination, destination_type, memory_count, line_number, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
-
-
+	memory_count = translate_one_operand(destination, destination_type, memory_count, line_number, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 	return memory_count;
 
 }
@@ -287,26 +271,24 @@ void print_code_list(codeWords* head){/*DELETE AFTER*/
 /*Function re*/
 void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 	codeWords *ptr_code = *head_code;
-	labels *ptr_label = *head_lbl;
-	int unknown = -1, isFound = 0;;
-
+	labels *ptr_label;
+	int unknown = -1;
+	int ARE = 2;/*are of label*/
+	int code;
 	while(ptr_code!=NULL){
-		if(isFound){
-			ptr_label = *head_lbl;
-			isFound = 0;
-		}
-		if(ptr_label->label_type == LABEL || ptr_label->label_type == STRUCT){
-			if(ptr_code->code==unknown){
-				ptr_label = *head_lbl;
-				while(ptr_label!=NULL && !isFound){
-					if(!strcmp(ptr_label->label, ptr_code->literal)){
-						ptr_code->code = ptr_label->memory_count;
-						isFound = 1;
-					}
-					ptr_label = ptr_label->next;
+		code = 0;
+		ptr_label = *head_lbl;
+		if(ptr_code->code==unknown){
+			while(ptr_label!=NULL){
+				if(!strcmp(ptr_label->label, ptr_code->literal)){
+						code = code | ARE;/*setting ARE of label*/
+						code = code | (ptr_label->memory_count)<<2;
+					ptr_code->code = code;
+					break;
+				}
+				ptr_label = ptr_label->next;
 				}
 			}
-		}
 		ptr_code = ptr_code->next;
 	}
 }
@@ -338,7 +320,7 @@ int add_drctv_memory_count(directiveLine **head_drctv, labels** head_label, int 
 /*Function receives head of label's list, line number and memory counter. Assigns memory counter to the label*/
 void add_label_memory_num(labels** head_label, int memory_count, int line_number){
 	labels *ptr = *head_label;
-	printf("Inside func add label memory num: memory %d line %d\n", memory_count, line_number);
+
 	while(ptr!=NULL){
 		if((ptr->line_number) == line_number){
 			ptr->memory_count = memory_count;
