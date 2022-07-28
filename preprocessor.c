@@ -75,6 +75,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 			}
 		}
 		free(command);
+		free(commandCopy);
 	}	
 
 	fclose(sfp);

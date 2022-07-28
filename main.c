@@ -18,11 +18,6 @@ int main(int argc, char *argv[]){
 	cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
 	codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
 
-	char *line = (char*) malloc(sizeof(char)*LINESIZE);
-	if(line==NULL)
-		exit(0);
-
-
 	if(argc == 1)
 		return 1;
 	while(--argc>0){
@@ -32,7 +27,7 @@ int main(int argc, char *argv[]){
 	
 		copy_file_name = (char*)malloc(strlen(file_name)+1);/*copies original file name without extension*/
 		if(copy_file_name==NULL)
-					return 1;
+			return 1;
 		strcpy(copy_file_name, *argv);
 
 		sprintf(file_name,"%s.as", *argv);/*writes a full name of file*/
@@ -47,13 +42,12 @@ int main(int argc, char *argv[]){
 		read_cmd_line(file_name, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
 		check_label_defined(&head_lbl, &head_extern, &head_cmd);
 		translate_lines(copy_file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
-		free_all_lists(&head_code, &head_cmd, &head_extern, &head_drctv);
-		if(head_extern == NULL)
+		free_all_lists(&head_code, &head_cmd, &head_extern, &head_drctv, &head_lbl);
 
+		printf("***%d***\n", tail_cmd->line_num);
 		fclose(ifp);
 		}
 }
-
 	free(file_name);
 	free(copy_file_name);
 return 0;
@@ -61,11 +55,12 @@ return 0;
 
 
 
-void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv){
+void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv, labels **head_lbl){
 	free_directive_list(&(*head_drctv));
 	free_cmd_list(&(*head_cmd));
 	free_ext_list(&(*head_extern));
 	free_code_list(&(*head_code));
+	free_labels_list(&(*head_lbl));
 }
 
 void free_directive_list(directiveLine **head_drctv){
@@ -103,6 +98,17 @@ void free_code_list(codeWords **head_code){
 	while(*head_code!=NULL){
 		ptr = *head_code;
 		*head_code = (*head_code)->next;
+		free(ptr->literal);
+		free(ptr);
+	}
+}
+
+void free_labels_list(labels **head_lbl){
+	labels *ptr;
+	while(*head_lbl!=NULL){
+		ptr = *head_lbl;
+		*head_lbl = (*head_lbl)->next;
+		free(ptr->label);
 		free(ptr);
 	}
 }

@@ -9,25 +9,27 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 	char *ptr;
 	ext *head_extern = NULL, *tail_extern;
+	char *base_32 = (char*)malloc(3);
+	if(base_32==NULL)
+		return;
+
 	memory_count = first_cmd_translation(&(*head_cmd),  &(*head_lbl), &(*head_code), &(*tail_code), &head_extern, &tail_extern, memory_count);
-	/*Here free cmd lines list*/
+
 	cmd_code_count = memory_count - STARTMEMORY;
 	memory_count = add_drctv_memory_count(&(*head_drctv), &(*head_lbl), memory_count);
 	drctv_code_count = memory_count - cmd_code_count - STARTMEMORY;
 
-	printf("Commands: %d, directives: %d\n", cmd_code_count, drctv_code_count);
 	add_address_of_labels(&(*head_code),  &(*head_lbl));
-
-	/*make obj ouput*/
 
 	print_code_list(*head_code);
 	print_directive_list(*head_drctv);
 	print_label_list(*head_lbl);
 	ptr = strchr(file_name, '.');
 
-	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv));
-	output_and_free_entry_labels(file_name, &(*head_lbl));
-	output_and_free_ext_labels(file_name, head_extern);
+	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv), base_32);
+	output_entry_labels(file_name, &(*head_lbl), base_32);
+	output_and_free_ext_labels(file_name, head_extern, base_32);
+	free(base_32);
 } 
 
 
@@ -89,8 +91,11 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	int type, num;
 	labels *ptr_lbl = *head_lbl;/*label lists*/
 
-	if(strchr(word, '.'))/*if struct*/
+	if(strchr(word, '.')){/*if struct*/
+		printf("Inside check addr type %s\n", word);
 		return OPERAND_STRUCT;
+	}
+
 
 	if((type = check_arg_number(word))!=ERROR)/*if number*/
 		return OPERAND_NUMBER;
@@ -120,16 +125,16 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 			memory_count++;
 			break;
 		case OPERAND_LABEL:	
-			printf("Is label\n");
 			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, destination);
 			memory_count++;
 			break;
-		case OPERAND_STRUCT:	
-			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, destination);
-			memory_count++;
-			if(destination[strlen(destination)-1]=='1')
+		case OPERAND_STRUCT:
+			if(destination[strlen(destination)-1]=='1')/*num of struct field*/
 				code = 1<<2;
 			else code = 2<<2;
+
+			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, destination);/*memory count is unknown*/
+			memory_count++;
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*add it's number <<2*/
 			memory_count++;
 			break;
@@ -157,16 +162,15 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 }
 
 int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
-	int num_s, num_d;
+	int num_s, num_d, num;
 	int code = 0;
 	int i, value;
-	char *ptr;
 	int unknown = -1;
 
 	switch(source_type){
 			case OPERAND_NUMBER:
-				value = strtol(source, &ptr, 10);
-				code = (short)value<<4;
+				num = atoi(++source);
+				code = (short)num<<2;
 				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 				memory_count++;
 				break;
@@ -175,13 +179,12 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 				memory_count++;
 				break;
 			case OPERAND_STRUCT:
-				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source);
-				memory_count++;
-				code = 0;
-				if(source[strlen(source)-1]=='1'){
-					code = 1<<2;
-				}
+				if(source[strlen(source)-1]=='1')/*num of struct field*/
+						code = 1<<2;
 				else code = 2<<2;
+
+				add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, source);/*memory count is unknown*/
+				memory_count++;
 				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*add it's number <<2*/
 				memory_count++;
 				break;
@@ -259,7 +262,6 @@ void add_node_code(codeWords **head, codeWords **tail, int memory_count, int cod
 void print_code_list(codeWords* head){/*DELETE AFTER*/
 	codeWords* ptr = head;
 
-	
 	printf("Inside print code list:\n");
 	while(ptr!=NULL){
 		printf("memory: %d, code: %d\n", ptr->memory_count, ptr->code);		
@@ -331,7 +333,7 @@ void add_label_memory_num(labels** head_label, int memory_count, int line_number
 }
 
 
-void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv){
+void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv, char* base_32){
 	FILE *dfp;
 	codeWords *ptr_code = *head_code;
 	directiveLine *ptr_drctv = *head_drctv;
@@ -346,76 +348,87 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 			free(objFileName);
 			return;
 	}
-	fprintf(dfp, "\t%s\t%s\n", translate_to_base32((short)cmd_code_count), translate_to_base32(drctv_code_count)); /*write inside .am file*/
+	base_32 = translate_to_base32((short)cmd_code_count, base_32);/*translate and write num of cmd lines*/
+	fprintf(dfp, "\t%s\t", base_32);
+	base_32 = translate_to_base32(drctv_code_count, base_32); /*translate and write num of direction lines*/
+	fprintf(dfp, "%s\t\n", base_32);
 
 	while(ptr_code!=NULL){
-		fprintf(dfp, "%s\t%s\n", translate_to_base32((short)ptr_code->memory_count), translate_to_base32(ptr_code->code)); /*write inside .am file*/
+		base_32 = translate_to_base32((short)ptr_code->memory_count, base_32);
+		fprintf(dfp, "%s\t", base_32);
+		base_32 = translate_to_base32(ptr_code->code, base_32);
+		fprintf(dfp, "%s\n", base_32);
 		ptr_code = ptr_code->next;
 	}
 	while(ptr_drctv!=NULL){
-			fprintf(dfp, "%s\t%s\n", translate_to_base32((short)ptr_drctv->memory_count), translate_to_base32(ptr_drctv->arg)); /*write inside .am file*/
-			ptr_drctv = ptr_drctv->next;
+		base_32 = translate_to_base32((short)ptr_drctv->memory_count, base_32);
+		fprintf(dfp, "%s\t", base_32);
+		base_32 = translate_to_base32(ptr_drctv->arg, base_32);
+		fprintf(dfp, "%s\n", base_32);
+		ptr_drctv = ptr_drctv->next;
 	}
 	free(objFileName);
 	fclose(dfp);
 }
 
 
-char* translate_to_base32(short int num){
+char* translate_to_base32(short int num, char *base){
 	char base_32[32] = {'!','@','#','$','%','^','&','*','<','>','a','b','c','d','e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
-	char *p = (char *)malloc(3);
-	int first, second, i;
-	int base = 32;
-	first = num%base;
-	second = (num - first)/base;
-	for(i=0; i<32; i++){
-		if(i==second){
-			p[0] = base_32[i];
-			break;
-		}
-	}
-	for(i=0; i<32; i++){
-		if(i==first){
-			p[1] = base_32[i];
-			break;
-		}
-	}
-	p[2] = '\0';
+	int first, second;
 
-	return p;
+	first = extract_bits(num, 5,6);
+	second = extract_bits(num, 5,1);
+
+	base[0] = (char)base_32[first];
+	base[1] = (char)base_32[second];
+	base[2] = '\0';
+	return base;
+}
+
+/*Function receives number to extract bits, number of bits to be extracted and position from right*/
+int extract_bits(short int num, int num_bits, int position){
+	int num1, num2;
+	num1 = (1<<num_bits)-1;
+	num2 = num>>(position-1);
+	return num1&num2;
 }
 
 
-void output_and_free_entry_labels(char *file_name, labels **head_lbl){
+void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 	FILE *dfp;	
-	labels *ptr_lbl;
+	labels *ptr_lbl, *ptr2_lbl;
 	char* entFileName;
 	if(head_lbl==NULL)
 		return;
 
 	entFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
-			if(entFileName==NULL)
-				return;
+	if(entFileName==NULL)
+		return;
 
 	sprintf(entFileName,"%s.ent", file_name);/*writes a full name of file*/
 	if((dfp = fopen(entFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
-				printf("Cannot open %s\n", entFileName);
-				free(entFileName);
-				return;
+		printf("Cannot open %s\n", entFileName);
+		free(entFileName);
+		return;
+	}
+	ptr_lbl = *head_lbl;
+	while(ptr_lbl!=NULL){
+		if(ptr_lbl->label_type == LABEL){
+			ptr2_lbl = *head_lbl;
+				while(ptr2_lbl!=NULL){
+					if(ptr2_lbl->label_type == ENTRY && !strcmp(ptr_lbl->label, ptr2_lbl->label)){
+						fprintf(dfp, "%s\t", ptr_lbl->label);
+						base = translate_to_base32(ptr_lbl->memory_count, base);
+						fprintf(dfp, "%s\n", base);
+						break;
+					}
+				ptr2_lbl = ptr2_lbl->next;
+				}
 		}
-
-	while(*head_lbl!=NULL){
-		ptr_lbl = *head_lbl;
-		*head_lbl = (*head_lbl)->next;
-		if(ptr_lbl->label_type == ENTRY)
-			fprintf(dfp, "%s\t%s\n", ptr_lbl->label, translate_to_base32(ptr_lbl->memory_count)); /*write inside .am file*/
-
-		free(ptr_lbl->label);
-		free(ptr_lbl);
+		ptr_lbl= ptr_lbl->next;
 	}
 		free(entFileName);
 		fclose(dfp);
-
 }
 
 /*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count to label as argument
@@ -451,7 +464,7 @@ void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count)
 
 
 
-void output_and_free_ext_labels(char *file_name, ext *head_extern){
+void output_and_free_ext_labels(char *file_name, ext *head_extern, char *base){
 	FILE *dfp;
 	ext *ptr_extern;
 	char* extFileName;
@@ -472,7 +485,10 @@ void output_and_free_ext_labels(char *file_name, ext *head_extern){
 	while(head_extern!=NULL){
 		ptr_extern = head_extern;
 		head_extern = head_extern->next;
-		fprintf(dfp, "%s\t%s\n", ptr_extern->ext_label, translate_to_base32((short)ptr_extern->memory_count)); /*write inside .am file*/
+		fprintf(dfp, "%s\t", ptr_extern->ext_label);
+		base = translate_to_base32((short)ptr_extern->memory_count, base);
+		fprintf(dfp, "%s\n", base);
+
 		free(ptr_extern->ext_label);
 		free(ptr_extern);
 	}

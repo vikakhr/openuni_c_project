@@ -26,12 +26,6 @@ typedef struct node_ext{/*linked list of labels*/
 	struct node_ext* next;
 }node_ext; 
 
-typedef struct node_ent{/*linked list of labels*/
-	char* ent_label;
-	struct node_ent* next;
-}node_ent;
-
-
 struct node_cmd{/*linked list to save binary representation??????*/
 	int cmd_index;	
 	int args;
@@ -63,13 +57,12 @@ typedef struct node_directive directiveLine;/*linked list to save operands of da
 typedef struct node_cmd cmdLine;/*linked list to save lines of operands of instruction command*/
 typedef struct node_label labels;/*linked list to save labels*/
 typedef struct node_ext externs;/*linked list to save extern labels*/
-typedef struct node_ent entries;/*linked list to save extern labels*/
 typedef struct node_code codeWords; /*linked list to save command binary machine code*/
 
 
-void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv);
+void free_all_lists(codeWords **head_code, cmdLine **head_cmd, externs **head_extern, directiveLine **head_drctv, labels **head_lbl);
 void free_directive_list(directiveLine **head_drctv);
 void free_cmd_list(cmdLine **head_cmd);
 void free_ext_list(externs **head_extern);
 void free_code_list(codeWords **head_code);
-
+void free_labels_list(labels **head_lbl);

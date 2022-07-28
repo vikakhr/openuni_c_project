@@ -24,8 +24,9 @@ void print_code_list(codeWords* head);/*DELETE AFTER*/
 void add_address_of_labels(codeWords **head_code, labels **head_lbl);
 int add_drctv_memory_count(directiveLine **head_drctv, labels** head_label, int memory_count);
 void add_label_memory_num(labels** head_label, int memory_count, int line_number);
-char* translate_to_base32(short int num);
-void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv);
-void output_and_free_entry_labels(char *file_name, labels **head_lbl);
-void output_and_free_ext_labels(char *file_name, ext *head_extern);
+char* translate_to_base32(short int num, char *base_32);
+int extract_bits(short int num, int num_bits, int position);
+void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv, char *base_32);
+void output_entry_labels(char *file_name, labels **head_lbl, char *base);
+void output_and_free_ext_labels(char *file_name, ext *head_extern, char *base);
 void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count);

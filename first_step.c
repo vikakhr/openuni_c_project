@@ -93,7 +93,6 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	else word = firstWord;
 
 	if(word[0] == '.'){/*if is directive*/
-		printf("Command is directive: %s\n", command);
 		if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
 			return;
 
@@ -179,7 +178,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			else cmd_index = check_cmd(firstWord);/*else check first word*/
 
 			if(cmd_index==ERROR){/*command isn't legal*/
-				printf("Undefined command name in line number: %d\n", line_num);
+				printf("Error, undefined command name in line number: %d\n", line_num);
 				return;
 			}
 
