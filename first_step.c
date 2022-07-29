@@ -67,7 +67,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	char *white_space = " \t\v\f\r\n";
 
 	char *commandCopy = (char*)malloc(sizeof(char)*LINESIZE+1);
-	if(command==NULL)
+	if(commandCopy==NULL)
 		return;
 
 	strcpy(commandCopy, command);/*makes a copy of command without whitespaces by sides*/
@@ -315,8 +315,7 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 }
 
 void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel){
-	cmdLine *new = malloc(sizeof(cmdLine));
-
+	cmdLine *new = (cmdLine*)malloc(sizeof(cmdLine));
 	if(new==NULL)
 		return;
 	
@@ -348,11 +347,10 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 	new->line_num = line_num;
 	new->cmd_index = cmd_index;
 	new->is_label = isLabel;
+	new->next = NULL;
 
 	if(*head == NULL){/*if this is first node*/
 		*head = new;
-		*tail = new;
-		return;
 	}
 	else if(*tail == NULL){/*if this is second node*/
 		(*head)->next = new;

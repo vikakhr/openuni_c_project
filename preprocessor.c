@@ -35,7 +35,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 	}
 
 	FOREVER {
-		command = (char*)malloc(sizeof(char)*LINESIZE);
+		command = (char*)malloc(sizeof(char)*LINESIZE+1);
 		if(command==NULL)
 			return;
 
@@ -43,7 +43,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 			break;	
 		}	
 
-		commandCopy = (char *)malloc(strlen(command)+1);
+		commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);
 		if(commandCopy==NULL)
 			break;
 		strcpy(commandCopy, command);/*makes a copy of original command*/
@@ -54,7 +54,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 				isInside = 0;
 				continue;
 			}
-			put_macro_data(command, &tail);/*add new data to this macro*/
+			put_macro_data(command, &head, &tail);/*add new data to this macro*/
 			continue;
 		}
 		else if(strstr(command, macro)==NULL){/*line without macro*/
@@ -83,7 +83,6 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 	free(destFileName);
 	if(isMacroInFile){/*if linked list contains some nodes*/
 		free_list(head);
-
 	}
 }
 
@@ -96,8 +95,6 @@ void add_node_macro(node_macro** head, node_macro** tail, char* name){
 	strcpy(new->name, name);
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		*tail = new;		
-		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
 		(*head)->next = new;
@@ -109,19 +106,23 @@ void add_node_macro(node_macro** head, node_macro** tail, char* name){
 	}
 }
 
-/*Function receives line contains macro name and tail and adds a data to list*/
-void put_macro_data(char* string, node_macro** tail){
-	if(((*tail)->data) == NULL){
-		(*tail)->data = (char*)malloc(strlen(string)+1);
-		if(((*tail)->data)==NULL)
+/*Function receives line contains macro name, head and tail and adds a data to list*/
+void put_macro_data(char* string, node_macro** head, node_macro** tail){
+	node_macro* ptr;
+	if(*tail==NULL)
+		ptr = *head;
+	else ptr = *tail;
+	if(((ptr)->data) == NULL){
+		(ptr)->data = (char*)malloc(strlen(string)+1);
+		if(((ptr)->data)==NULL)
 			return;
-		strcpy((*tail)->data, string);
+		strcpy((ptr)->data, string);
 	}
 	else {
-		(*tail)->data = (char*)realloc((*tail)->data, strlen((*tail)->data)+1+strlen(string)+1);
-		if(((*tail)->data)==NULL)
+		(ptr)->data = (char*)realloc((ptr)->data, strlen((ptr)->data)+1+strlen(string)+1);
+		if(((ptr)->data)==NULL)
 			return;
-		strcat((*tail)->data, string);
+		strcat((ptr)->data, string);
 	}
 }
 
@@ -190,9 +191,8 @@ char* take_macro_name(char* string){
 /*writes data into file*/
 int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	node_macro* ptr = head;
-	char *copy;
 	char *white_space = " \t\v\f\r";
-	copy = (char*)malloc(strlen(string)+1);
+	char *copy = (char*)malloc(strlen(string)+1);
 	if(copy == NULL)
 		exit(0);
 	copy = remove_blanks(string);

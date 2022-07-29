@@ -1,6 +1,6 @@
 #include "main.h"
 #include "label_lists.h"
-
+#include "first_step.h"
 
 
 
@@ -71,7 +71,7 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 	strcpy(new->label, name);
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		*tail = new;
+		/**tail = new;*/
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
@@ -99,7 +99,7 @@ void add_node_extern(externs** head, externs** tail, char* name){
 
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		*tail = new;
+		/**tail = new;*/
 		return;
 	}
 
@@ -255,9 +255,11 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 						temp = ptr_cmd;
 						ptr_cmd = ptr_cmd->next;
 						delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
+						break;
 					}
 				}
-			ptr_cmd = ptr_cmd->next;
+				ptr_cmd = ptr_cmd->next;
+
 			}
 		}
 	}

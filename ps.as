@@ -1,5 +1,7 @@
 ; file ps.as
+macro m1
 
+endmacro
 .entry LOOP
 .entry LENGTH
 .extern L3
