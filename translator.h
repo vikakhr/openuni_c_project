@@ -6,7 +6,7 @@ enum {OPERAND_NUMBER, OPERAND_LABEL, OPERAND_STRUCT, OPERAND_REGISTER, OPERAND_E
 typedef struct ext{/*linked list of labels*/
 	char* ext_label;
 	int memory_count;/*is used in the translation function*/
-	struct node_label* next;
+	struct ext* next;
 }ext;
 typedef struct ext ext_memory;/*linked list to save extern labels*/
 

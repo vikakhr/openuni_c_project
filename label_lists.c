@@ -119,6 +119,8 @@ void print_extlabel_list(externs* head){
 	externs* ptr = head;
 	int i=1;
 	printf("Inside print extern label:\n");
+	if(head==NULL)
+		return;
 	while(ptr!=NULL){
 		printf("%d - %s d\n", i, ptr->ext_label);
 		 ptr = ptr->next;
@@ -148,19 +150,8 @@ void print_label_list(labels* head){
 		printf("%d - %s - %d,line: %d memory_num: %d\n", i, ptr->label, ptr->label_type, ptr->line_number,ptr->memory_count);
 		 ptr = ptr->next;
 		i++;
-		/*free(ptr->name);free memory of name
-		free(ptr);/*free memory of node*/
+
 	}
-
-
-	/*while(head!=NULL){
-		ptr = head;
-		 head = head->next;
-		printf("1. %s - %d\n", ptr->label, ptr->line_number);
-		/*free(ptr->name);free memory of name
-		free(ptr);/*free memory of node*/
-	
-
 }
 
 
@@ -175,9 +166,16 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 	cmdLine *temp;
 	cmdLine *ptr_cmd = *head_cmd;
 	int isFound = 0; /*flag if label was found*/
-	char *strct_name = (char*)malloc(LABELSIZE+1);
+	char *strct_name;
+
+	if(*head_cmd == NULL)/*if no commands to check*/
+		return;
+
+	strct_name = (char*)malloc(LABELSIZE+1);
 	if(strct_name == NULL)
 		return;
+
+
 	if(ptr_cmd->source!=NULL){
 		if(strchr(ptr_cmd->source, '.')){/*if struct*/
 			strcpy(strct_name, ptr_cmd->source);

@@ -5,7 +5,7 @@
 #include "cmd_check.h" /*for remove_blanks function*/
 
 
-void preprocessor(char *sourceFileName){/*receives name of source file*/
+int preprocessor(char *file_name_extension, char *file_name){/*receives name of source file*/
 	FILE *sfp, *dfp;/*sfp is .as source file, dfp is .am destination file*/
 	node_macro *head = NULL, *tail = NULL;/*linked list nodes for macroes*/		
 	char* macro = "macro";
@@ -15,39 +15,44 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 	int isInside = 0;/*flag if inside macro*/
 	int isMacroInFile = 0;
 
-	char* destFileName = (char*)malloc(strlen(sourceFileName));/*allocates memory for new .am file*/
+	printf("With extension: %s\n", file_name_extension);
+	printf("Without extension: %s\n", file_name);
+
+	char* destFileName = (char*)malloc(strlen(file_name)+4);/*allocates memory for new .am file*/
 	if(destFileName==NULL)
-		return;
+		return ERROR;
 	
-	strcpy(destFileName, sourceFileName);
-	destFileName[strlen(destFileName)-1] = 'm';/*change extension to .am*/
-	
-	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
-		printf("Cannot open %s\n", sourceFileName);
+	sprintf(destFileName,"%s.am", file_name);/*writes a full name of file*/
+	printf("%s", destFileName);
+
+
+	if((sfp = fopen(file_name_extension, "r")) == NULL){/*cannot open source file, exit*/
+		printf("Cannot open %s\n", file_name_extension);
 		free(destFileName);
-		return;
+		return ERROR;
 	}
 
 	if((dfp = fopen(destFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
 		printf("Cannot open %s\n", destFileName);
 		free(destFileName);
-		return;
+		return ERROR;
 	}
 
 	FOREVER {
 		command = (char*)malloc(sizeof(char)*LINESIZE+1);
 		if(command==NULL)
-			return;
+			return ERROR;
 
-		if(fgets(command+cmdLength, LINESIZE, sfp)==NULL){/*reads a line of LINESIZE length, checks if empty*/
+		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
-		}	
+
 
 		commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);
-		if(commandCopy==NULL)
+		if(commandCopy==NULL){
+			free(command);
 			break;
+		}
 		strcpy(commandCopy, command);/*makes a copy of original command*/
-		
 
 		if(isInside){/*if inside macro add this line to macro data*/
 			if(is_one_word(command) && strstr(command, endmacro)){/*if endmacro found*/
@@ -74,9 +79,10 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 					continue;	
 			}
 		}
-		free(command);
-		free(commandCopy);
-	}	
+
+	}
+	free(command);
+	free(commandCopy);
 
 	fclose(sfp);
 	fclose(dfp);
@@ -84,6 +90,7 @@ void preprocessor(char *sourceFileName){/*receives name of source file*/
 	if(isMacroInFile){/*if linked list contains some nodes*/
 		free_list(head);
 	}
+	return 1;
 }
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list*/
