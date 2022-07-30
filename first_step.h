@@ -12,7 +12,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern);
 
 
-int line_typo_errors_check(char* command, int line_num);
+int line_typo_errors_check(char* command, int line_num, int length);
 void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head, directiveLine **tail);
 void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv);
 void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv);

@@ -10,7 +10,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 	FILE *sfp;
 	int line_num = 0;/*line number*/	
 	char *command;
-	
+	char *ptr;
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
@@ -40,7 +40,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 
 		command = remove_blanks(command);/*remove whitespaces by sides of line*/		
 		
-		if((line_typo_errors_check(command, line_num))==ERROR)/*check typo errors*/
+		if((line_typo_errors_check(command, line_num, strlen(command)))==ERROR)/*check typo errors*/
 			continue;		
 
 		check_cmd_line(command, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_cmd), &(*tail_cmd), 
@@ -52,6 +52,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 	print_extlabel_list(*head_extern);
 	print_instruction_list(*head_cmd);
 	free(command);
+
 	fclose(sfp);
 }
 
@@ -65,12 +66,21 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	int cmd_index, drctv_index;/*indexes of command names*/	
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
+	char *ptr;
 
 	char *commandCopy = (char*)malloc(sizeof(char)*LINESIZE+1);
 	if(commandCopy==NULL)
 		return;
 
+	source = (char*)malloc(sizeof(char)*LABELSIZE+1);
+	if(source==NULL)
+			return;
+	destination = (char*)malloc(sizeof(char)*LABELSIZE+1);
+	if(destination==NULL)
+		return;
+
 	strcpy(commandCopy, command);/*makes a copy of command without whitespaces by sides*/
+
 
 	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
 		return;	
@@ -196,11 +206,13 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				word = strtok(commandCopy, white_space);
 
 					
-			if((source = strtok(NULL, ","))!=NULL){
+			if((ptr = strtok(NULL, ","))!=NULL){
 					args_counter++; /*argument counter*/
+					strcpy(source, ptr);
 					source = remove_blanks(source);
-				if((destination = strtok(NULL, white_space))!=NULL){
+				if((ptr = strtok(NULL, white_space))!=NULL){
 					args_counter++; /*argument counter*/
+					strcpy(destination, ptr);
 					destination = remove_blanks(destination);
 				}
 				else {
@@ -214,7 +226,8 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, cmd[cmd_index].args, isLabel);	
 		}
 	free(commandCopy);
-
+	free(source);
+	free(destination);
 }/*end of checkcmdline func*/
 
 
@@ -329,8 +342,11 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 			return;
 		strcpy(new->source, source);
 		new->destination = (char*)malloc(strlen(destination)+1);
-		if(new->destination==NULL)
+		if(new->destination==NULL){
+			free(new->source);
 			return;
+		}
+
 
 		strcpy(new->destination, destination);
 	}
@@ -378,6 +394,7 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 	new->isLabel = isLabel;
 	new->line_num = line_num;
 	new->memory_count = 0;
+	new->next = NULL;
 
 	if(*head==NULL){/*if this is first node*/
 		*head = new;

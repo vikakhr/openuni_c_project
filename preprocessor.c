@@ -38,20 +38,26 @@ int preprocessor(char *file_name_extension, char *file_name){/*receives name of 
 		return ERROR;
 	}
 
+	command = (char*)malloc(sizeof(char)*LINESIZE+1);
+	if(command==NULL)
+		return ERROR;
+
+	commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);
+	if(commandCopy==NULL){
+		free(command);
+		return ERROR;
+	}
+
 	FOREVER {
-		command = (char*)malloc(sizeof(char)*LINESIZE+1);
+		/*command = (char*)malloc(sizeof(char)*LINESIZE+1);
 		if(command==NULL)
-			return ERROR;
+			return ERROR;*/
 
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
 
 
-		commandCopy = (char *)malloc(sizeof(char)*LINESIZE+1);
-		if(commandCopy==NULL){
-			free(command);
-			break;
-		}
+
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 
 		if(isInside){/*if inside macro add this line to macro data*/
@@ -76,7 +82,7 @@ int preprocessor(char *file_name_extension, char *file_name){/*receives name of 
 				isMacroInFile = 1;/*turn on macro exists in file flag*/
 				isInside = 1; /*turn on inside macro flag*/
 				add_node_macro(&head, &tail, take_macro_name(command));
-					continue;	
+					continue;
 			}
 		}
 

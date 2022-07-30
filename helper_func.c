@@ -66,15 +66,15 @@ int check_commas (char *word, int line_num){
 }
 
 /*Function receives command line and line number and checks typo errors, if there is error in line returns ERROR, 0 otherwise*/
-int line_typo_errors_check(char* command, int line_num){
+int line_typo_errors_check(char* command, int line_num, int length){
 	
-	if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces*/
-		return ERROR;
+	/*if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces
+		return ERROR;*/
 
 	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
 		return ERROR;
 
-	if(ispunct(command[strlen(command)-1]) && (command[strlen(command)-1]!='"')){/*not a " punctuation mark at the end of command*/ 
+	if(ispunct(command[length-1]) && (command[length-1]!='"')){/*not a " punctuation mark at the end of command*/
 		printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
 		return ERROR;
 	}
@@ -183,17 +183,17 @@ int check_string_islegal(char* line, int isLabel){
 	char *string = (char *)malloc(strlen(line)+1);
 	if(string == NULL)
 		return ERROR;
-
+	char *ptr;
 	strcpy(string, line);
 
 	if(isLabel){/*if label in line -  take label and command pointers*/
-		string = strtok(string, separator);
-		string = strtok(NULL, separator);
+		ptr = strtok(string, separator);
+		ptr = strtok(NULL, separator);
 	}
-	else string = strtok(string, separator);
+	else ptr = strtok(string, separator);
 
-	string = strtok(NULL, separator);/*take pointer to the string*/
-	string = remove_blanks(string); /*remove blanks*/
+	ptr = strtok(NULL, separator);/*take pointer to the string*/
+	string = remove_blanks(ptr); /*remove blanks*/
 
 	if(string[0] == '"' && string[strlen(string)-1] == '"'){/*if string has "" by sides*/
 		free(string);

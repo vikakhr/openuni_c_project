@@ -18,10 +18,10 @@ int main(int argc, char *argv[]){
 		return 1;
 	while(--argc>0){
 		labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
-			externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
-			directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
-			cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
-			codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
+		externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
+		directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
+		cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
+		codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
 		len = strlen(*++argv);
 		file_name_extension = (char*)malloc(len+4);/*allocates memory for .am file*/
 		if(file_name_extension==NULL)
