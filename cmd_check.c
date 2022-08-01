@@ -2,6 +2,28 @@
 #include "first_step.h"
 #include "cmd_check.h"
 #include "label_lists.h"
+#include "helper_func.h"
+
+/*struct array of opcodes*/
+static CmdNames cmd[] ={
+	{"mov", 2},
+	{"cmp", 2},
+	{"add", 2},
+	{"sub", 2},
+	{"not", 1},
+	{"clr", 1},
+	{"lea", 2},
+	{"inc", 1},
+	{"dec", 1},
+	{"jmp", 1},
+	{"bne", 1},
+	{"get", 1},
+	{"prn", 1},
+	{"jsr", 1},
+	{"rts", 0},
+	{"hlt", 0},
+	{"not_valid",-1}
+};
 
 
 int check_directive_islegal(char *word, int line_num){
@@ -9,11 +31,11 @@ int check_directive_islegal(char *word, int line_num){
 	
 	if((drctv_index = check_directive(word))==ERROR){/*check if first word is directive*/
 			if(word[strlen(word)-1] == ','){/*Illegal comma after command name check*/
-				printf("Illegal comma in line number: %d\n", line_num);
+				printf("Error, illegal comma in line number: %d\n", line_num);
 				return ERROR;	
 			}
 			else {
-				printf("Undefined directive name in line number: %d\n", line_num);
+				printf("Error, undefined directive name in line number: %d\n", line_num);
 				return ERROR;
 			}
 	}
@@ -26,28 +48,28 @@ int check_label_islegal(char* label, int line_num){
 	int i, regNameLength = 2, cmdNameLength = 3;
 
 	if(strlen(label)>LABELSIZE){/*too long name for label*/
-		printf("Label name is too long, in line number: %d\n", line_num);
+		printf("Error, label name is too long, in line number: %d\n", line_num);
 		return ERROR;
 	}	
 	if(!isalpha(label[0])){/*if first char is not a character*/
-		printf("Label name is not legal, in line number: %d\n", line_num);
+		printf("Error, label name is not legal, in line number: %d\n", line_num);
 		return ERROR;
 	}
 
 	if(strlen(label)==regNameLength){/*if length of label string is two check if is not register name*/
-		for(i=0; i<REGLENGTH; i++)
-			if(!strcmp(label, REGISTER[i])){
+		if(check_arg_register(label)!=ERROR){
 				printf("Error, label name has the same name as register in line number: %d\n", line_num);
 				return ERROR;
-			}
+		}
 	}
 
 	if(strlen(label)==cmdNameLength){/*if length of label string is three check if is not opcode name*/
-		for(i=0; i<CMDLENGTH; i++)
-			if(!strcmp(label, OPCODE[i])){
+		for(i=0; cmd[i].name!=NULL; i++){
+			if(!strcmp(label, cmd[i].name)){
 				printf("Error, label name has the same name as opcode in line number: %d\n", line_num);
 				return ERROR;
 			} 
+		}
 	}
 	return 1;
 }
@@ -56,7 +78,7 @@ int check_label_islegal(char* label, int line_num){
 
 
 
-/*Function checks if argument is an integer, if it is returns num of addressing type, otherwise returns -1*/
+/*Function checks if argument is an integer, if it is returns num of addressing type, otherwise returns error*/
 int check_arg_number(char *num){
 	if(num[0]!='#')
 		return ERROR;
@@ -67,17 +89,19 @@ int check_arg_number(char *num){
 
 
 
-/*Function checks if argument is register, if it is returns num of addressing type, otherwise returns -1*/
+/*Function checks if argument is register, if it is returns index of register, otherwise returns error*/
 int check_arg_register(char *word){
+	char *REGISTER[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
+	int size = sizeof(REGISTER)/sizeof(REGISTER[0]);
 	int i;
-	for(i=0; i<REGLENGTH; i++){
+	for(i=0; i<size; i++){
 		if(!strcmp(word, REGISTER[i]))
-			return 3;
+			return i;
 	}
 	return ERROR;
 }
 
-/*Function checks if argument can be a struct, if it is returns num of addressing type, otherwise returns -1*/
+/*Function checks if argument can be a struct, if it is returns num of addressing type, otherwise returns error*/
 int check_struct_arg(char *line, int line_num, int isLabel){
 	char *separator = " \t\v\f\r";
 	char *ptr;
@@ -117,19 +141,20 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
-	char *cmdCopy, *label, *instruction, *arg, *source, *destination;
+	char *cmdCopy, *arg, *source, *destination;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, isError = 0;
 	cmdCopy = (char*)malloc(strlen(command)+1);
 	if(cmdCopy==NULL)
 		return ERROR;
+
 	strcpy(cmdCopy, command);	
 	if(isLabel){
-		label = strtok(cmdCopy, white_space);
-		instruction = strtok(NULL, white_space);
+		strtok(cmdCopy, white_space);
+		strtok(NULL, white_space);
 	}
 	else 
-		instruction = strtok(cmdCopy, white_space);
+		strtok(cmdCopy, white_space);
 
 	if((source = strtok(NULL, ","))!=NULL){
 		if(ispunct(source[0]) && source[0]!='#'){
@@ -228,7 +253,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 int check_cmd(char *word){
 	int cmd_index;	
 	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
-		if(strcmp(word,cmd[cmd_index].name)==0){
+		if(!strcmp(word,cmd[cmd_index].name)){
 			return cmd_index;
 		}
 	}
@@ -237,8 +262,10 @@ int check_cmd(char *word){
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
 int check_directive(char *word){
+	char *DIRECTIVE[] = {".data",".string",".struct",".entry",".extern"};
 	int i;	
-	for(i=0; i<DRCTVNUM; i++)
+	int size = sizeof(DIRECTIVE)/sizeof(DIRECTIVE)[0];/*number of words in array*/
+	for(i=0; i<size; i++)
 		if(!strcmp(word, DIRECTIVE[i]))
 			return i;
 	return ERROR;	

@@ -1,3 +1,4 @@
+#include "helper_func.h"
 #include <limits.h> /*for char_max and char_min*/
 #include "main.h"
 #include "first_step.h"
@@ -30,7 +31,10 @@ char* remove_blanks(char* word){
 	}
 	memcpy(p,&word[start],end-start+1);/*copy string*/		
 	p[end-start+1] = '\0';	
-	word=(char *)realloc(p,strlen(p));/*reallocate to the source string and free p*/
+
+	word=(char *)realloc(p,strlen(p)+1);/*reallocate to the source string and free p*/
+	if(word == NULL)
+		return (char*)ERROR;
 	return word;			
 }
 
@@ -42,7 +46,7 @@ int check_commas (char *word, int line_num){
 		return 0;
 	}
 	if(word[0]==comma){
-		printf("Extraneous text before command in line number: %d\n", line_num);
+		printf("Error, extraneous text before command in line number: %d\n", line_num);
 		return ERROR;
 	}	
 	while(word[i]!='\0'){
@@ -54,7 +58,7 @@ int check_commas (char *word, int line_num){
 					break;
 				}
 				if(word[j]==comma){/*another comma was found  without text before*/
-					printf("Multiple consecutive commas in line number: %d\n", line_num);
+					printf("Error, multiple consecutive commas in line number: %d\n", line_num);
 					return ERROR;
 				}
 				j++;
@@ -65,17 +69,14 @@ int check_commas (char *word, int line_num){
 	return 0;
 }
 
-/*Function receives command line and line number and checks typo errors, if there is error in line returns ERROR, 0 otherwise*/
+/*Function receives command line, it's length and line number and checks typo errors, if ok returns 0, error otherwise*/
 int line_typo_errors_check(char* command, int line_num, int length){
 	
-	/*if(strlen(command)==1 && command[0]==' ')/*check if line is all whitespaces
-		return ERROR;*/
-
 	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
 		return ERROR;
 
 	if(ispunct(command[length-1]) && (command[length-1]!='"')){/*not a " punctuation mark at the end of command*/
-		printf("Extraneous punctuation mark at the end of line, in line number: %d\n", line_num);
+		printf("Error, extraneous punctuation mark at the end, in line number: %d\n", line_num);
 		return ERROR;
 	}
 
@@ -86,7 +87,7 @@ int line_typo_errors_check(char* command, int line_num, int length){
 
 
 
-/*Function receives a number and checks if it legal*/
+/*Function receives a number and checks if it legal, if ok returns it's value translated to integer, error otherwise*/
 int check_one_num(char *num){	
 	char *ptr;
 	long int value;
@@ -119,8 +120,9 @@ int check_one_num(char *num){
 	return (int)value;
 }
 
-/*Receives pointer to the command line string and checks if numbers are legal for .data arguments. If no errors returns amount of numbers, ERROR otherwise*/
-int check_nums(char *line, int isLabel){				
+/*Receives pointer to the command line flah i label inside line and line number and checks if numbers are legal for .data operands.
+If no errors returns amount of numbers, ERROR otherwise*/
+int check_nums(char *line, int isLabel, int line_num){
 	char *word;	
 	char *ptr;
 	int count = 0;
@@ -144,7 +146,7 @@ int check_nums(char *line, int isLabel){
 		if(word[0]=='+' || word[0]=='-'){
 			word++;
 			if(!isdigit(word[0])){
-				printf("Argument is not an integer\n");
+				printf("Error, operand is not an integer, in line number:%d\n", line_num);
 				return ERROR;
 			}
 		}
@@ -153,12 +155,12 @@ int check_nums(char *line, int isLabel){
 		if(*ptr!='\0'){
 			if((num = strtol(word, &separator,10))!=0){/*error inside 'word' parameter*/
 				if(num == 0){
-					printf("Extraneous text after end of command\n");
+					printf("Error, etraneous text after end of command, in line number:%d\n", line_num);
 					return ERROR;
 				}
 				else {
 					printf("%s\n", word);			
-					printf("Argument is not an integer\n");
+					printf("Error, operand is not an integer number, in line number:%d\n", line_num);
 					return ERROR;
 				}
 			}
@@ -169,7 +171,7 @@ int check_nums(char *line, int isLabel){
 
 	if(!count){
 		if(word==NULL){
-			printf("Missing argument\n");
+			printf("Error, missing operand, in line number:%d\n", line_num);
 			return ERROR;
 		}
 	}
@@ -177,13 +179,14 @@ int check_nums(char *line, int isLabel){
 	return count;
 }
 
-/*Function checks if string is legal and returns 1, ERROR otherwise*/
+/*Function receives command line and flag if there is label. Checks if string operand is legal and returns 1, ERROR otherwise*/
 int check_string_islegal(char* line, int isLabel){
 	char *separator = " \t\v\f\r";
+	char *ptr;
 	char *string = (char *)malloc(strlen(line)+1);
 	if(string == NULL)
 		return ERROR;
-	char *ptr;
+
 	strcpy(string, line);
 
 	if(isLabel){/*if label in line -  take label and command pointers*/

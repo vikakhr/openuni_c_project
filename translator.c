@@ -7,7 +7,6 @@
 void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl){
 	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
-	char *ptr;
 	ext *head_extern = NULL, *tail_extern;
 	char *base_32 = (char*)malloc(3);
 	if(base_32==NULL)
@@ -24,7 +23,6 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	print_code_list(*head_code);
 	print_directive_list(*head_drctv);
 	print_label_list(*head_lbl);
-	ptr = strchr(file_name, '.');
 
 	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv), base_32);
 	output_entry_labels(file_name, &(*head_lbl), base_32);
@@ -91,11 +89,8 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	int type, num;
 	labels *ptr_lbl = *head_lbl;/*label lists*/
 
-	if(strchr(word, '.')){/*if struct*/
-		printf("Inside check addr type %s\n", word);
+	if(strchr(word, '.'))/*if struct*/
 		return OPERAND_STRUCT;
-	}
-
 
 	if((type = check_arg_number(word))!=ERROR)/*if number*/
 		return OPERAND_NUMBER;
@@ -113,7 +108,7 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 }
 
 int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
-	int i, num;
+	int num;
 	short int unknown = -1;
 	short int code = 0;
 
@@ -139,13 +134,10 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 			memory_count++;
 			break;
 		case OPERAND_REGISTER:
-			for(i=0; i<REGLENGTH; i++){
-				if(!strcmp(destination, REGISTER[i])){
-					code = code|(i<<2);
-					add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
-					memory_count++;
-				}
-			}	
+			num = check_arg_register(destination);/*take index of register*/
+			code = code|(num<<2);
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
+			memory_count++;
 			break;
 				
 		case OPERAND_EXTERN:
@@ -162,9 +154,8 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 }
 
 int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
-	int num_s, num_d, num;
+	int num_d, num;
 	int code = 0;
-	int i, value;
 	int unknown = -1;
 
 	switch(source_type){
@@ -189,20 +180,17 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 				memory_count++;
 				break;
 			case OPERAND_REGISTER:
-				for(i=0; i<REGLENGTH; i++){
-					if(!strcmp(source, REGISTER[i]))
-						code = code|(i<<6);
-				}
+				num = check_arg_register(source);/*take index of register*/
+				code = code|(num<<6);
+
 				if(destination_type==OPERAND_REGISTER){/*if source and destination are registers this is the same word*/
-						for(i=0; i<REGLENGTH; i++){
-							if(!strcmp(destination, REGISTER[i]))
-								num_d = i;
-						}
+						num_d = check_arg_register(destination);/*take index of register*/
 						code = code|num_d<<2;
 						add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 						memory_count++;
 						return memory_count;
 				}
+
 				add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 				memory_count++;
 				break;
@@ -398,7 +386,9 @@ void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 	FILE *dfp;	
 	labels *ptr_lbl, *ptr2_lbl;
 	char* entFileName;
-	if(head_lbl==NULL)
+	int is_first = 1;
+
+	if(*head_lbl==NULL)
 		return;
 
 	entFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
@@ -406,17 +396,21 @@ void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 		return;
 
 	sprintf(entFileName,"%s.ent", file_name);/*writes a full name of file*/
-	if((dfp = fopen(entFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
-		printf("Cannot open %s\n", entFileName);
-		free(entFileName);
-		return;
-	}
+
 	ptr_lbl = *head_lbl;
 	while(ptr_lbl!=NULL){
 		if(ptr_lbl->label_type == LABEL){
 			ptr2_lbl = *head_lbl;
 				while(ptr2_lbl!=NULL){
 					if(ptr2_lbl->label_type == ENTRY && !strcmp(ptr_lbl->label, ptr2_lbl->label)){
+						if(is_first){
+							if((dfp = fopen(entFileName, "w"))==NULL){/*cannot read/create destination file, exit*/
+									printf("Cannot create %s\n", entFileName);
+									free(entFileName);
+									return;
+							}
+							is_first = 0;
+						}
 						fprintf(dfp, "%s\t", ptr_lbl->label);
 						base = translate_to_base32(ptr_lbl->memory_count, base);
 						fprintf(dfp, "%s\n", base);
@@ -427,8 +421,8 @@ void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 		}
 		ptr_lbl= ptr_lbl->next;
 	}
-		free(entFileName);
-		fclose(dfp);
+	free(entFileName);
+	fclose(dfp);
 }
 
 /*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count to label as argument

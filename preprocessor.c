@@ -2,7 +2,7 @@
 
 #include "main.h" /*main libraries*/
 #include "preprocessor.h" /*functions*/
-#include "cmd_check.h" /*for remove_blanks function*/
+#include "helper_func.h"/*for remove_blanks function*/
 
 
 int preprocessor(char *file_name_extension, char *file_name){/*receives name of source file*/
@@ -11,20 +11,14 @@ int preprocessor(char *file_name_extension, char *file_name){/*receives name of 
 	char* macro = "macro";
 	char* endmacro = "endmacro";
 	char* command, *commandCopy;
-	int cmdLength = 0;  /*command length for realloc*/
 	int isInside = 0;/*flag if inside macro*/
 	int isMacroInFile = 0;
-
-	printf("With extension: %s\n", file_name_extension);
-	printf("Without extension: %s\n", file_name);
 
 	char* destFileName = (char*)malloc(strlen(file_name)+4);/*allocates memory for new .am file*/
 	if(destFileName==NULL)
 		return ERROR;
 	
 	sprintf(destFileName,"%s.am", file_name);/*writes a full name of file*/
-	printf("%s", destFileName);
-
 
 	if((sfp = fopen(file_name_extension, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", file_name_extension);
@@ -49,14 +43,9 @@ int preprocessor(char *file_name_extension, char *file_name){/*receives name of 
 	}
 
 	FOREVER {
-		/*command = (char*)malloc(sizeof(char)*LINESIZE+1);
-		if(command==NULL)
-			return ERROR;*/
 
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
-
-
 
 		strcpy(commandCopy, command);/*makes a copy of original command*/
 

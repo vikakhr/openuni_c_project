@@ -1,8 +1,8 @@
 #include "main.h"
 #include "label_lists.h"
 #include "first_step.h"
-
-
+#include "cmd_check.h"
+#include "helper_func.h"
 
 
 /*Function receives name of label and check of there are no same labels in the linked list. Returns 0 of name already exist, 1 otherwise*/
@@ -125,26 +125,19 @@ void print_extlabel_list(externs* head){
 		printf("%d - %s d\n", i, ptr->ext_label);
 		 ptr = ptr->next;
 		i++;
-		/*free(ptr->name);free memory of name
-		free(ptr);/*free memory of node*/
+
 	}
-
-
-	/*while(head!=NULL){
-		ptr = head;
-		 head = head->next;
-		printf("1. %s - %d\n", ptr->label, ptr->line_number);
-		/*free(ptr->name);free memory of name
-		free(ptr);/*free memory of node*/
-	
 
 }
 
 /*Function frees nodes and linked list*/
 void print_label_list(labels* head){
 	labels* ptr;
-	ptr = head;
 	int i=1;
+	ptr = head;
+
+	if(head==NULL)
+		return;
 	printf("Inside print label:\n");
 	while(ptr!=NULL){
 		printf("%d - %s - %d,line: %d memory_num: %d\n", i, ptr->label, ptr->label_type, ptr->line_number,ptr->memory_count);

@@ -2,7 +2,7 @@
 #include "first_step.h" /*functions*/
 #include "cmd_check.h" /*check functions*/
 #include "label_lists.h" /*lists of labels and structs*/
-
+#include "helper_func.h"
 
 
 /*Function receives file name and linked lists for saving data, reads file line by line and makes first error checks, if checks are ok passes line to function for further treatment*/
@@ -10,7 +10,6 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 	FILE *sfp;
 	int line_num = 0;/*line number*/	
 	char *command;
-	char *ptr;
 
 	if((sfp = fopen(sourceFileName, "r")) == NULL){/*cannot open source file, exit*/
 		printf("Cannot open %s\n", sourceFileName);
@@ -45,7 +44,6 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 
 		check_cmd_line(command, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_cmd), &(*tail_cmd), 
 		&(*head_extern), &(*tail_extern));/*pass all parameters to next step checks*/
-
 	}/*end of forever*/
 
 	print_label_list(*head_lbl);
@@ -61,7 +59,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern){
 	
 	char *firstWord, *secondWord, *thirdWord, *word, *label = NULL;/*pointers to separate words*/
-	int args_counter = 0;/*counter number of arguments of the command*/
+	int operand_counter = 0;/*counter number of operands of the command*/
 	char *source, *destination;/*of instruction line*/
 	int cmd_index, drctv_index;/*indexes of command names*/	
 	int isLabel = 0; /*label flag*/
@@ -84,7 +82,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
 		return;	
-		
+
 	if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
 		printf("Error, missing arguments in line number: %d\n", line_num);
 		return;
@@ -92,12 +90,27 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 	thirdWord = strtok(NULL, white_space); /*take third word for check 3 words containing label positioning*/
 
-	if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
-		label = strtok(firstWord, ":");/*take label name*/		
-		if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
+	if(ispunct(firstWord[strlen(firstWord)-1])){
+		if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
+			label = strtok(firstWord, ":");/*take label name*/
+			if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
+				return;
+		}
+		else {
+			printf("Error, illegal punctuation mark after first word of command, in line number: %d\n", line_num);
 			return;
+		}
 	}
-			
+	if(secondWord[0] == ','){
+		printf("Error, illegal comma after first word of command, in line number: %d\n", line_num);
+		return;
+	}
+
+	if(secondWord[0] == ':'){
+		printf("Error, illegal label definition, in line number: %d\n", line_num);
+		return;
+		}
+
 	if(isLabel)/*choose next word to check*/
 		word = secondWord;
 	else word = firstWord;
@@ -106,9 +119,10 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 		if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
 			return;
 
+
 		switch(drctv_index){/*switch by directive index*/
 			case 0:/*.data*/ 
-				if((args_counter = check_nums(commandCopy, isLabel))==ERROR){/*check data parameters*/
+				if((operand_counter = check_nums(commandCopy, isLabel, line_num))==ERROR){/*check data parameters*/
 					break;
 				}
 
@@ -121,7 +135,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				break;	
 			case 1:/*.string*/
 				if(check_string_islegal(commandCopy, isLabel)==ERROR){
-					printf("String for .string directive is not legal, in line: %d\n", line_num);
+					printf("Error, string for .string directive is not legal, in line: %d\n", line_num);
 					break;
 				}
 
@@ -134,7 +148,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				break;
 			case 2: /*.struct*/
 				if(!isLabel){
-					printf("Error, struct definition without initialization, in line num: %d\n", line_num);
+					printf("Error, struct definition without initialization, in line number: %d\n", line_num);
 					break;
 				}
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), label, STRUCT, line_num))==ERROR)
@@ -145,10 +159,10 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				break;
 			case 3: /*.entry*/
 				if(isLabel){/*if label before .entry word*/
-					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
+					printf("Warning, label before position directive will be ignored, in line number: %d\n", line_num);
 					secondWord = thirdWord;
 					if(secondWord == NULL){
-						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
+						printf("Error, missing label name for label positioning, in line number: %d\n", line_num);
 						break;
 					}
 				}
@@ -163,10 +177,10 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				break;
 			case 4: /*.extern*/
 				if(isLabel){/*if label before .extern word*/
-					printf("Warning, label before position directive will be ignored, in line %d\n", line_num);
+					printf("Warning, label before position directive will be ignored, in line number: %d\n", line_num);
 					secondWord = thirdWord;
 					if(secondWord == NULL){
-						printf("Error, missing label name for label positioning, in line_num: %d\n", line_num);
+						printf("Error, missing label name for label positioning, in line number: %d\n", line_num);
 						break;
 					}					
 				}
@@ -207,11 +221,11 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 					
 			if((ptr = strtok(NULL, ","))!=NULL){
-					args_counter++; /*argument counter*/
+					operand_counter++; /*operand counter*/
 					strcpy(source, ptr);
 					source = remove_blanks(source);
 				if((ptr = strtok(NULL, white_space))!=NULL){
-					args_counter++; /*argument counter*/
+					operand_counter++; /*argument counter*/
 					strcpy(destination, ptr);
 					destination = remove_blanks(destination);
 				}
@@ -220,10 +234,10 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 					source = NULL;
 				}
 			}
-			else/*if no arguments for instruction*/
+			else/*if no operands for instruction*/
 				destination = NULL;
-				
-			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, cmd[cmd_index].args, isLabel);	
+
+			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, operand_counter, isLabel);
 		}
 	free(commandCopy);
 	free(source);
@@ -234,7 +248,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 
 
-/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds arguments of data directive to linked list*/
+/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds operands of data directive to linked list*/
 void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv){
 	char *ptr;
 	char *white_space = " \t\v\f\r\n";
@@ -259,7 +273,7 @@ void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_dr
 	free(number);	
 }
 
-/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds arguments of data directive to linked list*/
+/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds operands of data directive to linked list*/
 void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv){
 	int i;
 	int inString = 0;
@@ -416,8 +430,9 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 /*Function frees nodes and linked list*/
 void print_instruction_list(cmdLine* head){
 	cmdLine* ptr;
-	ptr = head;
 	int i=1;
+	ptr = head;
+
 	while(ptr!=NULL){
 		printf("%d: cmd_index: %d, source: %s, destination: %s, line_num: %d, num_args:%d\n", i, ptr->cmd_index, ptr->source, ptr->destination, ptr->line_num, ptr->args);
 		 ptr = ptr->next;
@@ -428,8 +443,8 @@ void print_instruction_list(cmdLine* head){
 /*Function frees nodes and linked list*/
 void print_directive_list(directiveLine* head){
 	directiveLine* ptr;
-	ptr = head;
 	int i=1;
+	ptr = head;
 	printf("Inside print directive node:\n");
 	while(ptr!=NULL){
 		printf("%d:  arg: %d, line_num: %d memory_num: %d\n", i, ptr->arg, ptr->line_num, ptr->memory_count);

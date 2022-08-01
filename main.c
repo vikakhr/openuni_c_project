@@ -3,8 +3,6 @@
 #include "translator.h"
 #include "first_step.h"
 #include "label_lists.h"
-#include "cmd_check.h"
-
 
 
 
@@ -12,7 +10,12 @@ int main(int argc, char *argv[]){
 	FILE *ifp;
 	char *file_name_extension, *file_name;
 	size_t len;
-
+	file_name = (char*)malloc(PATH_MAX+1);/*allocates memory*/
+	if(file_name==NULL)
+		return 1;
+	file_name_extension = (char*)malloc(PATH_MAX+4);/*allocates memory for .as file*/
+	if(file_name_extension==NULL)
+		return 1;
 
 	if(argc == 1)
 		return 1;
@@ -23,37 +26,23 @@ int main(int argc, char *argv[]){
 		cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
 		codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
 		len = strlen(*++argv);
-		file_name_extension = (char*)malloc(len+4);/*allocates memory for .am file*/
-		if(file_name_extension==NULL)
-			return 1;
 
-		file_name = (char*)malloc(len+1);/*allocates memory*/
-		if(file_name==NULL)
-			return 1;
 
 		memcpy(file_name, *argv, len+1);/*copies name*/
-
-
 		sprintf(file_name_extension,"%s.as", *argv);/*writes a full name of file*/
 
 		if((ifp = fopen(file_name_extension, "r")) == NULL){/*cannot open file, go to the next one*/
-			free(file_name_extension);
-			free(file_name);
 			printf("Can't open %s\n", *argv);
 		}
 		else {
 			fclose(ifp);
-			if(preprocessor(file_name_extension, file_name)==ERROR){/*preprocessor function, if error - go to next file*/
-				free(file_name_extension);
-				free(file_name);
+			if(preprocessor(file_name_extension, file_name)==ERROR)/*preprocessor function, if error - go to next file*/
 				continue;
-			}
 
 			sprintf(file_name_extension,"%s.am", *argv);/*writes a full name of file*/
 
 			read_cmd_line(file_name_extension, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
 			check_label_defined(&head_lbl, &head_extern, &head_cmd);
-			printf("After check lbl defined\n");
 			translate_lines(file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
 
 			free_labels_list(head_lbl);
@@ -62,13 +51,14 @@ int main(int argc, char *argv[]){
 			free_ext_list(&head_extern, &tail_extern);
 			free_code_list(head_code);
 			
-			free(file_name_extension);
-			free(file_name);
 			
+
+
 		}
 		
 	}
-
+	free(file_name);
+	free(file_name_extension);
 	return 0;
 }
 
@@ -77,11 +67,8 @@ void free_directive_list(directiveLine **head_drctv, directiveLine **tail_drctv)
 	directiveLine *ptr;
 	while(*head_drctv!=NULL){
 		ptr = *head_drctv;
-		printf("%d\n", ptr->isLabel);
 		*head_drctv = (*head_drctv)->next;
 		free(ptr);
-		if(ptr == NULL)
-			printf("Freed\n");
 	}
 }
 
