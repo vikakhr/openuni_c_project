@@ -145,6 +145,8 @@ void print_label_list(labels* head){
 		i++;
 
 	}
+	printf("****");
+
 }
 
 

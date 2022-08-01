@@ -355,6 +355,7 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 		fprintf(dfp, "%s\n", base_32);
 		ptr_drctv = ptr_drctv->next;
 	}
+
 	free(objFileName);
 	fclose(dfp);
 }
@@ -422,7 +423,8 @@ void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 		ptr_lbl= ptr_lbl->next;
 	}
 	free(entFileName);
-	fclose(dfp);
+	if(!is_first)/*if file has been created*/
+		fclose(dfp);
 }
 
 /*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count to label as argument

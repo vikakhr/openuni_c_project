@@ -54,8 +54,8 @@ typedef struct node_label labels;/*linked list to save labels*/
 typedef struct node_ext externs;/*linked list to save extern labels*/
 typedef struct node_code codeWords; /*linked list to save command binary machine code*/
 
-void free_directive_list(directiveLine **head_drctv, directiveLine **tail_drctv);
+void free_directive_list(directiveLine **head_drctv);
 void free_cmd_list(cmdLine **head_cmd);
-void free_ext_list(externs **head_extern, externs **tail_extern);
+void free_ext_list(externs **head_extern);
 void free_code_list(codeWords *head_code);
 void free_labels_list(labels *head_lbl);

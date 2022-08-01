@@ -41,17 +41,22 @@ int main(int argc, char *argv[]){
 
 			sprintf(file_name_extension,"%s.am", *argv);/*writes a full name of file*/
 
+			/*first step - read, check and save*/
 			read_cmd_line(file_name_extension, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
+
+			/*second step - check if all labels that received as operands are defined in fil*/
 			check_label_defined(&head_lbl, &head_extern, &head_cmd);
+
+			/*third step - translate and output*/
 			translate_lines(file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
 
 			free_labels_list(head_lbl);
-			free_directive_list(&head_drctv, &tail_drctv);
+			free_directive_list(&head_drctv);
 			free_cmd_list(&head_cmd);
-			free_ext_list(&head_extern, &tail_extern);
+			free_ext_list(&head_extern);
 			free_code_list(head_code);
 			
-			
+
 
 
 		}
@@ -63,7 +68,7 @@ int main(int argc, char *argv[]){
 }
 
 
-void free_directive_list(directiveLine **head_drctv, directiveLine **tail_drctv){
+void free_directive_list(directiveLine **head_drctv){
 	directiveLine *ptr;
 	while(*head_drctv!=NULL){
 		ptr = *head_drctv;
@@ -83,7 +88,7 @@ void free_cmd_list(cmdLine **head_cmd){
 	}
 }
 
-void free_ext_list(externs **head_extern, externs **tail_extern){
+void free_ext_list(externs **head_extern){
 	externs *ptr;
 	while(*head_extern!=NULL){
 		ptr = *head_extern;

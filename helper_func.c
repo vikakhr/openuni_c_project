@@ -10,7 +10,7 @@ char* remove_blanks(char* word){
 	int i, start=0, end=0;
 	int len;
 	char *new_word;
-	printf("Inside remove blanks: %s\n", word);
+
 	len = strlen(word);
 	new_word = (char *)malloc(len+1);
 	if(new_word==NULL)
@@ -32,9 +32,6 @@ char* remove_blanks(char* word){
 	memcpy(new_word,&word[start],end-start+1);/*copy string*/
 	new_word[end-start+1] = '\0';
 
-	/*word=(char *)realloc(p,strlen(p)+1);reallocate to the source string and free p
-	if(word == NULL)
-		return (char*)ERROR;8*/
 	return new_word;
 }
 
@@ -190,7 +187,7 @@ int check_nums(char *line, int isLabel, int line_num){
 /*Function receives command line and flag if there is label. Checks if string operand is legal and returns 1, ERROR otherwise*/
 int check_string_islegal(char* line, int isLabel){
 	char *separator = " \t\v\f\r";
-	char *ptr;
+	char *ptr, *new_string;
 	char *string = (char *)malloc(strlen(line)+1);
 	if(string == NULL)
 		return ERROR;
@@ -204,16 +201,14 @@ int check_string_islegal(char* line, int isLabel){
 	else ptr = strtok(string, separator);
 
 	ptr = strtok(NULL, separator);/*take pointer to the string*/
-	string = remove_blanks(ptr); /*remove blanks*/
-
-	if(string[0] == '"' && string[strlen(string)-1] == '"'){/*if string has "" by sides*/
-		free(string);
+	new_string = remove_blanks(ptr); /*remove blanks*/
+	free(string);
+	if(new_string[0] == '"' && new_string[strlen(new_string)-1] == '"'){/*if string has "" by sides*/
+		free(new_string);
 		return 1;
 	}
-	else {
-		free(string); 
-		return ERROR; 
-	}
+	free(new_string);
+	return ERROR;
 
 }
 

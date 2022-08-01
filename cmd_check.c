@@ -47,18 +47,27 @@ int check_directive_islegal(char *word, int line_num){
 int check_label_islegal(char* label, int line_num){
 	int i, regNameLength = 2, cmdNameLength = 3;
 
+
 	if(strlen(label)>LABELSIZE){/*too long name for label*/
 		printf("Error, label name is too long, in line number: %d\n", line_num);
 		return ERROR;
 	}	
+
 	if(!isalpha(label[0])){/*if first char is not a character*/
 		printf("Error, label name is not legal, in line number: %d\n", line_num);
 		return ERROR;
 	}
 
+	for(i=0; i<strlen(label); i++){/*if punctuation mark inside label name*/
+		if(ispunct(label[i])){
+			printf("Error, label name is not legal, in line number: %d\n", line_num);
+			return ERROR;
+		}
+	}
+
 	if(strlen(label)==regNameLength){/*if length of label string is two check if is not register name*/
 		if(check_arg_register(label)!=ERROR){
-				printf("Error, label name has the same name as register in line number: %d\n", line_num);
+				printf("Error, label name has the same name as register, in line number: %d\n", line_num);
 				return ERROR;
 		}
 	}
@@ -66,7 +75,7 @@ int check_label_islegal(char* label, int line_num){
 	if(strlen(label)==cmdNameLength){/*if length of label string is three check if is not opcode name*/
 		for(i=0; cmd[i].name!=NULL; i++){
 			if(!strcmp(label, cmd[i].name)){
-				printf("Error, label name has the same name as opcode in line number: %d\n", line_num);
+				printf("Error, label name has the same name as opcode, in line number: %d\n", line_num);
 				return ERROR;
 			} 
 		}

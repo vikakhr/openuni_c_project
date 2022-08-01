@@ -17,10 +17,11 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 		return;
 	}
 	
+	command = (char*)malloc(sizeof(char)*LINESIZE+1);/*allocate memory for a line*/
+	if(command==NULL)
+		return;
+
 	FOREVER {
-		command = (char*)malloc(sizeof(char)*LINESIZE+1);/*allocate memory for a line*/
-		if(command==NULL)
-			return;
 
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
@@ -64,6 +65,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	int operand_counter = 0;/*counter number of operands of the command*/
 	char *source = NULL, *destination = NULL;/*of instruction line*/
 	int cmd_index, drctv_index;/*indexes of command names*/	
+	int len; /*string length*/
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
 	char *ptr;
@@ -72,15 +74,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	if(commandCopy==NULL)
 		return;
 
-	/*source = (char*)malloc(sizeof(char)*LABELSIZE+1);
-	if(source==NULL)
-			return;
-	destination = (char*)malloc(sizeof(char)*LABELSIZE+1);
-	if(destination==NULL)
-		return;*/
-
 	strcpy(commandCopy, command);/*makes a copy of command without whitespaces by sides*/
-
 
 	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
 		return;	
@@ -90,37 +84,51 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 		return;
 	}
 
+
 	thirdWord = strtok(NULL, white_space); /*take third word for check 3 words containing label positioning*/
 
 	if(ispunct(firstWord[strlen(firstWord)-1])){
 		if(firstWord[strlen(firstWord)-1] == ':'){/*if : at the end of word and it is label, check all parameters*/
+			len = strlen(firstWord)-1;/*length of label name without colon*/
 			label = strtok(firstWord, ":");/*take label name*/
-			if((isLabel = check_label_islegal(label, line_num)) == ERROR)/*check if label name is legal, turn on label flag*/
+			if(len!=strlen(label)){/*if length of first word is not the same as length of label name*/
+				printf("Error, illegal colon inside label definition, in line number: %d\n", line_num);
+				free(commandCopy);
 				return;
+			}
+			if((isLabel = check_label_islegal(label, line_num)) == ERROR){/*check if label name is legal, turn on label flag*/
+				free(commandCopy);
+				return;
+			}
 		}
 		else {
 			printf("Error, illegal punctuation mark after first word of command, in line number: %d\n", line_num);
+			free(commandCopy);
 			return;
 		}
 	}
+
 	if(secondWord[0] == ','){
 		printf("Error, illegal comma after first word of command, in line number: %d\n", line_num);
+		free(commandCopy);
 		return;
 	}
 
 	if(secondWord[0] == ':'){
 		printf("Error, illegal label definition, in line number: %d\n", line_num);
+		free(commandCopy);
 		return;
 		}
 
 	if(isLabel)/*choose next word to check*/
 		word = secondWord;
 	else word = firstWord;
-
+	printf("****%s    %s****\n", firstWord, secondWord);
 	if(word[0] == '.'){/*if is directive*/
-		if((drctv_index = check_directive_islegal(word, line_num))==ERROR)/*if directive is not legal go to next line*/
+		if((drctv_index = check_directive_islegal(word, line_num))==ERROR){/*if directive is not legal go to next line*/
+			free(commandCopy);
 			return;
-
+		}
 
 		switch(drctv_index){/*switch by directive index*/
 			case 0:/*.data*/ 
