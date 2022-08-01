@@ -240,7 +240,7 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 							isFound = 1;
 						ptr_ext = ptr_ext->next;
 					}
-					ptr_cmd->destination = remove_blanks(ptr_cmd->destination);
+					/*ptr_cmd->destination = remove_blanks(ptr_cmd->destination);*/
 					if(!isFound){
 						printf("Error, label name of destination parameter is not defined, int line_number: %d\n", ptr_cmd->line_num);
 						temp = ptr_cmd;

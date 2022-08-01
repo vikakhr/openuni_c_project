@@ -91,7 +91,9 @@ int preprocessor(char *file_name_extension, char *file_name){/*receives name of 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list*/
 void add_node_macro(node_macro** head, node_macro** tail, char* name){
 	node_macro *new = malloc(sizeof(node_macro));
-	new->name = (char*)malloc(strlen(name)+1);
+	if(new==NULL)
+		return;
+	new->name = name;/*pointer received by remove blanks*/
 	new->data = NULL;
 	new->next = NULL;
 	strcpy(new->name, name);
@@ -154,9 +156,9 @@ int if_is_macro(char* string){
 	char* str = "macro";
 	char *p, *copy;
 
-	copy = (char*)malloc(strlen(string)+1);
+	/*copy = (char*)malloc(strlen(string)+1);
 	if(copy == NULL)
-		exit(0);
+		exit(0);*/
 
 	copy = remove_blanks(string);
 
@@ -166,7 +168,7 @@ int if_is_macro(char* string){
 		return 0;
 		
 	}
-	free(copy);
+	free(copy);/*free pointer received from remove blanks*/
 	return 1;
 }
 
@@ -182,21 +184,26 @@ int if_is_endmacro(char* string){
 
 /*Function receives first line and returns name of macro*/
 char* take_macro_name(char* string){
-	char* p;
+	char* p, *new_line, *macro_name;
 	char *white_space = " \t\v\f\r";
-	string = remove_blanks(string);
-	p = strtok(string, white_space);
+
+	new_line = remove_blanks(string);
+	macro_name = (char*)malloc(strlen(new_line)+1);
+	if(macro_name == NULL)
+		return(char*)ERROR;
+
+	p = strtok(new_line, white_space);
 	p = strtok(NULL, white_space);
-	return p;
+	strcpy(macro_name, p);
+	free(new_line);
+	return macro_name;
 }
 
 /*writes data into file*/
 int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	node_macro* ptr = head;
 	char *white_space = " \t\v\f\r";
-	char *copy = (char*)malloc(strlen(string)+1);
-	if(copy == NULL)
-		exit(0);
+	char *copy;
 	copy = remove_blanks(string);
 
 	strtok(copy, white_space);

@@ -105,34 +105,40 @@ int check_arg_register(char *word){
 int check_struct_arg(char *line, int line_num, int isLabel){
 	char *separator = " \t\v\f\r";
 	char *ptr;
-	char *lineCopy = (char*)malloc(strlen(line)+1);
-	if(lineCopy==NULL)
+	char *line_copy = (char*)malloc(strlen(line)+1);
+	if(line_copy==NULL)
 		return ERROR;
-	strcpy(lineCopy, line);
+	strcpy(line_copy, line);
 	if(isLabel){
-		ptr = strtok(lineCopy, separator);/*take label*/
+		ptr = strtok(line_copy, separator);/*take label*/
 		ptr = strtok(NULL, separator);/*take directive name*/
 	}
-	else 	ptr = strtok(lineCopy, separator);
+	else 	ptr = strtok(line_copy, separator);
 	if((ptr = strtok(NULL, ",")) == NULL){/*if no first argument*/
 		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
+		free(line_copy);
 		return ERROR;
 	}
 
 	if((check_one_num(ptr))==ERROR){/*if struct field num is not integer*/
 		printf("Error, first field of struct is not integer, in line number: %d\n", line_num);	
+		free(line_copy);
 		return ERROR;
 	}
 
 	if((ptr = strtok(NULL, separator))==NULL){/*if no second argument*/
 		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
+		free(line_copy);
 		return ERROR;
 	}
 
-	if(ptr[0] == '"' && ptr[strlen(ptr)-1] == '"')/*if string has "" by sides*/
+	if(ptr[0] == '"' && ptr[strlen(ptr)-1] == '"'){/*if string has "" by sides*/
+		free(line_copy);
 		return 1;
+	}
 	else {
 		printf("Error, string parameter is not legal, in line number: %d\n", line_num);
+		free(line_copy);
 		return ERROR;
 	}	
 }
@@ -141,41 +147,40 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 
 /*Function receives command, line num, command and struct of instruction commands, and checks if arguments of given command are right*/
 int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
-	char *cmdCopy, *arg, *source, *destination;
+	char *cmd_copy, *arg, *source, *destination, *p;
 	char *white_space = " \t\v\f\r\n";
 	int arg_count = 0, isError = 0;
-	cmdCopy = (char*)malloc(strlen(command)+1);
-	if(cmdCopy==NULL)
+	cmd_copy = (char*)malloc(strlen(command)+1);
+	if(cmd_copy==NULL)
 		return ERROR;
 
-	strcpy(cmdCopy, command);	
+	strcpy(cmd_copy, command);
 	if(isLabel){
-		strtok(cmdCopy, white_space);
+		strtok(cmd_copy, white_space);
 		strtok(NULL, white_space);
 	}
 	else 
-		strtok(cmdCopy, white_space);
+		strtok(cmd_copy, white_space);
 
-	if((source = strtok(NULL, ","))!=NULL){
-		if(ispunct(source[0]) && source[0]!='#'){
+	if((p = strtok(NULL, ","))!=NULL){
+		if(ispunct(p[0]) && p[0]!='#'){
 			printf("Error, extraneous punctuation mark between command and first argument, in line number: %d\n", line_num);
+			free(cmd_copy);
 			return ERROR;
 		}
 		arg_count++;
-		source = remove_blanks(source);
+		source = remove_blanks(p);
 
-		if((destination = strtok(NULL, ","))!=NULL){
+		if((p = strtok(NULL, ","))!=NULL){
 			if((arg = strtok(NULL, ","))!=NULL){
 				printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
-				return ERROR;
+				isError = -1;
 			}
 			arg_count++;
-			destination = remove_blanks(destination);
+			destination = remove_blanks(p);
 		}
-		else {
+		else
 			destination = source;
-			source = NULL;
-		}
 	}
 	
 	
@@ -188,14 +193,15 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
-
-	switch(cmd_index){/*switch by func index of struct*/
+	if(!isError){
+		switch(cmd_index){/*switch by func index of struct*/
 			case 0: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
 					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 				}
 				break;
-			case 1:	return 1;	
+			case 1:	break;
 			case 2:	
 			case 3:	
 				
@@ -203,21 +209,25 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 						
 			case 5: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
 					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 				}
 				break;
 			case 6:
 				if(check_arg_register(source)!=ERROR){/*if source is register - ERROR*/
 					printf("Error, source parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 				}
 				if(check_arg_number(source)!=ERROR){/*if source is number - ERROR*/
 					printf("Error, source parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 				}
 				if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
 					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 				}
 				break;
 			case 7: 
@@ -226,13 +236,15 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			case 10:
 			case 11: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
 					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 					}
 				break;
-			case 12: return 1;
+			case 12: break;
 			case 13: if(check_arg_number(destination)!=ERROR){/*if destination is number - ERROR*/
 					printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
-					return ERROR;
+					isError = -1;
+					break;
 				}	
 				break;
 			case 14: 
@@ -240,9 +252,16 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 
 			break;
 		}/*end of switch*/
+	}/*end of if*/
 
+	free(cmd_copy);
+	if(arg_count==1)
+		free(destination);
+	if(arg_count==2){
+		free(source);
+		free(destination);
+	}
 
-	free(cmdCopy);
 	if(!isError)
 		return 1;
 	else return ERROR;

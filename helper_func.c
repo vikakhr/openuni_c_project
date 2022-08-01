@@ -9,11 +9,11 @@
 char* remove_blanks(char* word){
 	int i, start=0, end=0;
 	int len;
-	char *p; 
-	
+	char *new_word;
+	printf("Inside remove blanks: %s\n", word);
 	len = strlen(word);
-	p = (char *)malloc(len+1);
-	if(p==NULL)
+	new_word = (char *)malloc(len+1);
+	if(new_word==NULL)
 		exit(0);
 
 	for(i=0; i<len; i++){/*start index of word*/
@@ -29,13 +29,13 @@ char* remove_blanks(char* word){
 			break;
 		}
 	}
-	memcpy(p,&word[start],end-start+1);/*copy string*/		
-	p[end-start+1] = '\0';	
+	memcpy(new_word,&word[start],end-start+1);/*copy string*/
+	new_word[end-start+1] = '\0';
 
-	word=(char *)realloc(p,strlen(p)+1);/*reallocate to the source string and free p*/
+	/*word=(char *)realloc(p,strlen(p)+1);reallocate to the source string and free p
 	if(word == NULL)
-		return (char*)ERROR;
-	return word;			
+		return (char*)ERROR;8*/
+	return new_word;
 }
 
 /*Receives a pointer to the whole command line string and checks commas errors. If no errors returns 0, ERROR otherwise*/
@@ -124,7 +124,7 @@ int check_one_num(char *num){
 If no errors returns amount of numbers, ERROR otherwise*/
 int check_nums(char *line, int isLabel, int line_num){
 	char *word;	
-	char *ptr;
+	char *ptr, *p;
 	int count = 0;
 	long int num;
 	char *separator = " \t\v\f\r";
@@ -134,19 +134,21 @@ int check_nums(char *line, int isLabel, int line_num){
 
 	strcpy(numbers,line);
 	if(isLabel){/*if label in line -  take label and command pointers*/
-		word = strtok(numbers, separator);
-		word = strtok(NULL, separator);
+		p = strtok(numbers, separator);
+		p = strtok(NULL, separator);
 	}
-	else word = strtok(numbers, separator);
+	else p = strtok(numbers, separator);
 
-	word = strtok(numbers, ",");/*take pointer to the first number*/
-	while(word !=NULL){
+	p = strtok(numbers, ",");/*take pointer to the first number*/
+	while(p !=NULL){
 		
-		word = remove_blanks(word);/*removes blank spaces from both sides of num*/
+		word = remove_blanks(p);/*removes blank spaces from both sides of num*/
 		if(word[0]=='+' || word[0]=='-'){
 			word++;
 			if(!isdigit(word[0])){
 				printf("Error, operand is not an integer, in line number:%d\n", line_num);
+				free(numbers);
+				free(word);
 				return ERROR;
 			}
 		}
@@ -156,26 +158,32 @@ int check_nums(char *line, int isLabel, int line_num){
 			if((num = strtol(word, &separator,10))!=0){/*error inside 'word' parameter*/
 				if(num == 0){
 					printf("Error, etraneous text after end of command, in line number:%d\n", line_num);
+					free(word);
+					free(numbers);
 					return ERROR;
 				}
 				else {
 					printf("%s\n", word);			
 					printf("Error, operand is not an integer number, in line number:%d\n", line_num);
+					free(word);
+					free(numbers);
 					return ERROR;
 				}
 			}
 		}
 		count++;
-		word = strtok(NULL, ",");			
+		p = strtok(NULL, ",");
 	}
 
 	if(!count){
 		if(word==NULL){
 			printf("Error, missing operand, in line number:%d\n", line_num);
+			free(numbers);
 			return ERROR;
 		}
 	}
 	free(numbers);	
+	free(word);
 	return count;
 }
 
