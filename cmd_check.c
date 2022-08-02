@@ -91,7 +91,7 @@ int check_label_islegal(char* label, int line_num){
 int check_arg_number(char *num){
 	if(num[0]!='#')
 		return ERROR;
-	else 
+	printf("Arg is number: %s\n", num);
 	return check_one_num(num);
 }
 
@@ -104,8 +104,9 @@ int check_arg_register(char *word){
 	int size = sizeof(REGISTER)/sizeof(REGISTER[0]);
 	int i;
 	for(i=0; i<size; i++){
-		if(!strcmp(word, REGISTER[i]))
-			return i;
+		if(!strcmp(word, REGISTER[i])){
+			printf("Arg is register: %s\n", word);
+			return i;}
 	}
 	return ERROR;
 }
@@ -179,14 +180,27 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 		}
 		arg_count++;
 		source = remove_blanks(p);
+		if(check_operand_errors(source)==ERROR){
+			printf("Error, source parameter is not legal, in line number: %d\n", line_num);
+			free(source);
+			free(cmd_copy);
+			return ERROR;
+		}
 
 		if((p = strtok(NULL, ","))!=NULL){
 			if((arg = strtok(NULL, ","))!=NULL){
-				printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+				printf("Error, extraneous number of operands for instruction command, in line number: %d\n", line_num);
 				isError = -1;
 			}
 			arg_count++;
 			destination = remove_blanks(p);
+			if(check_operand_errors(destination)==ERROR){
+				printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
+				free(source);
+				free(destination);
+				free(cmd_copy);
+				return ERROR;
+			}
 		}
 		else
 			destination = source;
@@ -195,7 +209,9 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 	
 
 	if(arg_count < cmd[cmd_index].args && !isError){
-		printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
+		if(!strchr(command, ','))
+			printf("Error, missing comma between operands, in line number: %d\n", line_num);
+		else printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
 	if((arg_count > cmd[cmd_index].args) && !isError){
@@ -299,7 +315,18 @@ int check_directive(char *word){
 	return ERROR;	
 }
 
+int check_operand_errors(char *operand){
+	if(isdigit(operand[0]))
+		return ERROR;
 
+	if(strchr(operand, '.')){/*if struct checks field number*/
+		if(operand[strlen(operand)-1] != '1' && operand[strlen(operand)-1] != '2'){
+			return ERROR;
+		}
+	}
+
+	return 1;
+}
 
 
 

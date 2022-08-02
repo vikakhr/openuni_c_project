@@ -72,11 +72,21 @@ int line_typo_errors_check(char* command, int line_num, int length){
 	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
 		return ERROR;
 
-	if(ispunct(command[length-1]) && (command[length-1]!='"')){/*not a " punctuation mark at the end of command*/
-		printf("Error, extraneous punctuation mark at the end, in line number: %d\n", line_num);
+	if(ispunct(command[0]) && command[0]!='.'){
+		printf("Error, illegal punctuation mark at the beginning of command, in line number: %d\n", line_num);
 		return ERROR;
 	}
 
+	if(ispunct(command[length-1])){/*if punctuation mark at the end of command*/
+		if(!strchr(command, '.')){/*of not directive - error*/
+			printf("Error, extraneous punctuation mark at the end of command, in line number: %d\n", line_num);
+			return ERROR;
+		}
+		if(command[length-1]!='"'){/*not a " punctuation mark at the end of command*/
+			printf("Error, extraneous punctuation mark at the end of command, in line number: %d\n", line_num);
+			return ERROR;
+		}
+	}
 	if((check_commas(command, line_num))==ERROR)/*check consecutive commas*/
 		return ERROR;
 	return 0;

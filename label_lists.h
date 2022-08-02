@@ -22,3 +22,4 @@ void print_extlabel_list(externs* head);
 
 
 void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd);
+int check_operand_defined(labels** head_label, externs **head_ext, char* operand);

@@ -234,7 +234,6 @@ void add_node_code(codeWords **head, codeWords **tail, int memory_count, int cod
 	new->next = NULL;
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		/**tail = new;*/
 		return;
 	}		
 	else if(*tail == NULL){/*if this is second node*/
@@ -253,6 +252,7 @@ void print_code_list(codeWords* head){/*DELETE AFTER*/
 	printf("Inside print code list:\n");
 	while(ptr!=NULL){
 		printf("memory: %d, code: %d\n", ptr->memory_count, ptr->code);		
+
 		ptr = ptr->next;
 	}
 	 

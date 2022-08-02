@@ -43,7 +43,6 @@ struct node_code{
 	int memory_count;
 	short int code;
 	char *literal;
-	int addressing_type;
 	struct node_code* next;
 }node_code;
 

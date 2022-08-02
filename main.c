@@ -10,15 +10,19 @@ int main(int argc, char *argv[]){
 	FILE *ifp;
 	char *file_name_extension, *file_name;
 	size_t len;
-	file_name = (char*)malloc(PATH_MAX+1);/*allocates memory*/
-	if(file_name==NULL)
-		return 1;
-	file_name_extension = (char*)malloc(PATH_MAX+4);/*allocates memory for .as file*/
-	if(file_name_extension==NULL)
-		return 1;
 
 	if(argc == 1)
 		return 1;
+
+	file_name = (char*)malloc(PATH_MAX+1);/*allocates memory*/
+	if(file_name==NULL)
+		return 1;
+
+	file_name_extension = (char*)malloc(PATH_MAX+4);/*allocates memory for .as file*/
+	if(file_name_extension==NULL){
+		free(file_name)	;
+		return 1;
+	}
 	while(--argc>0){
 		labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 		externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
@@ -55,7 +59,7 @@ int main(int argc, char *argv[]){
 			free_cmd_list(&head_cmd);
 			free_ext_list(&head_extern);
 			free_code_list(head_code);
-			
+
 
 
 

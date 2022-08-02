@@ -123,7 +123,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	if(isLabel)/*choose next word to check*/
 		word = secondWord;
 	else word = firstWord;
-	printf("****%s    %s****\n", firstWord, secondWord);
+
 	if(word[0] == '.'){/*if is directive*/
 		if((drctv_index = check_directive_islegal(word, line_num))==ERROR){/*if directive is not legal go to next line*/
 			free(commandCopy);
@@ -232,11 +232,9 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 					
 			if((ptr = strtok(NULL, ","))!=NULL){
 					operand_counter++; /*operand counter*/
-					/*strcpy(source, ptr);*/
 					source = remove_blanks(ptr);
 				if((ptr = strtok(NULL, white_space))!=NULL){
 					operand_counter++; /*argument counter*/
-					/*strcpy(destination, ptr);*/
 					destination = remove_blanks(ptr);
 				}
 				else {
@@ -451,7 +449,7 @@ void print_instruction_list(cmdLine* head){
 
 	while(ptr!=NULL){
 		printf("%d: cmd_index: %d, source: %s, destination: %s, line_num: %d, num_args:%d\n", i, ptr->cmd_index, ptr->source, ptr->destination, ptr->line_num, ptr->args);
-		 ptr = ptr->next;
+		ptr = ptr->next;
 		i++;
 	}
 }
@@ -464,14 +462,11 @@ void print_directive_list(directiveLine* head){
 	printf("Inside print directive node:\n");
 	while(ptr!=NULL){
 		printf("%d:  arg: %d, line_num: %d memory_num: %d\n", i, ptr->arg, ptr->line_num, ptr->memory_count);
+
 		 ptr = ptr->next;
 		i++;
 	}
 }
-
-
-
-
 
 
 
