@@ -129,7 +129,7 @@ int check_one_num(char *num){
 /*Receives pointer to the command line flah i label inside line and line number and checks if numbers are legal for .data operands.
 If no errors returns amount of numbers, ERROR otherwise*/
 int check_nums(char *line, int isLabel, int line_num){
-	char *word;	
+	char *word, *number;
 	char *ptr, *p;
 	int count = 0;
 	long int num;
@@ -139,38 +139,50 @@ int check_nums(char *line, int isLabel, int line_num){
 		return ERROR;
 
 	strcpy(numbers,line);
+
 	if(isLabel){/*if label in line -  take label and command pointers*/
 		p = strtok(numbers, separator);
 		p = strtok(NULL, separator);
 	}
 	else p = strtok(numbers, separator);
 
-	p = strtok(numbers, ",");/*take pointer to the first number*/
-	while(p !=NULL){
-		
+	p = strtok(NULL, ",");/*take pointer to the first number*/
+
+	while(p != NULL){
 		word = remove_blanks(p);/*removes blank spaces from both sides of num*/
 		if(word[0]=='+' || word[0]=='-'){
-			word++;
-			if(!isdigit(word[0])){
+			if(strlen(word)==1){
+				printf("Error, operand is not an integer, in line number:%d\n", line_num);
+				free(numbers);
+				free(word);
+				return ERROR;
+			}
+
+			if(!isdigit(word[1])){
 				printf("Error, operand is not an integer, in line number:%d\n", line_num);
 				free(numbers);
 				free(word);
 				return ERROR;
 			}
 		}
-		
-		strtol(word, &ptr, 10);		
+		else if(!isdigit(word[0])){
+			printf("Error, operand is not an integer, in line number:%d\n", line_num);
+			free(numbers);
+			free(word);
+			return ERROR;
+		}
+
+		strtol(word, &ptr, 10);
 		if(*ptr!='\0'){
 			if((num = strtol(word, &separator,10))!=0){/*error inside 'word' parameter*/
 				if(num == 0){
-					printf("Error, etraneous text after end of command, in line number:%d\n", line_num);
+					printf("Error, extraneous text after end of command, in line number:%d\n", line_num);
 					free(word);
 					free(numbers);
 					return ERROR;
 				}
 				else {
-					printf("%s\n", word);			
-					printf("Error, operand is not an integer number, in line number:%d\n", line_num);
+					printf("Error, operand is not an integer, in line number:%d\n", line_num);
 					free(word);
 					free(numbers);
 					return ERROR;
@@ -178,6 +190,7 @@ int check_nums(char *line, int isLabel, int line_num){
 			}
 		}
 		count++;
+		free(word);
 		p = strtok(NULL, ",");
 	}
 
@@ -188,7 +201,7 @@ int check_nums(char *line, int isLabel, int line_num){
 			return ERROR;
 		}
 	}
-	free(numbers);	
+	free(numbers);
 	free(word);
 	return count;
 }
