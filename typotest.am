@@ -1,5 +1,12 @@
+.entry LABEL
+mov r1,r2,
+mov. r1,r2
+.mov r1,r2
+mov r1,r2"
+mov 	 ,  	r1
 " mov r1,r2
 mov,,r1
 mov r1 r2
 .data , 1
+LABEL: .data 1
 

@@ -9,9 +9,9 @@
 int check_repeated_labels(char* name, labels* head){
 	labels* ptr = head;
 	
-	while(ptr!=NULL){
-		if(!strcmp(ptr->label, name)){/*list of labels already has this label name*/
-		return 0;
+	while(ptr != NULL){
+		if(!strcmp(ptr->label, name) && ptr->label_type==LABEL){/*list of labels already has this label name*/
+			return ERROR;
 		}
 		ptr = ptr->next;
 	}
@@ -236,6 +236,7 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* operand
 		}
 		ptr_ext = ptr_ext->next;
 	}
+	free(strct_name);
 	return ERROR;
 }
 

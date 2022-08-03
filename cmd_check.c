@@ -91,7 +91,6 @@ int check_label_islegal(char* label, int line_num){
 int check_arg_number(char *num){
 	if(num[0]!='#')
 		return ERROR;
-	printf("Arg is number: %s\n", num);
 	return check_one_num(num);
 }
 
@@ -105,7 +104,6 @@ int check_arg_register(char *word){
 	int i;
 	for(i=0; i<size; i++){
 		if(!strcmp(word, REGISTER[i])){
-			printf("Arg is register: %s\n", word);
 			return i;}
 	}
 	return ERROR;

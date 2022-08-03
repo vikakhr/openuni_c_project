@@ -320,7 +320,8 @@ void add_label_memory_num(labels** head_label, int memory_count, int line_number
 	}
 }
 
-
+/*Function receives name of file, counters of commands, linked lists of commands and string for base 32 presentation, translates
+ * all lines and writes into the .ob file*/
 void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_count, codeWords **head_code, directiveLine **head_drctv, char* base_32){
 	FILE *dfp;
 	codeWords *ptr_code = *head_code;
@@ -337,7 +338,7 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 			return;
 	}
 	base_32 = translate_to_base32((short)cmd_code_count, base_32);/*translate and write num of cmd lines*/
-	fprintf(dfp, "\t%s\t", base_32);
+	fprintf(dfp, "\t%s ", base_32);
 	base_32 = translate_to_base32(drctv_code_count, base_32); /*translate and write num of direction lines*/
 	fprintf(dfp, "%s\t\n", base_32);
 
@@ -360,7 +361,7 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 	fclose(dfp);
 }
 
-
+/*Function receives number and string, translates number to base 32, returns string with base 32 code presentation*/
 char* translate_to_base32(short int num, char *base){
 	char base_32[32] = {'!','@','#','$','%','^','&','*','<','>','a','b','c','d','e','f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
 	int first, second;
@@ -374,7 +375,7 @@ char* translate_to_base32(short int num, char *base){
 	return base;
 }
 
-/*Function receives number to extract bits, number of bits to be extracted and position from right*/
+/*Function receives number to extract bits, number of bits to be extracted and position from right, returns number with extracted bits*/
 int extract_bits(short int num, int num_bits, int position){
 	int num1, num2;
 	num1 = (1<<num_bits)-1;
@@ -427,10 +428,10 @@ void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 		fclose(dfp);
 }
 
-/*Function receives head, tail of linked list of extern labels, name and memory count of label and adds memory count to label as argument
- * if it first appearance, if is not passes to add node extern function*/
+/*Function receives head, tail of linked list of extern labels, name of label and memory count.
+ *  Adds new node of extern label into linked list*/
 void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count){
-	ext *new = malloc(sizeof(ext));
+	ext *new = (ext*)malloc(sizeof(ext));
 	if(new==NULL)
 		return;
 
@@ -444,7 +445,6 @@ void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count)
 
 	if(*head == NULL){/*if this is first node*/
 		*head = new;
-		*tail = new;
 		return;
 	}
 

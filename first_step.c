@@ -22,7 +22,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 		return;
 
 	FOREVER {
-
+		command_copy = NULL;
 		if(fgets(command, LINESIZE, sfp)==NULL)/*reads a line of LINESIZE length, checks if empty*/
 			break;	
 		
@@ -46,14 +46,15 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 
 		check_cmd_line(command_copy, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_cmd), &(*tail_cmd),
 		&(*head_extern), &(*tail_extern));/*pass all parameters to next step checks*/
+		if(!command_copy)/*if there is at least one line in file, free pointer receoved from remove blanks*/
+			free(command_copy);
 	}/*end of forever*/
 
 	print_label_list(*head_lbl);
 	print_extlabel_list(*head_extern);
 	print_instruction_list(*head_cmd);
 	free(command);
-	if(!command_copy)/*if there is at least one line in file, free pointer receoved from remove blanks*/
-		free(command_copy);
+
 	fclose(sfp);
 }
 
@@ -70,17 +71,20 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	char *white_space = " \t\v\f\r\n";
 	char *ptr;
 
-	char *commandCopy = (char*)malloc(sizeof(char)*LINESIZE+1);
-	if(commandCopy==NULL)
+	char *command_copy = (char*)malloc(sizeof(char)*LINESIZE+1);
+	if(command_copy==NULL)
 		return;
 
-	strcpy(commandCopy, command);/*makes a copy of command without whitespaces by sides*/
+	strcpy(command_copy, command);/*makes a copy of command without whitespaces by sides*/
 
-	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/
+	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/{
+		free(command_copy);
 		return;	
+	}
 
 	if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
 		printf("Error, missing arguments in line number: %d\n", line_num);
+		free(command_copy);
 		return;
 	}
 
@@ -93,30 +97,37 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 			label = strtok(firstWord, ":");/*take label name*/
 			if(len!=strlen(label)){/*if length of first word is not the same as length of label name*/
 				printf("Error, illegal colon inside label definition, in line number: %d\n", line_num);
-				free(commandCopy);
+				free(command_copy);
 				return;
 			}
 			if((isLabel = check_label_islegal(label, line_num)) == ERROR){/*check if label name is legal, turn on label flag*/
-				free(commandCopy);
+				free(command_copy);
 				return;
+			}
+			if(isLabel){
+				if(check_repeated_labels(label, *head_lbl)==ERROR){
+					printf("Error, repeated label definition, in line number: %d\n", line_num);
+					free(command_copy);
+					return;
+				}
 			}
 		}
 		else {
 			printf("Error, illegal punctuation mark after first word of command, in line number: %d\n", line_num);
-			free(commandCopy);
+			free(command_copy);
 			return;
 		}
 	}
 
 	if(secondWord[0] == ','){
 		printf("Error, illegal comma after first word of command, in line number: %d\n", line_num);
-		free(commandCopy);
+		free(command_copy);
 		return;
 	}
 
 	if(secondWord[0] == ':'){
 		printf("Error, illegal label definition, in line number: %d\n", line_num);
-		free(commandCopy);
+		free(command_copy);
 		return;
 		}
 
@@ -126,13 +137,13 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 	if(word[0] == '.'){/*if is directive*/
 		if((drctv_index = check_directive_islegal(word, line_num))==ERROR){/*if directive is not legal go to next line*/
-			free(commandCopy);
+			free(command_copy);
 			return;
 		}
 
 		switch(drctv_index){/*switch by directive index*/
 			case 0:/*.data*/ 
-				if((operand_counter = check_nums(commandCopy, isLabel, line_num))==ERROR){/*check data parameters*/
+				if((operand_counter = check_nums(command_copy, isLabel, line_num))==ERROR){/*check data parameters*/
 					break;
 				}
 
@@ -141,10 +152,10 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 						break;
 					add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, LABEL);
 				}
-				add_data_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));	
+				add_data_arg(command_copy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
 				break;	
 			case 1:/*.string*/
-				if(check_string_islegal(commandCopy, isLabel)==ERROR){
+				if(check_string_islegal(command_copy, isLabel)==ERROR){
 					printf("Error, string for .string directive is not legal, in line: %d\n", line_num);
 					break;
 				}
@@ -154,7 +165,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 						break;
 					add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, LABEL);
 				}
-				add_string_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
+				add_string_arg(command_copy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
 				break;
 			case 2: /*.struct*/
 				if(!isLabel){
@@ -163,9 +174,9 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				}
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), label, STRUCT, line_num))==ERROR)
 					break;
-				check_struct_arg(commandCopy, line_num, isLabel);
+				check_struct_arg(command_copy, line_num, isLabel);
 				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, STRUCT);
-				add_struct_arg(commandCopy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
+				add_struct_arg(command_copy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
 				break;
 			case 3: /*.entry*/
 				if(isLabel){/*if label before .entry word*/
@@ -213,21 +224,23 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 			if(cmd_index==ERROR){/*command isn't legal*/
 				printf("Error, undefined command name in line number: %d\n", line_num);
+				free(command_copy);
 				return;
 			}
 
-			if((check_cmd_args(commandCopy, line_num, isLabel, cmd_index)) == ERROR)
+			if((check_cmd_args(command_copy, line_num, isLabel, cmd_index)) == ERROR){
+				free(command_copy);
 				return;
-
+			}
 			if(isLabel)
 				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, LABEL);
 
 			if(isLabel){
-				word = strtok(commandCopy, white_space);
+				word = strtok(command_copy, white_space);
 				word = strtok(NULL, white_space);
 			}
 			else 
-				word = strtok(commandCopy, white_space);
+				word = strtok(command_copy, white_space);
 
 					
 			if((ptr = strtok(NULL, ","))!=NULL){
@@ -254,7 +267,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				free(destination);
 			}
 		}
-	free(commandCopy);
+	free(command_copy);
 
 }/*end of checkcmdline func*/
 
@@ -449,7 +462,7 @@ void print_instruction_list(cmdLine* head){
 
 	while(ptr!=NULL){
 		printf("%d: cmd_index: %d, source: %s, destination: %s, line_num: %d, num_args:%d\n", i, ptr->cmd_index, ptr->source, ptr->destination, ptr->line_num, ptr->args);
-		ptr = ptr->next;
+		 ptr = ptr->next;
 		i++;
 	}
 }

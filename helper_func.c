@@ -12,9 +12,9 @@ char* remove_blanks(char* word){
 	char *new_word;
 
 	len = strlen(word);
-	new_word = (char *)malloc(len+1);
+	new_word = (char*)malloc(len+1);
 	if(new_word==NULL)
-		exit(0);
+		return (char*)ERROR;
 
 	for(i=0; i<len; i++){/*start index of word*/
 		if(!isspace(word[i])){
@@ -31,7 +31,6 @@ char* remove_blanks(char* word){
 	}
 	memcpy(new_word,&word[start],end-start+1);/*copy string*/
 	new_word[end-start+1] = '\0';
-
 	return new_word;
 }
 
