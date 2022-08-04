@@ -20,9 +20,9 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 
 	add_address_of_labels(&(*head_code),  &(*head_lbl));
 
-	print_code_list(*head_code);
+	/*print_code_list(*head_code);
 	print_directive_list(*head_drctv);
-	print_label_list(*head_lbl);
+	print_label_list(*head_lbl);*/
 
 	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv), base_32);
 	output_entry_labels(file_name, &(*head_lbl), base_32);
@@ -288,7 +288,7 @@ void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 int add_drctv_memory_count(directiveLine **head_drctv, labels** head_label, int memory_count){
 	directiveLine *ptr_drctv = *head_drctv;
 	labels *ptr_label;
-	int line_num;
+	int line_num = 0;
 	while(ptr_drctv!=NULL){
 		ptr_label = *head_label;
 		ptr_drctv->memory_count = memory_count;

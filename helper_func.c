@@ -129,12 +129,12 @@ int check_one_num(char *num){
 /*Receives pointer to the command line flah i label inside line and line number and checks if numbers are legal for .data operands.
 If no errors returns amount of numbers, ERROR otherwise*/
 int check_nums(char *line, int isLabel, int line_num){
-	char *word, *number;
-	char *ptr, *p;
+	char *word; /*for saving separate words*/
+	char *ptr, *p; /*pointers for strtok and strtol*/
 	int count = 0;
 	long int num;
 	char *separator = " \t\v\f\r";
-	char *numbers = (char *)malloc(strlen(line)+1);
+	char *numbers = (char *)malloc(strlen(line)+1);/*for copy of line passed to function*/
 	if(numbers == NULL)
 		return ERROR;
 
@@ -202,7 +202,6 @@ int check_nums(char *line, int isLabel, int line_num){
 		}
 	}
 	free(numbers);
-	free(word);
 	return count;
 }
 

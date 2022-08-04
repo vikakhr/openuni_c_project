@@ -129,13 +129,13 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	}
 
 	if((check_one_num(ptr))==ERROR){/*if struct field num is not integer*/
-		printf("Error, first field of struct is not integer, in line number: %d\n", line_num);	
+		printf("Error, first field of struct is not an integer, in line number: %d\n", line_num);
 		free(line_copy);
 		return ERROR;
 	}
 
 	if((ptr = strtok(NULL, separator))==NULL){/*if no second argument*/
-		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
+		printf("Error, missing arguments for struct directive, in line number: %d\n", line_num);
 		free(line_copy);
 		return ERROR;
 	}

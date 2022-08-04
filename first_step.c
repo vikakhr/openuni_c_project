@@ -43,16 +43,15 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 		
 		if((line_typo_errors_check(command_copy, line_num, strlen(command_copy)))==ERROR)/*check typo errors*/
 			continue;		
-
 		check_cmd_line(command_copy, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_cmd), &(*tail_cmd),
 		&(*head_extern), &(*tail_extern));/*pass all parameters to next step checks*/
 		if(!command_copy)/*if there is at least one line in file, free pointer receoved from remove blanks*/
 			free(command_copy);
 	}/*end of forever*/
 
-	print_label_list(*head_lbl);
+	/*print_label_list(*head_lbl);*/
 	print_extlabel_list(*head_extern);
-	print_instruction_list(*head_cmd);
+	/*print_instruction_list(*head_cmd);*/
 	free(command);
 
 	fclose(sfp);
@@ -174,7 +173,8 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				}
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), label, STRUCT, line_num))==ERROR)
 					break;
-				check_struct_arg(command_copy, line_num, isLabel);
+				if(check_struct_arg(command_copy, line_num, isLabel)==ERROR)/*check struct arguments*/
+					break;
 				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, STRUCT);
 				add_struct_arg(command_copy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
 				break;
@@ -312,8 +312,11 @@ void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_
 	for(i=0; i<strlen(line); i++){
 		if(lineCopy[i]=='"'){
 			if(inString){
-				if(lineCopy[i+1]=='\n')
-					break;	
+				printf("In string char is %c - %d\n", lineCopy[i], i);
+				if(i==(strlen(lineCopy)-1))
+					break;
+				else
+					add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, (short)lineCopy[i]);/*adds directive arg into linked list*/
 			}
 			else inString = 1;
 		}
@@ -439,7 +442,7 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		*tail = new;
+		/**tail = new;*/
 		return;
 	}
 	else if(*tail == NULL){/*if this is second node*/
@@ -454,7 +457,7 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 
 
 
-/*Function frees nodes and linked list*/
+/*Function frees nodes and linked list
 void print_instruction_list(cmdLine* head){
 	cmdLine* ptr;
 	int i=1;
@@ -466,8 +469,8 @@ void print_instruction_list(cmdLine* head){
 		i++;
 	}
 }
-
-/*Function frees nodes and linked list*/
+*/
+/*Function frees nodes and linked list
 void print_directive_list(directiveLine* head){
 	directiveLine* ptr;
 	int i=1;
@@ -480,7 +483,7 @@ void print_directive_list(directiveLine* head){
 		i++;
 	}
 }
-
+*/
 
 
 /*Function receives head of linkes list of instruction and line number of node need to be deleted, search this node and frees a memory of node and it's members*/
