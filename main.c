@@ -59,10 +59,6 @@ int main(int argc, char *argv[]){
 			free_cmd_list(&head_cmd);
 			free_ext_list(&head_extern);
 			free_code_list(head_code);
-
-
-
-
 		}
 		
 	}

@@ -90,19 +90,19 @@ int preprocessor(char *file_name_extension, char *file_name){/*receives name of 
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list*/
 void add_node_macro(node_macro** head, node_macro** tail, char* name){
-	node_macro *new = malloc(sizeof(node_macro));
+	node_macro *new = (node_macro*)malloc(sizeof(node_macro));
 	if(new==NULL)
 		return;
 	new->name = name;/*pointer received by remove blanks*/
 	new->data = NULL;
 	new->next = NULL;
-	strcpy(new->name, name);
+
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
 	}		
-	else if(*tail == NULL){/*if this is second node*/
+	else if((*head)->next == NULL){/*if this is second node*/
 		(*head)->next = new;
-		*tail = new;
+		*tail = (*head)->next;
 	}
 	else {	
 		(*tail)->next = new;
