@@ -71,12 +71,11 @@ void add_node_label(labels** head, labels** tail, char* name, int line, int labe
 	strcpy(new->label, name);
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		/**tail = new;*/
 		return;
 	}		
-	else if(*tail == NULL){/*if this is second node*/
+	else if((*head)->next == NULL){/*if this is second node*/
 		(*head)->next = new;
-		*tail = new;
+		*tail = (*head)->next;
 	}
 	else {	
 		(*tail)->next = new;
@@ -99,13 +98,12 @@ void add_node_extern(externs** head, externs** tail, char* name){
 
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
-		/**tail = new;*/
 		return;
 	}
 
-	else if(*tail == NULL){/*if this is second node*/
+	else if((*head)->next == NULL){/*if this is second node*/
 		(*head)->next = new;
-		*tail = new;
+		*tail = (*head)->next;
 	}
 	else {	
 		(*tail)->next = new;
@@ -130,7 +128,7 @@ void print_extlabel_list(externs* head){
 
 }
 
-/*Function frees nodes and linked list*/
+
 void print_label_list(labels* head){
 	labels* ptr;
 	int i=1;

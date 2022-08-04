@@ -100,9 +100,9 @@ void add_node_macro(node_macro** head, node_macro** tail, char* name){
 	if(*head==NULL){/*if this is first node*/
 		*head = new;
 	}		
-	else if(*tail == NULL){/*if this is second node*/
+	else if((*head)->next == NULL){/*if this is second node*/
 		(*head)->next = new;
-		*tail = new;
+		*tail = (*head)->next;
 	}
 	else {	
 		(*tail)->next = new;

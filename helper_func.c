@@ -65,27 +65,34 @@ int check_commas (char *word, int line_num){
 	return 0;
 }
 
-/*Function receives command line, it's length and line number and checks typo errors, if ok returns 0, error otherwise*/
-int line_typo_errors_check(char* command, int line_num, int length){
-	
-	if(command[0] == ';')/*if this is comment line - ignore and go to next*/
-		return ERROR;
+/*Function receives command line and line number. Checks typo errors, if ok returns 0, error otherwise*/
+int line_typo_errors_check(char* command, int line_num){
+	char *command_copy = remove_blanks(command);/*copy of command without blanks by sides*/
+	int len = strlen(command_copy);
 
-	if(ispunct(command[0]) && command[0]!='.'){
+	if(command_copy[0] == ';'){/*if this is comment line - ignore and go to next*/
+		free(command_copy);
+		return ERROR;
+	}
+	if(ispunct(command_copy[0]) && command_copy[0]!='.'){
 		printf("Error, illegal punctuation mark at the beginning of command, in line number: %d\n", line_num);
+		free(command_copy);
 		return ERROR;
 	}
 
-	if(ispunct(command[length-1])){/*if punctuation mark at the end of command*/
-		if(!strchr(command, '.')){/*of not directive - error*/
+	if(ispunct(command_copy[len-1])){/*if punctuation mark at the end of command*/
+		if(!strchr(command_copy, '.')){/*of not directive - error*/
 			printf("Error, extraneous punctuation mark at the end of command, in line number: %d\n", line_num);
+			free(command_copy);
 			return ERROR;
 		}
-		if(command[length-1]!='"'){/*not a " punctuation mark at the end of command*/
+		if(command_copy[len-1]!='"'){/*not a " punctuation mark at the end of command*/
 			printf("Error, extraneous punctuation mark at the end of command, in line number: %d\n", line_num);
+			free(command_copy);
 			return ERROR;
 		}
 	}
+	free(command_copy);
 	if((check_commas(command, line_num))==ERROR)/*check consecutive commas*/
 		return ERROR;
 	return 0;

@@ -9,3 +9,11 @@ endmacro
 LABEL: .string "a6"
 
 m1
+
+macro m2
+1
+2
+3
+endmacro
+
+m2
