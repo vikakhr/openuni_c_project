@@ -8,23 +8,23 @@
 #include "label_lists.h"
 
 
-
+/*Function receives file names as arguments and opens them one by one, returns 1 if no errors, 0 otherwise*/
 int main(int argc, char *argv[]){
 	FILE *ifp;
 	char *file_name_extension, *file_name;/*file name with extension and without it*/
 	size_t len;/*name length*/
 
 	if(argc == 1)/*if no files entered*/
-		return 1;
+		return 0;
 
 	file_name = (char*)malloc(PATH_MAX+1);/*allocates memory*/
 	if(file_name==NULL)
-		return 1;
+		return 0;
 
 	file_name_extension = (char*)malloc(PATH_MAX+4);/*allocates memory for file name with extension*/
 	if(file_name_extension==NULL){
 		free(file_name)	;
-		return 1;
+		return 0;
 	}
 	while(--argc>0){/*read file one by one*/
 		labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
 	}
 	free(file_name);
 	free(file_name_extension);
-	return 0;
+	return 1;
 }
 
 /*Function receives head of directives linked list and frees all nodes*/

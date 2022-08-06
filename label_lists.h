@@ -5,10 +5,6 @@ enum {STRUCT, EXTERN, ENTRY, LABEL}; /*label's type number, data type includes .
 
 
 
-
-
-
-
 int check_repeated_labels(char* name, labels* head);
 void add_node_label(labels** head, labels** tail, char* name, int line, int label_type);
 int check_label_positioning(labels** head, externs** ext_head, char* label, int label_type, int line_num);

@@ -31,7 +31,8 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 } 
 
 
-/*Function receives linked list of command lines, labels, decimal machine code and memory counter, makes first translations of instruction command to machine code and adds into linked list, counting memory*/
+/*Function receives linked list of command lines, labels, decimal machine code and memory counter,
+ * makes first translations of command to machine code and adds into linked list, counting memory*/
 int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext, int memory_count){
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/
 	short int code;
@@ -39,7 +40,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 
 	while(ptr_cmd!=NULL){
 		code = 0;
-		code = code|(ptr_cmd->cmd_index<<6);
+		code = code|(ptr_cmd->cmd_index<<6);/*opcode  places 6-9*/
 		if(ptr_cmd->is_label){
 			add_label_memory_num(&(*head_lbl), memory_count, ptr_cmd->line_num);
 		}
@@ -49,19 +50,20 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
-		if(ptr_cmd->args==1){
+		if(ptr_cmd->args==1){/*if one argument*/
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
-			if(num_d == OPERAND_EXTERN)/*here extern is the same type - label*/
+			if(num_d == OPERAND_EXTERN)/*here extern is the same addressing type - label*/
 				code = code|(OPERAND_LABEL<<2);
-			else code = code|(num_d<<2);
+			else code = code|(num_d<<2); /*addressing type of destination, places 2-3*/
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*if no arguments add with cmd index*/
 			memory_count++;
+			/*after adding first "word" translate and add destination*/
 			memory_count = translate_one_operand(ptr_cmd->destination, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
 
-		if(ptr_cmd->args==2){
+		if(ptr_cmd->args==2){/*if two arguments*/
 			num_s = check_addressing_type(ptr_cmd->source, &(*head_lbl), code);
 			if(num_s == OPERAND_EXTERN)/*here extern is the same type - label*/
 				code = code|(OPERAND_LABEL<<4);
@@ -73,6 +75,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			else code = code|(num_d<<2);
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
+			/*after adding first "word" translate and add source and destination*/
 			memory_count = translate_two_operands(ptr_cmd->source, ptr_cmd->destination, num_s, num_d, memory_count, ptr_cmd->line_num, &(*head_code), &(*tail_code), &(*head_ext), &(*tail_ext));
 			ptr_cmd = ptr_cmd->next;
 			continue;
@@ -81,10 +84,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 	return memory_count;
 }		
 
-
-
-
-
+/*Function receives argument of command, head of label list and */
 int check_addressing_type(char *word, labels** head_lbl, int code){
 	int type, num;
 	labels *ptr_lbl = *head_lbl;/*label lists*/
@@ -92,7 +92,7 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	if(strchr(word, '.'))/*if struct*/
 		return OPERAND_STRUCT;
 
-	if((type = check_arg_number(word))!=ERROR)/*if number*/
+	if((type = check_arg_number(word))!=INT_MAX)/*if number*/
 		return OPERAND_NUMBER;
 
 	if((num = check_arg_register(word))!=ERROR)/*if register*/

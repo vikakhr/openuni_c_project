@@ -4,8 +4,8 @@
 #include "cmd_check.h"
 #include "helper_func.h"
 
-
-/*Function receives name of label and check of there are no same labels in the linked list. Returns 0 of name already exist, 1 otherwise*/
+/*Function receives name of label and head of labels linkes list. Checks if label hasn't already defined in file before.
+ * Returns 0 of name already exist, 1 otherwise*/
 int check_repeated_labels(char* name, labels* head){
 	labels* ptr = head;
 	
@@ -25,12 +25,12 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 	labels *ptr = *head;
 	externs *ptr_ext = *ext_head;
 	while(ptr_ext!=NULL){
-		if(!(strcmp(label, ptr_ext->ext_label))){
-			if(label_type == ENTRY || label_type == LABEL || label_type == STRUCT){
+		if(!(strcmp(label, ptr_ext->ext_label))){/*if label is in externs list*/
+			if(label_type == ENTRY || label_type == LABEL || label_type == STRUCT){/*if extern label has been defined inside file - error*/
 				printf("Error, conflicting positioning type for label defined multiple times, in line number: %d\n", line_num);
 		 		return ERROR;
 			}
-			else if(label_type == EXTERN){
+			else if(label_type == EXTERN){/*if extern label has been defined second tyme*/
 				printf("Warning, repeated label positioning definition - will be ignored, in line number: %d\n", line_num);
 				return ERROR;
 			}
@@ -39,8 +39,8 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 	}
 
 	while(ptr!=NULL){
-		if(!(strcmp(label, ptr->label))){
-			if(label_type == EXTERN){
+		if(!(strcmp(label, ptr->label))){/*if label is defined in this file*/
+			if(label_type == EXTERN){/*if extern - error*/
 				printf("Error, conflicting positioning type for label defined multiple times, in line number: %d\n", line_num);
 		 		return ERROR;
 			}
@@ -53,8 +53,6 @@ int check_label_positioning(labels** head, externs** ext_head, char* label, int 
 	}
 	return 1;
 }
-
-
 
 /*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
 void add_node_label(labels** head, labels** tail, char* name, int line, int label_type){
@@ -112,7 +110,7 @@ void add_node_extern(externs** head, externs** tail, char* name){
 }
 
 
-/*Function frees nodes and linked list*/
+/*Function frees nodes and linked list of extern labels*/
 void print_extlabel_list(externs* head){
 	externs* ptr = head;
 	int i=1;
@@ -125,10 +123,9 @@ void print_extlabel_list(externs* head){
 		i++;
 
 	}
-
 }
 
-
+/**********************************************************/
 void print_label_list(labels* head){
 	labels* ptr;
 	int i=1;
@@ -143,7 +140,6 @@ void print_label_list(labels* head){
 		i++;
 
 	}
-
 }
 
 
@@ -215,7 +211,7 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* operand
 		free(strct_name);
 		return ERROR;
 	}
-	if((check_arg_register(operand)!=ERROR) || (check_arg_number(operand)!=ERROR)){
+	if((check_arg_register(operand)!=ERROR) || (check_arg_number(operand)!=INT_MAX)){
 		free(strct_name);
 		return 1;
 	}

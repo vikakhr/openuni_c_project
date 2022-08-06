@@ -331,64 +331,64 @@ void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_
 }
 
 
-
+/*Function receives directive .struct line, it's details, head and tail of linked list of directives and adds arguments of struct directive to linked list*/
 void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv){
 	int i;
-	int inString = 0;
+	int in_string = 0;/*inside string flag*/
 	char *white_space = " \t\v\f\r\n";
 	char *ptr;
-	short int arg;
-	char *lineCopy = (char*)malloc(strlen(line)+1);
-	if(lineCopy==NULL)
+	short int arg;/*argument of struct*/
+	char *line_copy = (char*)malloc(strlen(line)+1);/*allocate memory for copy of command line*/
+	if(line_copy==NULL)
 		return;
-	strcpy(lineCopy, line);
 	
-	if(isLabel){
-		ptr = strtok(lineCopy, white_space);
-		ptr = strtok(NULL, white_space);
-	}
-	else ptr = strtok(lineCopy, white_space);
+	strcpy(line_copy, line);
+
+	ptr = strtok(line_copy, white_space);
+	ptr = strtok(NULL, white_space);
+	ptr = strtok(NULL, ",");/*take first argument of struct*/
 	
-	ptr = strtok(NULL, ",");
 	arg = (short)atoi(ptr);
-	if(arg>MAX_10_BITS_NUM){/*if 10 10 bits is not enough for signed number*/
+	if(arg>MAX_10_BITS_NUM){/*if 10 bits is not enough for signed number*/
 		printf("Warning, argument of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
 		arg = MAX_10_BITS_NUM;
 	}
-	if(arg<MIN_10_BITS_NUM){
+	if(arg<MIN_10_BITS_NUM){/*if 10 bits is not enough for negative signed number*/
 		printf("Warning, argument of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
 		arg = MIN_10_BITS_NUM;
 	}
 	add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, arg);/*adds directive num arg into linked list*/	
 	
-	for(i=0; i<strlen(line); i++){
-		if(lineCopy[i]=='"'){
-			if(inString){
-				if(lineCopy[i+1]=='\n')
+	for(i=0; i<strlen(line); i++){/*iterate char by char*/
+		if(line_copy[i]=='"'){
+			if(in_string){
+				if(line_copy[i+1]=='\n')/*if inside string and this is end if line*/
 					break;	
 			}
-			else inString = 1;
+			else in_string = 1;/*if there is " char inside string*/
 		}
 		else {
-			if(inString){
-				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, (short)lineCopy[i]);/*adds string arg into linked list*/	
+			if(in_string){/*add char of string to linked list*/
+				add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, (short)line_copy[i]);/*adds string arg into linked list*/
 			}		
 		}	
 	}
 	add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, (short)0);/*adds arg with \0 char into linked list*/	
-	free(lineCopy);
+	free(line_copy);
 }
 
+/*Function receives head and tail of linked list of copcode ommands, source and destination arguments and details about command line.
+ * Creates and adds new node of opcode command and adds to linked list*/
 void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* destination, int cmd_index, int line_num, int args, int isLabel){
 	cmdLine *new = (cmdLine*)malloc(sizeof(cmdLine));
 	if(new==NULL)
 		return;
 	
-	if(!args){
+	if(!args){/*if no arguments*/
 		new->source=NULL;
 		new->destination=NULL;
 	}
-	if(args==2){
+	if(args==2){/*if two arguments*/
 		new->source = (char*)malloc(strlen(source)+1);
 		if(new->source==NULL)
 			return;
@@ -398,15 +398,12 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 			free(new->source);
 			return;
 		}
-
-
 		strcpy(new->destination, destination);
 	}
-	else if(args==1){
+	else if(args==1){/*if one argument*/
 		new->destination = (char*)malloc(strlen(destination)+1);
 		if(new->destination==NULL)
 			return;
-
 		strcpy(new->destination, destination);
 		new->source=NULL;
 	}
@@ -436,7 +433,8 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 
 
 
-/*Function receives directive line and it's details, creates and adds new node to linked list of opcode commands*/
+/*Function receives head and tail of directives linked list, directive argument and it's details.
+ * Creates and adds new node and adds into linked list of directives*/
 void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, int isLabel, int arg){
 	directiveLine *new = malloc(sizeof(directiveLine));
 	if(new==NULL)
@@ -493,12 +491,14 @@ void print_directive_list(directiveLine* head){
 
 
 
-/*Function receives head of linked list of instruction and line number of node need to be deleted, searches this node and frees a memory of node and it's members*/
+/*Function receives head of linked list of instruction and line number of node need to be deleted, searches this node and frees a memory of node and it's members
+ * Frees node and contains and deletes it from linked list*/
 void delete_instruction_node(cmdLine **head, int line_num){
 	cmdLine *ptr = *head;
 	cmdLine *temp;
 
-	if((*head)->line_num  == line_num){
+	/*search by line number what need to be deleted*/
+	if((*head)->line_num  == line_num){/*if this is head*/
 		temp = *head;
 		*head = (*head)->next;
 	}
