@@ -1,7 +1,8 @@
 enum {NO_OPERANDS, ONE_OPERAND, TWO_OPERANDS};
 
 #define LABELSIZE 30 /*max length of label name*/
-
+#define MAX_10_BITS_NUM 511 /*max number for 10 bits signed binary representation*/
+#define MIN_10_BITS_NUM -511 /*min number for 10 bits signed binary representation*/
 
 
 
@@ -21,9 +22,7 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 
 
 
-int check_cmd (char *word);
-int check_directive(char *word);
-int check_cmd_args(char *word, int line_num, int isLabel, int cmd_index);
+
 
 
 void delete_instruction_node(cmdLine **head, int line_num);

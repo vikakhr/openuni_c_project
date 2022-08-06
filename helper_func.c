@@ -1,5 +1,4 @@
 #include "helper_func.h"
-#include <limits.h> /*for char_max and char_min*/
 #include "main.h"
 #include "first_step.h"
 #include "cmd_check.h"
@@ -14,7 +13,7 @@ char* remove_blanks(char* word){
 	len = strlen(word);
 	new_word = (char*)malloc(len+1);
 	if(new_word==NULL)
-		return (char*)ERROR;
+		return NULL;
 
 	for(i=0; i<len; i++){/*start index of word*/
 		if(!isspace(word[i])){
@@ -66,7 +65,7 @@ int check_commas (char *word, int line_num){
 }
 
 /*Function receives command line and line number. Checks typo errors, if ok returns 0, error otherwise*/
-int line_typo_errors_check(char* command, int line_num){
+int check_typo_errors(char* command, int line_num){
 	char *command_copy = remove_blanks(command);/*copy of command without blanks by sides*/
 	int len = strlen(command_copy);
 
@@ -104,6 +103,7 @@ int line_typo_errors_check(char* command, int line_num){
 int check_one_num(char *num){	
 	char *ptr;
 	long int value;
+
 	char *number = (char *)malloc(strlen(num)+1);
 	if(number == NULL)
 		return ERROR;
@@ -124,11 +124,7 @@ int check_one_num(char *num){
 		free(number);
 		return ERROR;
 	}
-	if(value<CHAR_MIN || value>CHAR_MAX){/*if number is beyond the limits of signed 8 bits - can't be translated to machine code*/
-		free(number);
-		return ERROR;
-	}
-		
+
 	free(number);
 	return (int)value;
 }
@@ -188,13 +184,11 @@ int check_nums(char *line, int isLabel, int line_num){
 					free(numbers);
 					return ERROR;
 				}
-				else {
-					printf("Error, operand is not an integer, in line number:%d\n", line_num);
-					free(word);
-					free(numbers);
-					return ERROR;
-				}
 			}
+			printf("Error, operand is not an integer, in line number:%d\n", line_num);
+			free(word);
+			free(numbers);
+			return ERROR;
 		}
 		count++;
 		free(word);

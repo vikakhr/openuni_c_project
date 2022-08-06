@@ -29,7 +29,7 @@ static CmdNames cmd[] ={
 int check_directive_islegal(char *word, int line_num){
 	int drctv_index;
 	
-	if((drctv_index = check_directive(word))==ERROR){/*check if first word is directive*/
+	if((drctv_index = check_directive_name(word))==ERROR){/*check if first word is directive*/
 			if(word[strlen(word)-1] == ','){/*Illegal comma after command name check*/
 				printf("Error, illegal comma in line number: %d\n", line_num);
 				return ERROR;	
@@ -146,7 +146,7 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	}
 	else {
 		printf("Error, string parameter is not legal, in line number: %d\n", line_num);
-		free(line_copy);
+ 		free(line_copy);
 		return ERROR;
 	}	
 }
@@ -177,8 +177,11 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			return ERROR;
 		}
 		arg_count++;
-		source = remove_blanks(p);
-		if(check_operand_errors(source)==ERROR){
+		if((source = remove_blanks(p))==NULL){/*remove blanks, check if malloc inside function not fails*/
+			free(cmd_copy);
+			return ERROR;
+		}
+		if(check_arg_errors(source)==ERROR){
 			printf("Error, source parameter is not legal, in line number: %d\n", line_num);
 			free(source);
 			free(cmd_copy);
@@ -187,12 +190,15 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 
 		if((p = strtok(NULL, ","))!=NULL){
 			if((arg = strtok(NULL, ","))!=NULL){
-				printf("Error, extraneous number of operands for instruction command, in line number: %d\n", line_num);
+				printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
 				isError = -1;
 			}
 			arg_count++;
-			destination = remove_blanks(p);
-			if(check_operand_errors(destination)==ERROR){
+			if((destination = remove_blanks(p))==NULL){/*remove blanks, check if malloc inside function not fails*/
+				free(cmd_copy);
+				return ERROR;
+			}
+			if(check_arg_errors(destination)==ERROR){
 				printf("Error, destination parameter is not legal, in line number: %d\n", line_num);
 				free(source);
 				free(destination);
@@ -204,11 +210,9 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			destination = source;
 	}
 	
-	
-
 	if(arg_count < cmd[cmd_index].args && !isError){
 		if(!strchr(command, ','))
-			printf("Error, missing comma between operands, in line number: %d\n", line_num);
+			printf("Error, missing comma between arguments, in line number: %d\n", line_num);
 		else printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
@@ -292,7 +296,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_cmd(char *word){
+int check_cmd_name(char *word){
 	int cmd_index;	
 	for(cmd_index=0; cmd[cmd_index].name!=NULL;cmd_index++){
 		if(!strcmp(word,cmd[cmd_index].name)){
@@ -303,7 +307,7 @@ int check_cmd(char *word){
 }
 
 /*Receives pointers to the word and array of command names. Checks if command is legal. If legal returns it's index, ERROR otherwise*/
-int check_directive(char *word){
+int check_directive_name(char *word){
 	char *DIRECTIVE[] = {".data",".string",".struct",".entry",".extern"};
 	int i;	
 	int size = sizeof(DIRECTIVE)/sizeof(DIRECTIVE)[0];/*number of words in array*/
@@ -313,12 +317,12 @@ int check_directive(char *word){
 	return ERROR;	
 }
 
-int check_operand_errors(char *operand){
-	if(isdigit(operand[0]))
+int check_arg_errors(char *arg){
+	if(isdigit(arg[0]))
 		return ERROR;
 
-	if(strchr(operand, '.')){/*if struct checks field number*/
-		if(operand[strlen(operand)-1] != '1' && operand[strlen(operand)-1] != '2'){
+	if(strchr(arg, '.')){/*if struct checks field number*/
+		if(arg[strlen(arg)-1] != '1' && arg[strlen(arg)-1] != '2'){
 			return ERROR;
 		}
 	}

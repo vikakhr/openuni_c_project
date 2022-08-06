@@ -1,3 +1,6 @@
+/*Victoria Podolinskiy 333877256*/
+/*This assembler program takes instructions and translates them into base 32 code*/
+
 #include "main.h"
 #include "preprocessor.h"
 #include "translator.h"
@@ -8,29 +11,29 @@
 
 int main(int argc, char *argv[]){
 	FILE *ifp;
-	char *file_name_extension, *file_name;
-	size_t len;
+	char *file_name_extension, *file_name;/*file name with extension and without it*/
+	size_t len;/*name length*/
 
-	if(argc == 1)
+	if(argc == 1)/*if no files entered*/
 		return 1;
 
 	file_name = (char*)malloc(PATH_MAX+1);/*allocates memory*/
 	if(file_name==NULL)
 		return 1;
 
-	file_name_extension = (char*)malloc(PATH_MAX+4);/*allocates memory for .as file*/
+	file_name_extension = (char*)malloc(PATH_MAX+4);/*allocates memory for file name with extension*/
 	if(file_name_extension==NULL){
 		free(file_name)	;
 		return 1;
 	}
-	while(--argc>0){
+	while(--argc>0){/*read file one by one*/
 		labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
 		externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
 		directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
 		cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
 		codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
-		len = strlen(*++argv);
 
+		len = strlen(*++argv);
 
 		memcpy(file_name, *argv, len+1);/*copies name*/
 		sprintf(file_name_extension,"%s.as", *argv);/*writes a full name of file*/
@@ -40,20 +43,22 @@ int main(int argc, char *argv[]){
 		}
 		else {
 			fclose(ifp);
+
 			if(preprocessor(file_name_extension, file_name)==ERROR)/*preprocessor function, if error - go to next file*/
 				continue;
 
-			sprintf(file_name_extension,"%s.am", *argv);/*writes a full name of file*/
+			sprintf(file_name_extension,"%s.am", *argv);/*name of file with extension after preprocessor*/
 
 			/*first step - read, check and save*/
 			read_cmd_line(file_name_extension, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
 
-			/*second step - check if all labels that received as operands are defined in fil*/
+			/*second step - check if all labels that received as operands are defined in file*/
 			check_label_defined(&head_lbl, &head_extern, &head_cmd);
 
 			/*third step - translate and output*/
 			translate_lines(file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
 
+			/*free all lists*/
 			free_labels_list(head_lbl);
 			free_directive_list(&head_drctv);
 			free_cmd_list(&head_cmd);
@@ -67,7 +72,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-
+/*Function receives head of directives linked list and frees all nodes*/
 void free_directive_list(directiveLine **head_drctv){
 	directiveLine *ptr;
 	while(*head_drctv!=NULL){
@@ -77,6 +82,7 @@ void free_directive_list(directiveLine **head_drctv){
 	}
 }
 
+/*Function receives head of commands linked list and frees all nodes*/
 void free_cmd_list(cmdLine **head_cmd){
 	cmdLine *ptr;
 	while(*head_cmd!=NULL){
@@ -88,6 +94,7 @@ void free_cmd_list(cmdLine **head_cmd){
 	}
 }
 
+/*Function receives head linked list of extern labels and frees all nodes*/
 void free_ext_list(externs **head_extern){
 	externs *ptr;
 	while(*head_extern!=NULL){
@@ -98,6 +105,7 @@ void free_ext_list(externs **head_extern){
 	}
 }
 
+/*Function receives head of code presentaion linked list and frees all nodes*/
 void free_code_list(codeWords *head_code){
 	codeWords *ptr;
 	while(head_code!=NULL){
@@ -108,6 +116,7 @@ void free_code_list(codeWords *head_code){
 	}
 }
 
+/*Function receives head of linked list of labels and frees all nodes*/
 void free_labels_list(labels *head_lbl){
 	labels *ptr;
 	while(head_lbl!=NULL){

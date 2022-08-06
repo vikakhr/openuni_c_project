@@ -4,7 +4,7 @@ LABEL: .string "a6"
 
 .entry LENGTH
 .extern L3
-prn #-5
+prn #+5
 .extern W
 
 

@@ -1,6 +1,5 @@
 mov S1.3, S1.1
 mov r1, r9
-mov r9,	 r1
 mov 5, r4
 mov r1, #5
 lea #-1, r1
@@ -15,9 +14,6 @@ DATA: .struct "abc", 8
 .data a1
 .data #5
 .string abc"
-.string 123
-.string abc
 .string "abc
-.string +5
 .entry r1
 .extern mov

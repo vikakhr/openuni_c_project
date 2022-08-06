@@ -37,7 +37,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 			continue;
 		}
 		
-		if((line_typo_errors_check(command, line_num))==ERROR)/*check typo errors*/
+		if((check_typo_errors(command, line_num))==ERROR)/*check typo errors*/
 			continue;
 
 		check_cmd_line(command, line_num, &(*head_lbl), &(*tail_lbl), &(*head_drctv), &(*tail_drctv), &(*head_cmd), &(*tail_cmd),
@@ -55,14 +55,16 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 /*Function receives line, it's number and linked lists for saving data, checks errors and saves legal line's data inside linked lists*/
 void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern){
 	char *firstWord, *secondWord, *thirdWord, *word, *label = NULL;/*pointers to separate words*/
-	int operand_counter = 0;/*counter number of operands of the command*/
-	char *source = NULL, *destination = NULL;/*operands of instruction*/
+	int arg_counter = 0;/*counter number of arguments of the command*/
+	char *source = NULL, *destination = NULL;/*arguments of instruction*/
 	int cmd_index, drctv_index;/*indexes of command names*/	
 	int len; /*string length*/
 	int isLabel = 0; /*label flag*/
 	char *white_space = " \t\v\f\r\n";
-	char *ptr;
-	char *command_copy = remove_blanks(command);/*copy of cmd line without whitespaces by sides*/
+	char *ptr, *command_copy;
+
+	if((command_copy = remove_blanks(command))==NULL)/*copy of cmd line without whitespaces by sides*/
+		return; /*if malloc of remove blanks fails*/
 
 	if((firstWord = strtok(command, white_space))==NULL)/*take first word*/{
 		free(command_copy);/*free memory allocated by remove_blanks func*/
@@ -105,14 +107,14 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 		}
 	}
 
-	if(secondWord[0] == ','){
+	if(secondWord[0] == ','){/*if comma after first word*/
 		printf("Error, illegal comma after first word of command, in line number: %d\n", line_num);
 		free(command_copy);
 		return;
 	}
 
-	if(secondWord[0] == ':'){
-		printf("Error, illegal label definition, in line number: %d\n", line_num);
+	if(strchr(secondWord, ':')){/*if colon in second word of command - error*/
+		printf("Error, second word of command is not legal, in line number: %d\n", line_num);
 		free(command_copy);
 		return;
 		}
@@ -129,7 +131,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 		switch(drctv_index){/*switch by directive index*/
 			case 0:/*.data*/ 
-				if((operand_counter = check_nums(command_copy, isLabel, line_num))==ERROR){/*check data parameters*/
+				if((arg_counter = check_nums(command_copy, isLabel, line_num))==ERROR){/*check data parameters*/
 					break;
 				}
 
@@ -206,8 +208,8 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 		else {/*if not directive check if instruction*/
 			if(isLabel)/*if label check if second word is legal command*/
-				cmd_index = check_cmd(secondWord);
-			else cmd_index = check_cmd(firstWord);/*else check first word*/
+				cmd_index = check_cmd_name(secondWord);
+			else cmd_index = check_cmd_name(firstWord);/*else check first word*/
 
 			if(cmd_index==ERROR){/*command isn't legal*/
 				printf("Error, undefined command name in line number: %d\n", line_num);
@@ -231,25 +233,29 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 					
 			if((ptr = strtok(NULL, ","))!=NULL){
-					operand_counter++; /*operand counter*/
+					arg_counter++; /*argument counter*/
 					source = remove_blanks(ptr);
+					if(source == NULL)/*if malloc inside remove blanks fails*/
+						return;
 				if((ptr = strtok(NULL, white_space))!=NULL){
-					operand_counter++; /*argument counter*/
+					arg_counter++; /*argument counter*/
 					destination = remove_blanks(ptr);
+					if(destination == NULL)/*if malloc inside remove blanks fails*/
+						return;
 				}
 				else {
 					destination = source;
 					source = NULL;
 				}
 			}
-			else/*if no operands for instruction*/
+			else/*if no arguments for instruction*/
 				destination = NULL;
 
-			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, operand_counter, isLabel);
+			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, arg_counter, isLabel);
 
-			if(operand_counter==1)/*free pointer returned from remove blanks*/
+			if(arg_counter==1)/*free pointer returned from remove blanks*/
 				free(destination);
-			if(operand_counter==2){/*free pointers returned from remove blanks*/
+			if(arg_counter==2){/*free pointers returned from remove blanks*/
 				free(source);
 				free(destination);
 			}
@@ -262,7 +268,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 
 
 
-/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds operands of data directive to linked list*/
+/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds arguments of data directive to linked list*/
 void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv){
 	char *ptr;
 	char *white_space = " \t\v\f\r\n";
@@ -280,6 +286,15 @@ void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_dr
 
 	while((ptr = strtok(NULL, ","))!=NULL){
 		arg = (short)atoi(ptr);
+		printf("Inside add data arg: %d\n", arg);
+		if(arg>MAX_10_BITS_NUM){/*if 10 10 bits is not enough for signed number*/
+			printf("Warning, argument of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
+			arg = MAX_10_BITS_NUM;
+		}
+		if(arg<MIN_10_BITS_NUM){
+			printf("Warning, argument of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
+			arg = MIN_10_BITS_NUM;
+		}
 		add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, arg);/*adds directive arg into linked list*/	
 
 	}
@@ -287,7 +302,7 @@ void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_dr
 	free(number);	
 }
 
-/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds operands of data directive to linked list*/
+/*Function receives directive .data line, it's details, head and tail of linked list of directives and adds arguments of data directive to linked list*/
 void add_string_arg(char* line, int isLabel, int line_num, directiveLine **head_drctv, directiveLine **tail_drctv){
 	int i;
 	int inString = 0;
@@ -336,7 +351,14 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 	
 	ptr = strtok(NULL, ",");
 	arg = (short)atoi(ptr);
-
+	if(arg>MAX_10_BITS_NUM){/*if 10 10 bits is not enough for signed number*/
+		printf("Warning, argument of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
+		arg = MAX_10_BITS_NUM;
+	}
+	if(arg<MIN_10_BITS_NUM){
+		printf("Warning, argument of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
+		arg = MIN_10_BITS_NUM;
+	}
 	add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, arg);/*adds directive num arg into linked list*/	
 	
 	for(i=0; i<strlen(line); i++){
@@ -442,7 +464,7 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 
 
 
-/*Function frees nodes and linked list*/
+/**************************************************************************************/
 void print_instruction_list(cmdLine* head){
 	cmdLine* ptr;
 	int i=1;
@@ -455,7 +477,7 @@ void print_instruction_list(cmdLine* head){
 	}
 }
 
-/*Function frees nodes and linked list*/
+/**************************************************************************************/
 void print_directive_list(directiveLine* head){
 	directiveLine* ptr;
 	int i=1;
@@ -471,7 +493,7 @@ void print_directive_list(directiveLine* head){
 
 
 
-/*Function receives head of linkes list of instruction and line number of node need to be deleted, search this node and frees a memory of node and it's members*/
+/*Function receives head of linked list of instruction and line number of node need to be deleted, searches this node and frees a memory of node and it's members*/
 void delete_instruction_node(cmdLine **head, int line_num){
 	cmdLine *ptr = *head;
 	cmdLine *temp;
