@@ -1,6 +1,6 @@
 #include "helper_func.h"
 #include "main.h"
-#include "first_step.h"
+#include "parse_file.h"
 #include "cmd_check.h"
 
 
@@ -106,7 +106,8 @@ int check_one_num(char *num){
 	if(number == NULL)
 		return INT_MAX;
 
-	num++; /*pointer to number after #*/
+	if(num[0]=='#')
+		num++; /*pointer to number after #*/
 	if(num[0]=='+' || num[0]=='-'){
 		num++;
 		if(!isdigit(num[0])){/*if contains non digit char*/
@@ -220,7 +221,7 @@ int check_string_islegal(char* line, int isLabel){
 	}
 	else ptr = strtok(string, separator);
 
-	ptr = strtok(NULL, separator);/*take pointer to the string*/
+	ptr = strtok(NULL, "\n");/*take pointer to the string*/
 	new_string = remove_blanks(ptr); /*remove blanks*/
 	free(string);
 	if(new_string[0] == '"' && new_string[strlen(new_string)-1] == '"'){/*if string has "" by sides*/

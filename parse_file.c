@@ -1,5 +1,5 @@
 #include "main.h" /*main libraries*/
-#include "first_step.h" /*functions*/
+#include "parse_file.h" /*functions*/
 #include "cmd_check.h" /*check functions*/
 #include "label_lists.h" /*lists of labels and structs*/
 #include "helper_func.h"
@@ -286,7 +286,6 @@ void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_dr
 
 	while((ptr = strtok(NULL, ","))!=NULL){
 		arg = (short)atoi(ptr);
-		printf("Inside add data arg: %d\n", arg);
 		if(arg>MAX_10_BITS_NUM){/*if 10 10 bits is not enough for signed number*/
 			printf("Warning, argument of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
 			arg = MAX_10_BITS_NUM;

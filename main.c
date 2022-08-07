@@ -1,10 +1,15 @@
 /*Victoria Podolinskiy 333877256*/
 /*This assembler program takes instructions and translates them into base 32 code*/
 
+/*parse_file.c includes first step functions to read, make first checks and save linked lists of commands and directives*/
+/*cmd_check.c includes fucntions that check names of commands and operands*/
+/*label_lists.c includes functions to handle label lists*/
+/*translator.c includes functions to add memory count and output into files*/
+
 #include "main.h"
 #include "preprocessor.h"
 #include "translator.h"
-#include "first_step.h"
+#include "parse_file.h"
 #include "label_lists.h"
 
 
@@ -49,23 +54,22 @@ int main(int argc, char *argv[]){
 
 			sprintf(file_name_extension,"%s.am", *argv);/*name of file with extension after preprocessor*/
 
-			/*first step - read, check and save*/
-			read_cmd_line(file_name_extension, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); /*check errors*/
+			/*first step*/
+			read_cmd_line(file_name_extension, &head_lbl, &tail_lbl, &head_drctv, &tail_drctv, &head_cmd, &tail_cmd, &head_extern, &tail_extern); 
 
-			/*second step - check if all labels that received as operands are defined in file*/
+			/*second step*/
 			check_label_defined(&head_lbl, &head_extern, &head_cmd);
 
-			/*third step - translate and output*/
+			/*third step*/
 			translate_lines(file_name, &head_code, &tail_code, &head_cmd, &tail_cmd, &head_drctv, &head_lbl);
 
-			/*free all lists*/
+			/*last step - free all lists*/
 			free_labels_list(head_lbl);
-			free_directive_list(&head_drctv);
-			free_cmd_list(&head_cmd);
-			free_ext_list(&head_extern);
+			free_directive_list(head_drctv);
+			free_cmd_list(head_cmd);
+			free_ext_list(head_extern);
 			free_code_list(head_code);
 		}
-		
 	}
 	free(file_name);
 	free(file_name_extension);
@@ -73,21 +77,21 @@ int main(int argc, char *argv[]){
 }
 
 /*Function receives head of directives linked list and frees all nodes*/
-void free_directive_list(directiveLine **head_drctv){
+void free_directive_list(directiveLine *head_drctv){
 	directiveLine *ptr;
-	while(*head_drctv!=NULL){
-		ptr = *head_drctv;
-		*head_drctv = (*head_drctv)->next;
+	while(head_drctv!=NULL){
+		ptr = head_drctv;
+		head_drctv = head_drctv->next;
 		free(ptr);
 	}
 }
 
 /*Function receives head of commands linked list and frees all nodes*/
-void free_cmd_list(cmdLine **head_cmd){
+void free_cmd_list(cmdLine *head_cmd){
 	cmdLine *ptr;
-	while(*head_cmd!=NULL){
-		ptr = *head_cmd;
-		*head_cmd = (*head_cmd)->next;
+	while(head_cmd!=NULL){
+		ptr = head_cmd;
+		head_cmd = head_cmd->next;
 		free(ptr->source);
 		free(ptr->destination);
 		free(ptr);
@@ -95,11 +99,11 @@ void free_cmd_list(cmdLine **head_cmd){
 }
 
 /*Function receives head linked list of extern labels and frees all nodes*/
-void free_ext_list(externs **head_extern){
+void free_ext_list(externs *head_extern){
 	externs *ptr;
-	while(*head_extern!=NULL){
-		ptr = *head_extern;
-		*head_extern = (*head_extern)->next;
+	while(head_extern!=NULL){
+		ptr = head_extern;
+		head_extern = head_extern->next;
 		free(ptr->ext_label);
 		free(ptr);
 	}

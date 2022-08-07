@@ -1,6 +1,5 @@
 #include "main.h"
 #include "translator.h"
-#include "first_step.h"
 #include "label_lists.h"
 #include "cmd_check.h"
 
@@ -20,16 +19,15 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 
 	add_address_of_labels(&(*head_code),  &(*head_lbl));
 
-	/*print_code_list(*head_code);
+	print_code_list(*head_code);
 	print_directive_list(*head_drctv);
-	print_label_list(*head_lbl);*/
+	print_label_list(*head_lbl);
 
 	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv), base_32);
 	output_entry_labels(file_name, &(*head_lbl), base_32);
 	output_and_free_ext_labels(file_name, head_extern, base_32);
 	free(base_32);
 } 
-
 
 /*Function receives linked list of command lines, labels, decimal machine code and memory counter,
  * makes first translations of command to machine code and adds into linked list, counting memory*/
@@ -51,7 +49,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			continue;
 		}
 		if(ptr_cmd->args==1){/*if one argument*/
-			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
+			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl));
 			if(num_d == OPERAND_EXTERN)/*here extern is the same addressing type - label*/
 				code = code|(OPERAND_LABEL<<2);
 			else code = code|(num_d<<2); /*addressing type of destination, places 2-3*/
@@ -64,15 +62,15 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 		}
 
 		if(ptr_cmd->args==2){/*if two arguments*/
-			num_s = check_addressing_type(ptr_cmd->source, &(*head_lbl), code);
+			num_s = check_addressing_type(ptr_cmd->source, &(*head_lbl));
 			if(num_s == OPERAND_EXTERN)/*here extern is the same type - label*/
 				code = code|(OPERAND_LABEL<<4);
-			else code = code|(num_s<<4);
+			else code = code|(num_s<<4);/*addressing type of source, places 4-5*/
 
-			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl), code);
+			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl));
 			if(num_d == OPERAND_EXTERN)/*here extern is the same type - label*/
 				code = code|(OPERAND_LABEL<<2);
-			else code = code|(num_d<<2);
+			else code = code|(num_d<<2);/*addressing type of destination, places 2-3*/
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
 			/*after adding first "word" translate and add source and destination*/
@@ -84,8 +82,8 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 	return memory_count;
 }		
 
-/*Function receives argument of command, head of label list and */
-int check_addressing_type(char *word, labels** head_lbl, int code){
+/*Function receives argument of command, head of label list and returns addressing type of argument*/
+int check_addressing_type(char *word, labels** head_lbl){
 	int type, num;
 	labels *ptr_lbl = *head_lbl;/*label lists*/
 
@@ -107,14 +105,15 @@ int check_addressing_type(char *word, labels** head_lbl, int code){
 	return OPERAND_EXTERN;
 }
 
+/*Function receives destination, it's type, details of line, head and tail of labels. Translates destination to binary machine code*/
 int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
 	int num;
-	short int unknown = -1;
-	short int code = 0;
+	short int unknown = -1; /*if binary representation is unknown on this step*/
+	short int code = 0; /*binary representation*/
 
 	switch(destination_type){
 		case OPERAND_NUMBER: 
-			num = atoi(++destination);
+			num = atoi(++destination);/*translate number after #*/
 			code = (short)num<<2;
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
@@ -153,6 +152,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 
 }
 
+/*Function receives source and destination, their types, details of line, head and tail of labels. Translates source and destination to binary machine code*/
 int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
 	int num_d, num;
 	int code = 0;
@@ -208,8 +208,8 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 }
 
-
-/*Function receives head, tail and text to put into new node, creates new node with text and adds this node at the end of list of labels*/
+/*Function receives head and tail of binary representation linked list, memory counter, code and argument name if u
+ * code is still unknown. Creates new node and adds into linked list*/
 void add_node_code(codeWords **head, codeWords **tail, int memory_count, int code, char *literal){
 	char *ptr;
 	codeWords *new = malloc(sizeof(codeWords));
@@ -246,6 +246,7 @@ void add_node_code(codeWords **head, codeWords **tail, int memory_count, int cod
 	}
 }
 
+/*********************************************************/
 void print_code_list(codeWords* head){/*DELETE AFTER*/
 	codeWords* ptr = head;
 
@@ -338,9 +339,9 @@ void translate_and_output(char *file_name, int cmd_code_count, int drctv_code_co
 			return;
 	}
 	base_32 = translate_to_base32((short)cmd_code_count, base_32);/*translate and write num of cmd lines*/
-	fprintf(dfp, "\t%s ", base_32);
+	fprintf(dfp, "  %s ", base_32);
 	base_32 = translate_to_base32(drctv_code_count, base_32); /*translate and write num of direction lines*/
-	fprintf(dfp, "%s\t\n", base_32);
+	fprintf(dfp, "%s\n", base_32);
 
 	while(ptr_code!=NULL){
 		base_32 = translate_to_base32((short)ptr_code->memory_count, base_32);
@@ -383,14 +384,15 @@ int extract_bits(short int num, int num_bits, int position){
 	return num1&num2;
 }
 
-
+/*Function receives name of file, linked lists of labels and string for base 32 presentation, creates .ent file
+ * if at least one label exists. Writes into file.*/
 void output_entry_labels(char *file_name, labels **head_lbl, char* base){
 	FILE *dfp;	
 	labels *ptr_lbl, *ptr2_lbl;
 	char* entFileName;
 	int is_first = 1;
 
-	if(*head_lbl==NULL)
+	if(*head_lbl==NULL)/*if no labels - exit*/
 		return;
 
 	entFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ent file*/
@@ -458,13 +460,14 @@ void add_memory_extern_arg(ext** head, ext** tail, char* name, int memory_count)
 	}
 }
 
-
-
+/*Function receives name of file, linked lists of extern labels and string for base 32 presentation, creates .ext file
+ * if at least one extern label has been used as argument. Writes into file.*/
 void output_and_free_ext_labels(char *file_name, ext *head_extern, char *base){
 	FILE *dfp;
 	ext *ptr_extern;
 	char* extFileName;
-	if(head_extern==NULL)
+
+	if(head_extern==NULL)/*if no extern labels - exit*/
 		return;
 
 	extFileName = (char*)malloc(strlen(file_name)+5);/*allocates memory for new .ext file*/
