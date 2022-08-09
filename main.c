@@ -1,10 +1,12 @@
 /*Victoria Podolinskiy 333877256*/
-/*This assembler program takes instructions and translates them into base 32 code*/
+/*This assembler program takes instructions and translates them into base 32 code. Although memory capacity is 256,
+ * program will not check this. In addition, there is no clear information if we can use struct operand if it extern,
+ * so in this program if struct is not defined inside file as .struct, program will print error if it used as operand for instruction*/
 
 /*parse_file.c includes first step functions to read, make first checks and save linked lists of commands and directives*/
 /*cmd_check.c includes fucntions that check names of commands and operands*/
 /*label_lists.c includes functions to handle label lists*/
-/*translator.c includes functions to add memory count and output into files*/
+/*translator.c includes functions to translate, add memory count and output into files*/
 
 #include "main.h"
 #include "preprocessor.h"
@@ -32,16 +34,16 @@ int main(int argc, char *argv[]){
 		return 0;
 	}
 	while(--argc>0){/*read file one by one*/
-		labels *head_lbl = NULL,  *tail_lbl = NULL; /*list of labels*/
-		externs *head_extern = NULL, *tail_extern = NULL; /*list of extern labels*/
-		directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*head and tail of directives list*/
-		cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*head and tail of instructions list*/
-		codeWords *head_code = NULL, *tail_code = NULL; /*head and tail of machine code list*/
+		labels *head_lbl = NULL,  *tail_lbl = NULL; /* of labels list*/
+		externs *head_extern = NULL, *tail_extern = NULL; /*of extern labels list*/
+		directiveLine *head_drctv = NULL, *tail_drctv = NULL; /*of directives list*/
+		cmdLine *head_cmd = NULL, *tail_cmd = NULL; /*of instructions list*/
+		codeWords *head_code = NULL, *tail_code = NULL; /*of machine code list*/
 
-		len = strlen(*++argv);
+		len = strlen(*++argv);/*length of name of file*/
 
 		memcpy(file_name, *argv, len+1);/*copies name*/
-		sprintf(file_name_extension,"%s.as", *argv);/*writes a full name of file*/
+		sprintf(file_name_extension,"%s.as", *argv);/*full name with extension*/
 
 		if((ifp = fopen(file_name_extension, "r")) == NULL){/*cannot open file, go to the next one*/
 			printf("Can't open %s\n", *argv);

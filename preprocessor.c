@@ -67,7 +67,7 @@ int preprocessor(char *file_name_extension, char *file_name){
 		}
 
 		else{   				
-			if(if_is_macro(command_copy)){/*if new macro was found*/
+			if(if_is_macro(command_copy, head)){/*if new macro was found*/
 				isMacroInFile = 1;/*turn on macro exists in file flag*/
 				isInside = 1; /*turn on inside macro flag*/
 				if((macro_name = take_macro_name(command))==NULL)/*if malloc inside function failed*/
@@ -157,13 +157,21 @@ int is_one_word(char* string){
 	return 0;	
 }
 
-/*Function checks if this is macro command, returns 1 if yes, 0 otherwise*/
-int if_is_macro(char* string){
+/*Function receives line and head of macroes linked list, checks if macro command is legal, returns 1 if yes, 0 otherwise*/
+int if_is_macro(char* string, node_macro* head){
 	char *white_space = " \t\v\f\r";
 	char* str = "macro";
 	char *p, *copy;
+	int i;
 
 	copy = remove_blanks(string);
+
+	for(i=0; i<strlen(copy); i++){/*if contains illegal punctuation mark in line*/
+		if(ispunct(copy[i])){
+			free(copy);
+			return 0;
+		}
+	}
 
 	p = strtok(copy, white_space);
 	if(strcmp(p, str)){/*if first word is not "macro"*/
@@ -177,6 +185,11 @@ int if_is_macro(char* string){
 	}
 
 	if((check_directive_name(p)!=ERROR) || (check_cmd_name(p)!=ERROR)){/*check if name of macro is not opcode or directive*/
+		free(copy);
+		return 0;
+	}
+
+	if(check_double_macro(p, head) == ERROR){/*if same macro defined second time*/
 		free(copy);
 		return 0;
 	}
@@ -219,7 +232,7 @@ char* take_macro_name(char* string){
 	return macro_name;
 }
 
-/*writes data into file*/
+/*Function receives line, head of macroes linked list and destination file pointer, writes data into file*/
 int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	node_macro* ptr = head;
 	char *white_space = " \t\v\f\r";
@@ -240,6 +253,19 @@ int write_macro_data(char* string, node_macro* head, FILE *dfp){
 	return 0;
 }
 
+/*Function receives head of macroes linked list and macro name, checks if macro name is already exists in the list, if yes returns error, 1 otherwise*/
+int check_double_macro(char* name, node_macro* head){
+	node_macro* ptr = head;
+	if(head==NULL)
+		return 1;
+	while(ptr!=NULL){
+		if(!strcmp(ptr->name, name)){/*search name of macro in the list*/
+			return ERROR;
+		}
+		ptr = ptr->next;
+	}
+	return 1;
+}
 
 /*Function receives a head of linked list and frees memory of each node*/
 void free_list(node_macro* head){

@@ -22,17 +22,17 @@ typedef struct node_ext{
 }node_ext; 
 
 struct node_cmd{
-	int cmd_index; /*opcode index*/
+	int cmd_index; /*opcode*/
 	int args; /*number of argumtns*/
-	char* source; /*source if exists*/
-	char* destination; /*dest if exists*/
+	char* source;
+	char* destination;
 	int line_num;
-	int is_label; /*flag is label defined at the start of command*/
+	int is_label; /*flag if label defined at the start of command*/
 	struct node_cmd* next;
 }node_cmd; 
 
 struct node_directive{
-	int isLabel; /*flag is label defined at the start of directive*/
+	int isLabel; /*flag if label defined at the start of directive*/
 	short int arg; /*binary representation of argument*/
 	int line_num;
 	int memory_count;

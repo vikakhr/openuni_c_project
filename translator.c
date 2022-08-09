@@ -3,6 +3,8 @@
 #include "label_lists.h"
 #include "cmd_check.h"
 
+/*Function receives file name, heads and tails of linked lists of binary machine code, command lines, directives and labels.
+ * Passes linked lists to functions for counting memory, translation and output*/
 void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_code, cmdLine **head_cmd, cmdLine **tail_cmd, directiveLine **head_drctv, labels **head_lbl){
 	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
@@ -25,7 +27,7 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	free(base_32);
 } 
 
-/*Function receives linked list of command lines, labels, decimal machine code and memory counter,
+/*Function receives heads of linked lists of command lines, labels, decimal machine code and memory counter,
  * makes first translations of command to machine code and adds into linked list, counting memory. Returns memory counter one after last*/
 int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext, int memory_count){
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/

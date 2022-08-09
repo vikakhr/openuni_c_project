@@ -1,9 +1,6 @@
-enum {NO_OPERANDS, ONE_OPERAND, TWO_OPERANDS};
-
 #define LABELSIZE 30 /*max length of label name*/
 #define MAX_10_BITS_NUM 511 /*max number for 10 bits signed binary representation*/
 #define MIN_10_BITS_NUM -511 /*min number for 10 bits signed binary representation*/
-
 
 void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern);
 void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern);

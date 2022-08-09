@@ -4,7 +4,7 @@
 #include "cmd_check.h"
 #include "helper_func.h"
 
-/*Function receives name of label and head of labels linkes list. Checks if label hasn't already defined in file before.
+/*Function receives name of label and head of labels linked list. Checks if label hasn't already defined in file before.
  * Returns 0 of name already exist, 1 otherwise*/
 int check_repeated_labels(char* name, labels* head){
 	labels* ptr = head;
@@ -16,7 +16,6 @@ int check_repeated_labels(char* name, labels* head){
 		ptr = ptr->next;
 	}
 	return 1;
-	
 }
 
 /*Function receives head and tail of linked list of labels, entry/extern label and it's details and checks if this label is already defined as extern or entry.
@@ -109,8 +108,8 @@ void add_node_extern(externs** head, externs** tail, char* name){
 	}
 }
 
-/*Function receives head of instruction lines, labels and extern labels. Checks if label in operand of instruction is defined in label tables, if not prints error
- * message and deletes error line from linked list of instructions*/
+/*Function receives head of instruction commands, labels and extern labels. Checks if label in operand of instruction is defined
+ * in label tables, if not prints error  message and deletes the line from linked list of instructions*/
 void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd){
 	cmdLine *temp;
 	cmdLine *ptr_cmd = *head_cmd;
@@ -123,7 +122,7 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 		isError = 0;
 		if(ptr_cmd->source!=NULL){/*check source*/
 			if(check_operand_defined(&(*head_label), &(*head_ext), ptr_cmd->source)==ERROR){
-				printf("Error, source operand is not defined, in line_number: %d\n", ptr_cmd->line_num);
+				printf("Error, source operand is not defined, in line number: %d\n", ptr_cmd->line_num);
 				temp = ptr_cmd;
 				ptr_cmd = ptr_cmd->next;
 				delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
@@ -133,7 +132,7 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 		}
 		if(ptr_cmd->destination!=NULL){/*check destination*/
 			if(check_operand_defined(&(*head_label), &(*head_ext), ptr_cmd->destination)==ERROR){
-				printf("Error, destination operand is not defined, in line_number: %d\n", ptr_cmd->line_num);
+				printf("Error, destination operand is not defined, in line number: %d\n", ptr_cmd->line_num);
 				temp = ptr_cmd;
 				ptr_cmd = ptr_cmd->next;
 				delete_instruction_node(head_cmd,temp->line_num);/*deletes and frees memory of node that contains error*/
@@ -154,7 +153,7 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* arg){
 	char *ptr;
 	char *strct_name = (char*)malloc(LABELSIZE+1);
 	if(strct_name == NULL)
-		return 0;
+		return ERROR;
 
 	if(strchr(arg, '.')){/*if struct*/
 		strcpy(strct_name, arg);
@@ -165,9 +164,11 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* arg){
 		}
 
 		while(ptr_label!=NULL){
-			if(!(strcmp(ptr_label->label, ptr))){/*if struct was found*/
-				free(strct_name);
-				return 1;
+			if(!(strcmp(ptr_label->label, ptr))){/*if name was found*/
+				if((ptr_label->label_type) == STRUCT){/*if this is struct*/
+					free(strct_name);
+					return 1;
+				}
 			}
 			ptr_label = ptr_label->next;
 		}
@@ -181,9 +182,11 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* arg){
 	}
 
 	while(ptr_label!=NULL){/*check if label*/
-		if(!(strcmp(ptr_label->label, arg))){/*if label was found*/
-			free(strct_name);
-			return 1;
+		if(!(strcmp(ptr_label->label, arg))){/*if label name was found*/
+			if((ptr_label->label_type) == LABEL){/*if label is defined in file*/
+				free(strct_name);
+				return 1;
+			}
 		}
 		ptr_label = ptr_label->next;
 	}

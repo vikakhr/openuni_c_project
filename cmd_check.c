@@ -75,7 +75,7 @@ int check_label_islegal(char* label, int line_num){
 	if(strlen(label)==cmdNameLength){/*if length of label string is three check if is not opcode name*/
 		for(i=0; cmd[i].name!=NULL; i++){
 			if(!strcmp(label, cmd[i].name)){
-				printf("Error, label name has the same name as opcode, in line number: %d\n", line_num);
+				printf("Error, label name has the name of instruction, in line number: %d\n", line_num);
 				return ERROR;
 			} 
 		}
@@ -231,7 +231,7 @@ int check_cmd_operands(char *command, int line_num, int isLabel, int cmd_index){
 		/*Check if addressing type of arguments is legal for specific opcode by opcode index*/
 		switch(cmd_index){/*switch by command index of struct*/
 			case 0: if(check_operand_number(destination)!=INT_MAX){/*if destination is number not legal*/
-					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
+					printf("Error, destination operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
@@ -243,24 +243,24 @@ int check_cmd_operands(char *command, int line_num, int isLabel, int cmd_index){
 			case 4:
 						
 			case 5: if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
+					printf("Error, destination operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
 				break;
 			case 6:
 				if(check_operand_register(source)!=ERROR){/*if source is register - not legal*/
-					printf("Error, source operand is not legal, in line number: %d\n", line_num);
+					printf("Error, source operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
 				if(check_operand_number(source)!=INT_MAX){/*if source is number - not legal*/
-					printf("Error, source operand is not legal, in line number: %d\n", line_num);
+					printf("Error, source operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
 				if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
+					printf("Error, destination operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
@@ -270,14 +270,14 @@ int check_cmd_operands(char *command, int line_num, int isLabel, int cmd_index){
 			case 9:
 			case 10:
 			case 11: if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
+					printf("Error, destination operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 					}
 				break;
 			case 12: break;
 			case 13: if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
+					printf("Error, destination operand is not legal for this command, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}	
