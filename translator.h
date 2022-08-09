@@ -1,7 +1,6 @@
 enum {OPERAND_NUMBER, OPERAND_LABEL, OPERAND_STRUCT, OPERAND_REGISTER, OPERAND_EXTERN};/*addressing number according to type of operand*/
 
 #define STARTMEMORY 100/*starting counter for memory*/
-#define MAXMEMORYSIZE 256
 
 typedef struct ext{
 	char* ext_label;/*linked list of labels*/

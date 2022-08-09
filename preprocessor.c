@@ -181,6 +181,11 @@ int if_is_macro(char* string){
 		return 0;
 	}
 
+	if((p = strtok(NULL, white_space))!=NULL){/*extraneous text after macro name*/
+			free(copy);
+			return 0;
+	}
+
 	free(copy);/*free pointer allocated by remove blanks*/
 	return 1;
 }

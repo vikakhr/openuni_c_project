@@ -109,44 +109,7 @@ void add_node_extern(externs** head, externs** tail, char* name){
 	}
 }
 
-
-/*Function frees nodes and linked list of extern labels*/
-void print_extlabel_list(externs* head){
-	externs* ptr = head;
-	int i=1;
-	printf("Inside print extern label:\n");
-	if(head==NULL)
-		return;
-	while(ptr!=NULL){
-		printf("%d - %s d\n", i, ptr->ext_label);
-		 ptr = ptr->next;
-		i++;
-
-	}
-}
-
-/**********************************************************/
-void print_label_list(labels* head){
-	labels* ptr;
-	int i=1;
-	ptr = head;
-
-	if(head==NULL)
-		return;
-	printf("Inside print label:\n");
-	while(ptr!=NULL){
-		printf("%d - %s - %d,line: %d memory_num: %d\n", i, ptr->label, ptr->label_type, ptr->line_number,ptr->memory_count);
-		 ptr = ptr->next;
-		i++;
-
-	}
-}
-
-
-
-
-
-/*Function receives head of instruction lines, labels and extern labels. Checks if label in argument of instruction is defined in label tables, if not prints error
+/*Function receives head of instruction lines, labels and extern labels. Checks if label in operand of instruction is defined in label tables, if not prints error
  * message and deletes error line from linked list of instructions*/
 void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head_cmd){
 	cmdLine *temp;
@@ -183,9 +146,9 @@ void check_label_defined(labels** head_label, externs **head_ext, cmdLine **head
 	}
 }
 
-/*Funnction receives labels and externs linked lists and operand, checks if operand is defined as label or struct.
+/*Funnction receives labels and externs linked lists and operand, checks if argument is defined as label or struct.
  * If not returns error*/
-int check_operand_defined(labels** head_label, externs **head_ext, char* operand){
+int check_operand_defined(labels** head_label, externs **head_ext, char* arg){
 	labels *ptr_label = *head_label;
 	externs *ptr_ext = *head_ext;
 	char *ptr;
@@ -193,8 +156,8 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* operand
 	if(strct_name == NULL)
 		return 0;
 
-	if(strchr(operand, '.')){/*if struct*/
-		strcpy(strct_name, operand);
+	if(strchr(arg, '.')){/*if struct*/
+		strcpy(strct_name, arg);
 		ptr = strtok(strct_name, ".");
 		if(ptr_label==NULL){
 			free(strct_name);
@@ -208,23 +171,24 @@ int check_operand_defined(labels** head_label, externs **head_ext, char* operand
 			}
 			ptr_label = ptr_label->next;
 		}
+
 		free(strct_name);
 		return ERROR;
 	}
-	if((check_arg_register(operand)!=ERROR) || (check_arg_number(operand)!=INT_MAX)){
+	if((check_operand_register(arg)!=ERROR) || (check_operand_number(arg)!=INT_MAX)){
 		free(strct_name);
 		return 1;
 	}
 
 	while(ptr_label!=NULL){/*check if label*/
-		if(!(strcmp(ptr_label->label, operand))){/*if label was found*/
+		if(!(strcmp(ptr_label->label, arg))){/*if label was found*/
 			free(strct_name);
 			return 1;
 		}
 		ptr_label = ptr_label->next;
 	}
 	while(ptr_ext!=NULL){/*check if extern label*/
-		if(!(strcmp(ptr_ext->ext_label, operand))){
+		if(!(strcmp(ptr_ext->ext_label, arg))){
 			free(strct_name);
 			return 1;
 		}

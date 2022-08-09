@@ -1,8 +1,13 @@
-;errors check
+;typo errors 
 
 macro  sub
 aaaaaaaaaaaaaaaaaaaaaaaaaa
 endmacro
+sub
+macro  r1
+aaaaaaaaaaaaaaaaaaaaaaaaaa
+endmacro
+r1 
 
 r1: mov r1,r2
 lea: mov r1,r2
@@ -28,7 +33,5 @@ mov r1 r2
 .data 0;1
 sub S1. 1, r2
 add r4, S 1.1 
-.entry LENGTH
-.extern LENGTH
-S1: .struct +a, "abc"
-STR: .struct -2048, "ab"
+
+

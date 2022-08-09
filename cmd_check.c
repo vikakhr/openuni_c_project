@@ -66,7 +66,7 @@ int check_label_islegal(char* label, int line_num){
 	}
 
 	if(strlen(label)==regNameLength){/*if length of label string is two check if is not register name*/
-		if(check_arg_register(label)!=ERROR){
+		if(check_operand_register(label)!=ERROR){
 				printf("Error, label name has the same name as register, in line number: %d\n", line_num);
 				return ERROR;
 		}
@@ -83,9 +83,9 @@ int check_label_islegal(char* label, int line_num){
 	return 1;
 }
 
-/*Function receives argiment of opcode. Checks if addressing method is immediate and argument is an integer,
+/*Function receives operand of instruction. Checks if addressing method is immediate and operand is an integer,
  * if it is returns num of addressing type, otherwise returns max integer value*/
-int check_arg_number(char *num){
+int check_operand_number(char *num){
 	char *number;
 	int value;
 	if(num[0]!='#')
@@ -102,8 +102,8 @@ int check_arg_number(char *num){
 	return value;
 }
 
-/*Function checks if argument is register, if it is returns index of register, otherwise returns error*/
-int check_arg_register(char *word){
+/*Function checks if operand is register, if it is returns index of register, otherwise returns error*/
+int check_operand_register(char *word){
 	char *REGISTER[] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 	int size = sizeof(REGISTER)/sizeof(REGISTER[0]);
 	int i;
@@ -114,8 +114,8 @@ int check_arg_register(char *word){
 	return ERROR;
 }
 
-/*Function checks if argument can be a struct, if it is returns num of addressing type, otherwise returns error*/
-int check_struct_arg(char *line, int line_num, int isLabel){
+/*Function checks if operand can be a struct, if it is returns num of addressing type, otherwise returns error*/
+int check_operand_struct(char *line, int line_num, int isLabel){
 	char *separator = " \t\v\f\r";
 	char *ptr;
 	char *line_copy = (char*)malloc(strlen(line)+1);
@@ -129,8 +129,8 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	}
 	else 	ptr = strtok(line_copy, separator);
 
-	if((ptr = strtok(NULL, ",")) == NULL){/*if no first argument*/
-		printf("Error, missing arguments for struct, in line number: %d\n", line_num);
+	if((ptr = strtok(NULL, ",")) == NULL){/*if no first operand*/
+		printf("Error, missing parameters for struct, in line number: %d\n", line_num);
 		free(line_copy);
 		return ERROR;
 	}
@@ -142,7 +142,7 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	}
 
 	if((ptr = strtok(NULL, separator))==NULL){/*if no second argument*/
-		printf("Error, missing arguments for struct directive, in line number: %d\n", line_num);
+		printf("Error, missing parameters for struct directive, in line number: %d\n", line_num);
 		free(line_copy);
 		return ERROR;
 	}
@@ -158,11 +158,11 @@ int check_struct_arg(char *line, int line_num, int isLabel){
 	}	
 }
 
-/*Function receives command, line num, line number and command index. Checks if arguments of given command are right*/
-int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
+/*Function receives command, line num, line number and command index. Checks if operands of given command are right*/
+int check_cmd_operands(char *command, int line_num, int isLabel, int cmd_index){
 	char *cmd_copy, *arg, *source, *destination, *p;
 	char *white_space = " \t\v\f\r\n";
-	int arg_count = 0, isError = 0;/*count of arguments, flag is error*/
+	int arg_count = 0, isError = 0;/*count of operands, flag is error*/
 	cmd_copy = (char*)malloc(strlen(command)+1);
 	if(cmd_copy==NULL)
 		return ERROR;
@@ -176,9 +176,9 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 	else 
 		strtok(cmd_copy, white_space);
 
-	if((p = strtok(NULL, ","))!=NULL){/*take first argument*/
-		if(ispunct(p[0]) && p[0]!='#'){/*if punctuation mark before first argument*/
-			printf("Error, extraneous punctuation mark between command and first argument, in line number: %d\n", line_num);
+	if((p = strtok(NULL, ","))!=NULL){/*take first operand*/
+		if(ispunct(p[0]) && p[0]!='#'){/*if punctuation mark before first operand*/
+			printf("Error, extraneous punctuation mark between command and first operand, in line number: %d\n", line_num);
 			free(cmd_copy);
 			return ERROR;
 		}
@@ -188,8 +188,8 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			return ERROR;
 		}
 
-		if(check_arg_errors(source)==ERROR){/*errors check of source*/
-			printf("Error, first argument is not legal, in line number: %d\n", line_num);
+		if(check_operand_errors(source)==ERROR){/*errors check of source*/
+			printf("Error, first operand is not legal, in line number: %d\n", line_num);
 			free(source);
 			free(cmd_copy);
 			return ERROR;
@@ -197,7 +197,7 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 
 		if((p = strtok(NULL, ","))!=NULL){
 			if((arg = strtok(NULL, ","))!=NULL){/*if there is third argument in line with opcode*/
-				printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+				printf("Error, extraneous number of operands for instruction command, in line number: %d\n", line_num);
 				isError = -1;
 			}
 			arg_count++;
@@ -206,8 +206,8 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 				return ERROR;
 			}
 
-			if(check_arg_errors(destination)==ERROR){/*errors check of destination*/
-				printf("Error, second argument is not legal, in line number: %d\n", line_num);
+			if(check_operand_errors(destination)==ERROR){/*errors check of destination*/
+				printf("Error, second operand is not legal, in line number: %d\n", line_num);
 				free(source);
 				free(destination);
 				free(cmd_copy);
@@ -215,23 +215,23 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			}
 		}
 		else
-			destination = source; /*if just one argument in line - it is destination*/
+			destination = source; /*if just one operand in line - it is destination*/
 	}
 	if(arg_count < cmd[cmd_index].args && !isError){/*if num of arguments is less than need for opcode*/
 		if(!strchr(command, ','))
-			printf("Error, missing comma between arguments, in line number: %d\n", line_num);
-		else printf("Error, missing arguments for instruction command, in line number: %d\n", line_num);
+			printf("Error, missing comma between operands, in line number: %d\n", line_num);
+		else printf("Error, missing operands for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
 	if((arg_count > cmd[cmd_index].args) && !isError){/*if more arguments than need for opcode*/
-		printf("Error, extraneous number of arguments for instruction command, in line number: %d\n", line_num);
+		printf("Error, extraneous number of operands for instruction command, in line number: %d\n", line_num);
 		isError = -1;
 	}
 	if(!isError){
 		/*Check if addressing type of arguments is legal for specific opcode by opcode index*/
 		switch(cmd_index){/*switch by command index of struct*/
-			case 0: if(check_arg_number(destination)!=INT_MAX){/*if destination is number not legal*/
-					printf("Error, destination argument is not legal, in line number: %d\n", line_num);
+			case 0: if(check_operand_number(destination)!=INT_MAX){/*if destination is number not legal*/
+					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
@@ -242,25 +242,25 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 				
 			case 4:
 						
-			case 5: if(check_arg_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination argument is not legal, in line number: %d\n", line_num);
+			case 5: if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
+					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
 				break;
 			case 6:
-				if(check_arg_register(source)!=ERROR){/*if source is register - not legal*/
-					printf("Error, source argument is not legal, in line number: %d\n", line_num);
+				if(check_operand_register(source)!=ERROR){/*if source is register - not legal*/
+					printf("Error, source operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
-				if(check_arg_number(source)!=INT_MAX){/*if source is number - not legal*/
-					printf("Error, source argument is not legal, in line number: %d\n", line_num);
+				if(check_operand_number(source)!=INT_MAX){/*if source is number - not legal*/
+					printf("Error, source operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
-				if(check_arg_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination argument is not legal, in line number: %d\n", line_num);
+				if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
+					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}
@@ -269,15 +269,15 @@ int check_cmd_args(char *command, int line_num, int isLabel, int cmd_index){
 			case 8:
 			case 9:
 			case 10:
-			case 11: if(check_arg_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination argument is not legal, in line number: %d\n", line_num);
+			case 11: if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
+					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 					}
 				break;
 			case 12: break;
-			case 13: if(check_arg_number(destination)!=INT_MAX){/*if destination is number - not legal*/
-					printf("Error, destination argument is not legal, in line number: %d\n", line_num);
+			case 13: if(check_operand_number(destination)!=INT_MAX){/*if destination is number - not legal*/
+					printf("Error, destination operand is not legal, in line number: %d\n", line_num);
 					isError = -1;
 					break;
 				}	
@@ -325,8 +325,8 @@ int check_directive_name(char *word){
 	return ERROR;	
 }
 
-/*Receives argument of opcode, checks errors. If argument is not legal return error, 1 is ok*/
-int check_arg_errors(char *arg){
+/*Receives operand of opcode, checks errors. If argument is not legal return error, 1 is ok*/
+int check_operand_errors(char *arg){
 	if(isdigit(arg[0]))/*if number without # - not legal*/
 		return ERROR;
 

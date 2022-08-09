@@ -7,7 +7,7 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 	int memory_count = STARTMEMORY;
 	int cmd_code_count, drctv_code_count;/*number of words of each type of command*/
 	ext *head_extern = NULL, *tail_extern;
-	char *base_32 = (char*)malloc(3);
+	char *base_32 = (char*)malloc(3);/*string for base 32 representation*/
 	if(base_32==NULL)
 		return;
 
@@ -19,10 +19,6 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 
 	add_address_of_labels(&(*head_code),  &(*head_lbl));
 
-	print_code_list(*head_code);
-	print_directive_list(*head_drctv);
-	print_label_list(*head_lbl);
-
 	translate_and_output(file_name, cmd_code_count, drctv_code_count, &(*head_code), &(*head_drctv), base_32);
 	output_entry_labels(file_name, &(*head_lbl), base_32);
 	output_and_free_ext_labels(file_name, head_extern, base_32);
@@ -30,7 +26,7 @@ void translate_lines(char *file_name, codeWords **head_code, codeWords **tail_co
 } 
 
 /*Function receives linked list of command lines, labels, decimal machine code and memory counter,
- * makes first translations of command to machine code and adds into linked list, counting memory*/
+ * makes first translations of command to machine code and adds into linked list, counting memory. Returns memory counter one after last*/
 int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext, int memory_count){
 	cmdLine *ptr_cmd = *head_cmd;/*instructions list*/
 	short int code;
@@ -43,12 +39,12 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			add_label_memory_num(&(*head_lbl), memory_count, ptr_cmd->line_num);
 		}
 		if(!ptr_cmd->args){
-			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*if no arguments add with cmd index*/
+			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);/*if no operands add with cmd index*/
 			memory_count++;
 			ptr_cmd = ptr_cmd->next;
 			continue;
 		}
-		if(ptr_cmd->args==1){/*if one argument*/
+		if(ptr_cmd->args==1){/*if one operand*/
 			num_d = check_addressing_type(ptr_cmd->destination, &(*head_lbl));
 			if(num_d == OPERAND_EXTERN)/*here extern is the same addressing type - label*/
 				code = code|(OPERAND_LABEL<<2);
@@ -61,7 +57,7 @@ int first_cmd_translation(cmdLine **head_cmd, labels **head_lbl, codeWords **hea
 			continue;
 		}
 
-		if(ptr_cmd->args==2){/*if two arguments*/
+		if(ptr_cmd->args==2){/*if two operands*/
 			num_s = check_addressing_type(ptr_cmd->source, &(*head_lbl));
 			if(num_s == OPERAND_EXTERN)/*here extern is the same type - label*/
 				code = code|(OPERAND_LABEL<<4);
@@ -90,10 +86,10 @@ int check_addressing_type(char *word, labels** head_lbl){
 	if(strchr(word, '.'))/*if struct*/
 		return OPERAND_STRUCT;
 
-	if((type = check_arg_number(word))!=INT_MAX)/*if number*/
+	if((type = check_operand_number(word))!=INT_MAX)/*if number*/
 		return OPERAND_NUMBER;
 
-	if((num = check_arg_register(word))!=ERROR)/*if register*/
+	if((num = check_operand_register(word))!=ERROR)/*if register*/
 		return OPERAND_REGISTER;
 
 	while(ptr_lbl!=NULL){
@@ -105,20 +101,20 @@ int check_addressing_type(char *word, labels** head_lbl){
 	return OPERAND_EXTERN;
 }
 
-/*Function receives destination, it's type, details of line, head and tail of labels. Translates destination to binary machine code*/
+/*Function receives destination, it's type, details of line, head and tail of labels. Translates destination to binary machine code. Returns memory counter one after last*/
 int translate_one_operand(char *destination, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
 	int num;
 	short int unknown = -1; /*if binary representation is unknown on this step*/
 	short int code = 0; /*binary representation*/
 
 	switch(destination_type){
-		case OPERAND_NUMBER: 
+		case OPERAND_NUMBER:
 			num = atoi(++destination);/*translate number after #*/
 			code = (short)num<<2;
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
 			break;
-		case OPERAND_LABEL:	
+		case OPERAND_LABEL:
 			add_node_code(&(*head_code), &(*tail_code), memory_count, unknown, destination);
 			memory_count++;
 			break;
@@ -133,7 +129,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 			memory_count++;
 			break;
 		case OPERAND_REGISTER:
-			num = check_arg_register(destination);/*take index of register*/
+			num = check_operand_register(destination);/*take index of register*/
 			code = code|(num<<2);
 			add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 			memory_count++;
@@ -152,7 +148,7 @@ int translate_one_operand(char *destination, int destination_type, int memory_co
 
 }
 
-/*Function receives source and destination, their types, details of line, head and tail of labels. Translates source and destination to binary machine code*/
+/*Function receives source and destination, their types, details of line, head and tail of labels. Translates source and destination to binary machine code. Returns memory counter one after last*/
 int translate_two_operands(char *source, char *destination, int source_type, int destination_type, int memory_count, int line_number, codeWords **head_code, codeWords **tail_code, ext **head_ext, ext **tail_ext){
 	int num_d, num;
 	int code = 0;
@@ -180,11 +176,11 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 				memory_count++;
 				break;
 			case OPERAND_REGISTER:
-				num = check_arg_register(source);/*take index of register*/
+				num = check_operand_register(source);/*take index of register*/
 				code = code|(num<<6);
 
 				if(destination_type==OPERAND_REGISTER){/*if source and destination are registers this is the same word*/
-						num_d = check_arg_register(destination);/*take index of register*/
+						num_d = check_operand_register(destination);/*take index of register*/
 						code = code|num_d<<2;
 						add_node_code(&(*head_code), &(*tail_code), memory_count, code, NULL);
 						memory_count++;
@@ -208,7 +204,7 @@ int translate_two_operands(char *source, char *destination, int source_type, int
 
 }
 
-/*Function receives head and tail of binary representation linked list, memory counter, code and argument name if u
+/*Function receives head and tail of binary representation linked list, memory counter, code and argument name if
  * code is still unknown. Creates new node and adds into linked list*/
 void add_node_code(codeWords **head, codeWords **tail, int memory_count, int code, char *literal){
 	char *ptr;
@@ -246,25 +242,13 @@ void add_node_code(codeWords **head, codeWords **tail, int memory_count, int cod
 	}
 }
 
-/*********************************************************/
-void print_code_list(codeWords* head){/*DELETE AFTER*/
-	codeWords* ptr = head;
-
-	printf("Inside print code list:\n");
-	while(ptr!=NULL){
-		printf("memory: %d, code: %d\n", ptr->memory_count, ptr->code);		
-
-		ptr = ptr->next;
-	}
-	 
-}
-
-/*Function re*/
+/*Function receives linked list of binary machine code of instructions and entry labels,
+ * adds "word* with label memory count and ARE*/
 void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 	codeWords *ptr_code = *head_code;
 	labels *ptr_label;
 	int unknown = -1;
-	int ARE = 2;/*are of label*/
+	int ARE = 2;/*ARE of label*/
 	int code;
 	while(ptr_code!=NULL){
 		code = 0;
@@ -273,7 +257,7 @@ void add_address_of_labels(codeWords **head_code, labels **head_lbl){
 			while(ptr_label!=NULL){
 				if(!strcmp(ptr_label->label, ptr_code->literal)){
 						code = code | ARE;/*setting ARE of label*/
-						code = code | (ptr_label->memory_count)<<2;
+						code = code | (ptr_label->memory_count)<<2;/*adds address of label*/
 					ptr_code->code = code;
 					break;
 				}

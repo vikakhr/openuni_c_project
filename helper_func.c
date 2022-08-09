@@ -205,7 +205,7 @@ int check_nums(char *line, int isLabel, int line_num){
 	return count;
 }
 
-/*Function receives command line and flag if there is label. Checks if string operand is legal and returns 1, ERROR otherwise*/
+/*Function receives command line and flag if there is label. Checks if string argument is legal and returns 1, ERROR otherwise*/
 int check_string_islegal(char* line, int isLabel){
 	char *separator = " \t\v\f\r";
 	char *ptr, *new_string;

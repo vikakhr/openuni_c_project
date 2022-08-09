@@ -44,9 +44,7 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 		&(*head_extern), &(*tail_extern));/*pass all parameters to next step checks*/
 	}/*end of forever*/
 
-	print_label_list(*head_lbl);
-	print_extlabel_list(*head_extern);
-	print_instruction_list(*head_cmd);
+
 	free(command);
 	fclose(sfp);
 }
@@ -55,8 +53,8 @@ void read_cmd_line(char *sourceFileName, labels **head_lbl, labels **tail_lbl, d
 /*Function receives line, it's number and linked lists for saving data, checks errors and saves legal line's data inside linked lists*/
 void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tail_lbl, directiveLine **head_drctv, directiveLine **tail_drctv, cmdLine **head_cmd, cmdLine **tail_cmd, externs **head_extern, externs **tail_extern){
 	char *firstWord, *secondWord, *thirdWord, *word, *label = NULL;/*pointers to separate words*/
-	int arg_counter = 0;/*counter number of arguments of the command*/
-	char *source = NULL, *destination = NULL;/*arguments of instruction*/
+	int arg_counter = 0;/*counter number of operands of the command*/
+	char *source = NULL, *destination = NULL;/*operands of instruction*/
 	int cmd_index, drctv_index;/*indexes of command names*/	
 	int len; /*string length*/
 	int isLabel = 0; /*label flag*/
@@ -72,7 +70,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 	}
 
 	if((secondWord = strtok(NULL, white_space)) == NULL){/*take second word*/
-		printf("Error, missing arguments in line number: %d\n", line_num);
+		printf("Error, missing operands in line number: %d\n", line_num);
 		free(command_copy);/*free memory allocated by remove_blanks func*/
 		return;
 	}
@@ -162,7 +160,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				}
 				if((check_label_positioning(&(*head_lbl), &(*head_extern), label, STRUCT, line_num))==ERROR)
 					break;
-				if(check_struct_arg(command_copy, line_num, isLabel)==ERROR)/*check struct arguments*/
+				if(check_operand_struct(command_copy, line_num, isLabel)==ERROR)/*check struct operands*/
 					break;
 				add_node_label(&(*head_lbl), &(*tail_lbl), label, line_num, STRUCT);
 				add_struct_arg(command_copy, isLabel, line_num, &(*head_drctv), &(*tail_drctv));
@@ -217,7 +215,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 				return;
 			}
 
-			if((check_cmd_args(command_copy, line_num, isLabel, cmd_index)) == ERROR){
+			if((check_cmd_operands(command_copy, line_num, isLabel, cmd_index)) == ERROR){
 				free(command_copy);
 				return;
 			}
@@ -248,7 +246,7 @@ void check_cmd_line(char *command, int line_num, labels **head_lbl, labels **tai
 					source = NULL;
 				}
 			}
-			else/*if no arguments for instruction*/
+			else/*if no operands for instruction*/
 				destination = NULL;
 
 			add_instruction_node(&(*head_cmd), &(*tail_cmd), source, destination, cmd_index, line_num, arg_counter, isLabel);
@@ -287,11 +285,11 @@ void add_data_arg(char* line, int isLabel, int line_num, directiveLine **head_dr
 	while((ptr = strtok(NULL, ","))!=NULL){
 		arg = (short)atoi(ptr);
 		if(arg>MAX_10_BITS_NUM){/*if 10 10 bits is not enough for signed number*/
-			printf("Warning, argument of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
+			printf("Warning, parameter of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
 			arg = MAX_10_BITS_NUM;
 		}
 		if(arg<MIN_10_BITS_NUM){
-			printf("Warning, argument of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
+			printf("Warning, parameter of .data exceeds boundary, some data may be lost, in line: %d\n", line_num);
 			arg = MIN_10_BITS_NUM;
 		}
 		add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, arg);/*adds directive arg into linked list*/	
@@ -349,11 +347,11 @@ void add_struct_arg(char* line, int isLabel, int line_num, directiveLine **head_
 	
 	arg = (short)atoi(ptr);
 	if(arg>MAX_10_BITS_NUM){/*if 10 bits is not enough for signed number*/
-		printf("Warning, argument of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
+		printf("Warning, parameter of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
 		arg = MAX_10_BITS_NUM;
 	}
 	if(arg<MIN_10_BITS_NUM){/*if 10 bits is not enough for negative signed number*/
-		printf("Warning, argument of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
+		printf("Warning, parameter of .struct exceeds boundary, some data may be lost, in line: %d\n", line_num);
 		arg = MIN_10_BITS_NUM;
 	}
 	add_directive_node(&(*head_drctv), &(*tail_drctv), line_num, isLabel, arg);/*adds directive num arg into linked list*/	
@@ -426,12 +424,6 @@ void add_instruction_node(cmdLine **head, cmdLine **tail, char* source, char* de
 	}
 }
 
-
-
-
-
-
-
 /*Function receives head and tail of directives linked list, directive argument and it's details.
  * Creates and adds new node and adds into linked list of directives*/
 void add_directive_node(directiveLine **head, directiveLine **tail, int line_num, int isLabel, int arg){
@@ -458,37 +450,6 @@ void add_directive_node(directiveLine **head, directiveLine **tail, int line_num
 		*tail = new;
 	}
 }
-
-
-
-/**************************************************************************************/
-void print_instruction_list(cmdLine* head){
-	cmdLine* ptr;
-	int i=1;
-	ptr = head;
-
-	while(ptr!=NULL){
-		printf("%d: cmd_index: %d, source: %s, destination: %s, line_num: %d, num_args:%d\n", i, ptr->cmd_index, ptr->source, ptr->destination, ptr->line_num, ptr->args);
-		 ptr = ptr->next;
-		i++;
-	}
-}
-
-/**************************************************************************************/
-void print_directive_list(directiveLine* head){
-	directiveLine* ptr;
-	int i=1;
-	ptr = head;
-	printf("Inside print directive node:\n");
-	while(ptr!=NULL){
-		printf("%d:  arg: %d, line_num: %d memory_num: %d\n", i, ptr->arg, ptr->line_num, ptr->memory_count);
-
-		 ptr = ptr->next;
-		i++;
-	}
-}
-
-
 
 /*Function receives head of linked list of instruction and line number of node need to be deleted, searches this node and frees a memory of node and it's members
  * Frees node and contains and deletes it from linked list*/
