@@ -1,5 +1,5 @@
 # Assembler
-This assembler programm translates instructions into binary machine code and then into unique base 32 code.
+This assembler program translates instructions into binary machine code and then into unique base 32 code.
 
 ## General Info
 Final project of the course 'Systems programming laboratory' in The Open University of Israel.
